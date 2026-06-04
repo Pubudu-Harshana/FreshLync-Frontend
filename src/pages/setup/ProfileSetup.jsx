@@ -69,7 +69,7 @@ export default function ProfileSetup() {
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Phone Number</label>
             <div style={{ display: 'flex' }}>
               <div style={{ border: '1px solid var(--color-border)', borderRight: 'none', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)', background: 'var(--color-background)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🇺🇸 +1
+                🇬🇧 +44
               </div>
               <input 
                 type="tel" 
