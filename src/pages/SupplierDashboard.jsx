@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, LayoutDashboard, Package, ShoppingBag, BarChart3, ShieldCheck, HelpCircle, Settings, LogOut, Edit2, Trash2 } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function SupplierDashboard() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function SupplierDashboard() {
 
   return (
     <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)' }}>
+      <SEO title="Supplier Dashboard" />
       {/* Sidebar */}
       <aside className="dashboard-sidebar">
         <div style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>

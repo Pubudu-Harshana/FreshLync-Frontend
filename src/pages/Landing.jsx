@@ -1,12 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Leaf, BarChart2, ShieldCheck, Map, Users } from 'lucide-react';
+import SEO from '../components/SEO';
 
 export default function Landing() {
   const navigate = useNavigate();
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', minHeight: '100vh', background: 'var(--color-surface)' }}>
+      <SEO title="Home" />
       {/* Navbar */}
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 4rem', position: 'absolute', width: '100%', zIndex: 10, color: 'white' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

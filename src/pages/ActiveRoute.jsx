@@ -1,13 +1,14 @@
 import React from 'react';
 import { ArrowLeft, MapPin, Navigation, Clock, Box, Maximize, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 export default function ActiveRoute() {
   const navigate = useNavigate();
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', height: '100vh', width: '100vw', background: '#1E293B', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      
+      <SEO title="Active Route" />
       {/* Background Map Placeholder */}
       <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1000)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.4 }}></div>
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(30,41,59,0.8) 0%, rgba(30,41,59,0.2) 50%, rgba(30,41,59,1) 100%)' }}></div>

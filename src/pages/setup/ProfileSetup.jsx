@@ -1,12 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserCircle } from 'lucide-react';
+import { useSetup } from '../../context/SetupContext';
+import SEO from '../../components/SEO';
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
+  const { setupState, updateProfile } = useSetup();
+  const [formData, setFormData] = useState({
+    fullName: setupState.profile.fullName || '',
+    jobTitle: setupState.profile.jobTitle || '',
+    phoneNumber: setupState.profile.phoneNumber || ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    updateProfile(formData);
+    navigate('/setup/verification');
+  };
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+      <SEO title="Profile Setup" />
       <div className="card">
         <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Tell us about yourself</h2>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '2rem' }}>
@@ -24,15 +39,29 @@ export default function ProfileSetup() {
           </div>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); navigate('/setup/verification'); }}>
+        <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Full Name</label>
-              <input type="text" className="input-field" placeholder="e.g. Jonathan Aris" required />
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="e.g. Jonathan Aris" 
+                value={formData.fullName}
+                onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                required 
+              />
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Job Title</label>
-              <input type="text" className="input-field" placeholder="e.g. Operations Manager" required />
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="e.g. Operations Manager" 
+                value={formData.jobTitle}
+                onChange={(e) => setFormData({...formData, jobTitle: e.target.value})}
+                required 
+              />
             </div>
           </div>
 
@@ -42,7 +71,15 @@ export default function ProfileSetup() {
               <div style={{ border: '1px solid var(--color-border)', borderRight: 'none', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)', background: 'var(--color-background)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 🇺🇸 +1
               </div>
-              <input type="tel" className="input-field" style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0' }} placeholder="(555) 000-0000" required />
+              <input 
+                type="tel" 
+                className="input-field" 
+                style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0' }} 
+                placeholder="(555) 000-0000" 
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                required 
+              />
             </div>
           </div>
 

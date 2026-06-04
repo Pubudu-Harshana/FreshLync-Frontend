@@ -1,7 +1,11 @@
 import React from 'react';
 import { Leaf, Search, Bell, ShoppingCart, Filter, ArrowUpDown } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import SEO from '../components/SEO';
 
 export default function Marketplace() {
+  const { cartItemCount, addToCart } = useCart();
+
   const products = [
     { name: 'Atlantic Salmon', price: '$24.99/kg', img: 'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?auto=format&fit=crop&q=80&w=400', desc: 'Premium grade, sustainably farm-raised in the North Atlantic. Rich in Omega-3.', stock: 'In Stock' },
     { name: 'Organic Broccoli', price: '$4.50/lb', img: 'https://images.unsplash.com/photo-1583663848850-46af132dc08e?auto=format&fit=crop&q=80&w=400', desc: 'Certified organic, pesticide-free heads harvested from local sustainable farms.', stock: 'In Stock' },
@@ -13,6 +17,7 @@ export default function Marketplace() {
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', minHeight: '100vh', background: 'var(--color-background)', display: 'flex', flexDirection: 'column' }}>
+      <SEO title="Marketplace" />
       
       {/* Topbar */}
       <header style={{ height: '72px', background: 'white', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 10 }}>
@@ -37,7 +42,11 @@ export default function Marketplace() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <button style={{ position: 'relative', color: 'var(--color-text-main)' }}>
             <ShoppingCart size={24} />
-            <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--color-primary)', color: 'white', fontSize: '0.65rem', fontWeight: 700, width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>3</span>
+            {cartItemCount > 0 && (
+              <span style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--color-primary)', color: 'white', fontSize: '0.65rem', fontWeight: 700, width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {cartItemCount}
+              </span>
+            )}
           </button>
           <button style={{ color: 'var(--color-text-main)' }}><Bell size={24} /></button>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden' }}>
@@ -116,7 +125,11 @@ export default function Marketplace() {
                   <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: '1.5rem', flex: 1 }}>
                     {p.desc}
                   </p>
-                  <button className="btn-primary" style={{ width: '100%' }}>
+                  <button 
+                    className="btn-primary" 
+                    style={{ width: '100%' }}
+                    onClick={() => addToCart(p)}
+                  >
                     <ShoppingCart size={18} /> Add to Cart
                   </button>
                 </div>

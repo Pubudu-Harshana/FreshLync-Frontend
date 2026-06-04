@@ -1,15 +1,48 @@
-import React from 'react';
-import { UserPlus, Info, Trash2, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { UserPlus, Info, Trash2, RefreshCw, Shield } from 'lucide-react';
+import { useSetup } from '../../context/SetupContext';
+import SEO from '../../components/SEO';
 
 export default function TeamAccess() {
-  const invitations = [
-    { initials: 'JS', email: 'j.smith@freshlync.com', name: 'Julian Smith', role: 'Driver', date: 'Oct 24, 2023', status: 'Waiting' },
-    { initials: 'MR', email: 'm.rodriguez@logistics.net', name: 'Maria Rodriguez', role: 'Manager', date: 'Oct 23, 2023', status: 'Waiting' },
-    { initials: 'KL', email: 'k.lee@freshlync.com', name: 'Kevin Lee', role: 'Viewer', date: 'Oct 22, 2023', status: 'Expired' },
-  ];
+  const navigate = useNavigate();
+  const { setupState, updateTeam } = useSetup();
+  
+  const [invitations, setInvitations] = useState(setupState.team.invitations || []);
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('Manager');
+
+  const handleInvite = () => {
+    if (email) {
+      const newInvites = [...invitations, {
+        initials: email.substring(0, 2).toUpperCase(),
+        email,
+        name: 'Pending User',
+        role,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: 'Waiting'
+      }];
+      setInvitations(newInvites);
+      updateTeam(newInvites);
+      setEmail('');
+    }
+  };
+
+  const handleRevoke = (index) => {
+    const newInvites = [...invitations];
+    newInvites.splice(index, 1);
+    setInvitations(newInvites);
+    updateTeam(newInvites);
+  };
+
+  const handleContinue = () => {
+    updateTeam(invitations);
+    navigate('/setup/integrations');
+  };
 
   return (
     <div>
+      <SEO title="Team Access" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
         <div>
           <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Invite Your Team</h2>
@@ -34,13 +67,24 @@ export default function TeamAccess() {
 
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Email Address</label>
-            <input type="email" className="input-field" placeholder="colleague@freshlync.com" />
+            <input 
+              type="email" 
+              className="input-field" 
+              placeholder="colleague@freshlync.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
           
           <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Assign Role</label>
-              <select className="input-field" style={{ appearance: 'none', background: 'white url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E") no-repeat right 1rem center' }}>
+              <select 
+                className="input-field" 
+                style={{ appearance: 'none', background: 'white url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E") no-repeat right 1rem center' }}
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
                 <option>Manager</option>
                 <option>Admin</option>
                 <option>Driver</option>
@@ -48,7 +92,11 @@ export default function TeamAccess() {
               </select>
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
-              <button className="btn-primary" style={{ width: '100%', background: '#F8FAFC', color: 'var(--color-border)', pointerEvents: 'none' }}>
+              <button 
+                onClick={handleInvite}
+                className="btn-primary" 
+                style={{ width: '100%', background: email ? 'var(--color-primary)' : '#F8FAFC', color: email ? 'white' : 'var(--color-border)', pointerEvents: email ? 'auto' : 'none' }}
+              >
                 Send Invite
               </button>
             </div>
@@ -84,16 +132,6 @@ export default function TeamAccess() {
             </div>
           </div>
 
-          <div style={{ borderRadius: '12px', overflow: 'hidden', position: 'relative', color: 'white', padding: '2rem 1.5rem', backgroundImage: 'url(https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=600)', backgroundSize: 'cover' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.85)' }}></div>
-            <div style={{ position: 'relative', zIndex: 1, color: 'var(--color-text-main)' }}>
-              <p style={{ fontStyle: 'italic', fontWeight: 500, fontSize: '1.125rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-                "Efficiency starts with a synchronized team."
-              </p>
-              <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Freshlync Logistics Wisdom</div>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -105,7 +143,7 @@ export default function TeamAccess() {
             <h3 style={{ fontSize: '1.25rem' }}>Pending Invitations</h3>
           </div>
           <div style={{ background: '#F1F5F9', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>
-            3 Invitations Active
+            {invitations.length} Invitations Active
           </div>
         </div>
 
@@ -145,7 +183,7 @@ export default function TeamAccess() {
                 </td>
                 <td style={{ padding: '1rem 0', textAlign: 'right' }}>
                   {inv.status === 'Waiting' ? (
-                    <button style={{ color: 'var(--color-text-muted)', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                    <button onClick={() => handleRevoke(idx)} style={{ color: 'var(--color-text-muted)', cursor: 'pointer' }}><Trash2 size={18} /></button>
                   ) : (
                     <button style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-text-main)', fontWeight: 500, cursor: 'pointer' }}>
                       <RefreshCw size={14} /> Resend
@@ -154,8 +192,22 @@ export default function TeamAccess() {
                 </td>
               </tr>
             ))}
+            {invitations.length === 0 && (
+              <tr>
+                <td colSpan="5" style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--color-text-muted)' }}>No pending invitations.</td>
+              </tr>
+            )}
           </tbody>
         </table>
+      </div>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
+        <button type="button" onClick={() => { updateTeam(invitations); navigate('/setup/verification'); }} style={{ color: 'var(--color-text-main)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+          ← Back to Verification
+        </button>
+        <button type="button" onClick={handleContinue} className="btn-primary">
+          Continue to Integrations →
+        </button>
       </div>
     </div>
   );

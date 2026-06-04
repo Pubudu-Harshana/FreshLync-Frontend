@@ -1,23 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Eye, EyeOff } from 'lucide-react';
+import { Leaf, Eye, EyeOff, User, Truck, ShieldCheck, ArrowLeft } from 'lucide-react';
+import SEO from '../../components/SEO';
+
+const DUMMY_CREDENTIALS = [
+  { role: 'Customer', email: 'customer@freshlync.com', password: 'Customer@123', icon: User, color: '#3b82f6' },
+  { role: 'Supplier', email: 'supplier@freshlync.com', password: 'Supplier@123', icon: Truck, color: '#10b981' },
+  { role: 'Admin', email: 'admin@freshlync.com', password: 'Admin@123', icon: ShieldCheck, color: '#8b5cf6' },
+];
 
 export default function Login() {
   const navigate = useNavigate();
   const [role, setRole] = useState('Customer');
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (role === 'Customer' || role === 'Admin') {
+    if (role === 'Customer') {
       navigate('/setup/profile');
+    } else if (role === 'Admin') {
+      navigate('/admin');
     } else {
       navigate('/dashboard');
     }
   };
 
+  const handleAutoFill = (cred) => {
+    setRole(cred.role);
+    setEmail(cred.email);
+    setPassword(cred.password);
+  };
+
   return (
     <div className="split-layout" style={{ fontFamily: 'var(--font-sans)' }}>
+      <SEO title="Login" />
       {/* Left Side - Banner */}
       <div className="split-left" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)' }}>
         <div className="split-left-content">
@@ -48,6 +66,14 @@ export default function Login() {
       {/* Right Side - Form */}
       <div className="split-right">
         <div style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
+          <button 
+            type="button"
+            onClick={() => navigate('/')} 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', marginBottom: '2rem', fontWeight: 500, padding: 0 }}
+          >
+            <ArrowLeft size={18} /> Back to Home
+          </button>
+
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Welcome Back</h2>
             <p style={{ color: 'var(--color-text-muted)' }}>Access your supply chain dashboard</p>
@@ -80,6 +106,8 @@ export default function Login() {
                 type="email" 
                 className="input-field" 
                 placeholder="name@freshlync.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required 
               />
             </div>
@@ -94,6 +122,8 @@ export default function Login() {
                   type={showPassword ? 'text' : 'password'} 
                   className="input-field" 
                   placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required 
                 />
                 <button 
@@ -115,6 +145,61 @@ export default function Login() {
               Login to Portal
             </button>
           </form>
+
+          {/* Dummy Credentials Panel */}
+          <div style={{ 
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%)', 
+            borderRadius: '12px', 
+            padding: '1.25rem', 
+            marginBottom: '1.5rem',
+            border: '1px dashed var(--color-primary)',
+          }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', textAlign: 'center' }}>
+              🔑 Demo Credentials — Click to auto-fill
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {DUMMY_CREDENTIALS.map((cred) => {
+                const Icon = cred.icon;
+                return (
+                  <button
+                    key={cred.role}
+                    type="button"
+                    onClick={() => handleAutoFill(cred)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.625rem 0.875rem',
+                      borderRadius: '8px',
+                      background: role === cred.role ? 'white' : 'rgba(255,255,255,0.6)',
+                      border: role === cred.role ? `2px solid ${cred.color}` : '1px solid rgba(0,0,0,0.06)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: role === cred.role ? `0 2px 8px ${cred.color}22` : 'none',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      background: `${cred.color}15`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}>
+                      <Icon size={16} style={{ color: cred.color }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: cred.color, marginBottom: '0.125rem' }}>{cred.role}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{cred.email} / {cred.password}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div style={{ textAlign: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>

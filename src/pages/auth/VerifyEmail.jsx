@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Leaf, ArrowLeft } from 'lucide-react';
+import SEO from '../../components/SEO';
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function VerifyEmail() {
 
   return (
     <div className="split-layout" style={{ fontFamily: 'var(--font-sans)' }}>
+      <SEO title="Verify Email" />
       {/* Left Side - Banner */}
       <div className="split-left" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=2000)' }}>
         <div className="split-left-content">

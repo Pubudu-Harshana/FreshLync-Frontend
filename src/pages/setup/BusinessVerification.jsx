@@ -1,12 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UploadCloud, Info, CheckCircle2, Shield } from 'lucide-react';
+import { useSetup } from '../../context/SetupContext';
+import SEO from '../../components/SEO';
 
 export default function BusinessVerification() {
   const navigate = useNavigate();
+  const { setupState, updateBusiness } = useSetup();
+  
+  const [formData, setFormData] = useState({
+    companyName: setupState.business.companyName || '',
+    taxId: setupState.business.taxId || '',
+    entityType: setupState.business.entityType || 'Corporation',
+    address: setupState.business.address || ''
+  });
+
+  const handleSave = () => {
+    updateBusiness(formData);
+  };
+
+  const handleContinue = () => {
+    handleSave();
+    navigate('/setup/team');
+  };
 
   return (
     <div>
+      <SEO title="Business Verification" />
       <div style={{ display: 'inline-block', background: 'var(--color-primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, marginBottom: '1rem' }}>
         Step 2 of 4
       </div>
@@ -23,17 +43,34 @@ export default function BusinessVerification() {
             <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem' }}>Legal Information</h3>
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Company Legal Name</label>
-              <input type="text" className="input-field" placeholder="e.g. GreenPath Logistics LLC" />
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="e.g. GreenPath Logistics LLC" 
+                value={formData.companyName}
+                onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+              />
             </div>
             
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Tax ID (EIN/VAT)</label>
-                <input type="text" className="input-field" placeholder="XX-XXXXXXX" />
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  placeholder="XX-XXXXXXX" 
+                  value={formData.taxId}
+                  onChange={(e) => setFormData({...formData, taxId: e.target.value})}
+                />
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Entity Type</label>
-                <select className="input-field" style={{ appearance: 'none', background: 'white url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E") no-repeat right 1rem center' }}>
+                <select 
+                  className="input-field" 
+                  style={{ appearance: 'none', background: 'white url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E") no-repeat right 1rem center' }}
+                  value={formData.entityType}
+                  onChange={(e) => setFormData({...formData, entityType: e.target.value})}
+                >
                   <option>Corporation</option>
                   <option>LLC</option>
                   <option>Partnership</option>
@@ -43,7 +80,14 @@ export default function BusinessVerification() {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Registered Business Address</label>
-              <textarea className="input-field" placeholder="Street address, City, State, ZIP" rows={3} style={{ resize: 'none' }}></textarea>
+              <textarea 
+                className="input-field" 
+                placeholder="Street address, City, State, ZIP" 
+                rows={3} 
+                style={{ resize: 'none' }}
+                value={formData.address}
+                onChange={(e) => setFormData({...formData, address: e.target.value})}
+              ></textarea>
             </div>
           </div>
 
@@ -110,12 +154,12 @@ export default function BusinessVerification() {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>
-        <button type="button" onClick={() => navigate('/setup/profile')} style={{ color: 'var(--color-text-main)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+        <button type="button" onClick={() => { handleSave(); navigate('/setup/profile'); }} style={{ color: 'var(--color-text-main)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
           ← Back to Welcome
         </button>
         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <button style={{ color: 'var(--color-text-main)', fontSize: '0.875rem', fontWeight: 500 }}>Save for Later</button>
-          <button type="button" onClick={() => navigate('/setup/team')} className="btn-primary" style={{ background: '#F1F5F9', color: '#94A3B8' }} disabled>
+          <button type="button" onClick={handleSave} style={{ color: 'var(--color-text-main)', fontSize: '0.875rem', fontWeight: 500 }}>Save for Later</button>
+          <button type="button" onClick={handleContinue} className="btn-primary" style={{ background: formData.companyName ? 'var(--color-primary)' : '#F1F5F9', color: formData.companyName ? 'white' : '#94A3B8' }} disabled={!formData.companyName}>
             Continue to Step 3 →
           </button>
         </div>
