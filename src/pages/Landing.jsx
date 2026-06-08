@@ -34,10 +34,10 @@ export default function Landing() {
           <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Freshlync</span>
         </div>
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontWeight: 500 }}>
-          <a href="#" style={{ color: 'white' }}>Fish</a>
-          <a href="#" style={{ color: 'white' }}>Meat</a>
-          <a href="#" style={{ color: 'white' }}>Vegetables</a>
-          <button onClick={() => navigate('/login')} style={{ background: 'white', color: 'var(--color-primary)', padding: '0.5rem 1.5rem', borderRadius: '999px', fontWeight: 600 }}>Login</button>
+          <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ color: 'white', textDecoration: 'none' }}>Home</a>
+          <a href="#about" onClick={(e) => { e.preventDefault(); document.getElementById('about').scrollIntoView({ behavior: 'smooth' }); }} style={{ color: 'white', textDecoration: 'none' }}>About</a>
+          <a href="#contact" onClick={(e) => { e.preventDefault(); document.getElementById('contact').scrollIntoView({ behavior: 'smooth' }); }} style={{ color: 'white', textDecoration: 'none' }}>Contact</a>
+          <button onClick={() => navigate('/login')} style={{ background: 'white', color: 'var(--color-primary)', padding: '0.5rem 1.5rem', borderRadius: '999px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>Login</button>
         </div>
       </nav>
 
@@ -125,6 +125,62 @@ export default function Landing() {
             <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Smart Logistics</h3>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>AI-driven route optimization reduces fuel consumption and delivery times.</p>
           </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" style={{ padding: '8rem 4rem', background: 'white' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2.5rem', marginBottom: '3rem', color: 'var(--color-text-main)' }}>About Freshlync</h2>
+          <div style={{ fontSize: '1.125rem', color: 'var(--color-text-muted)', lineHeight: 1.8, textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <p>
+              Freshlync is a centralized online marketplace and distribution management system built to modernize the way fresh food moves from supplier to customer.
+            </p>
+            <p>
+              Many food distribution businesses still rely on phone calls and informal messaging to handle orders and coordinate deliveries — leading to delays, miscommunication, and zero visibility for everyone involved.
+            </p>
+            <p>
+              Freshlync brings suppliers, customers, and intermediaries onto a single digital platform, replacing manual processes with a streamlined, transparent workflow. Suppliers manage listings in real time, customers can browse, order, and track deliveries live, and intermediaries get a powerful dashboard to oversee the entire operation.
+            </p>
+            <p>
+              With built-in demand forecasting and analytics, Freshlync also helps businesses anticipate trends and make smarter, data-driven decisions.
+            </p>
+            <div style={{ marginTop: '2rem', padding: '2rem', background: 'var(--color-surface)', borderRadius: '16px', textAlign: 'center' }}>
+              <p style={{ fontWeight: 600, color: 'var(--color-primary)', fontSize: '1.25rem', margin: 0 }}>
+                Fresh food. Smarter distribution. Total transparency.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" style={{ padding: '8rem 4rem', background: 'var(--color-surface)' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: 'var(--color-text-main)' }}>Contact Us</h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.125rem', marginBottom: '3rem' }}>Have questions about our platform or want to request a demo? Reach out to us.</p>
+          
+          <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }} onSubmit={(e) => e.preventDefault()}>
+            <div style={{ display: 'flex', gap: '1.5rem' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>First Name</label>
+                <input type="text" placeholder="John" style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>Last Name</label>
+                <input type="text" placeholder="Doe" style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none' }} />
+              </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>Email Address</label>
+              <input type="email" placeholder="john@example.com" style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>Message</label>
+              <textarea placeholder="How can we help you?" rows="4" style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none', resize: 'vertical' }}></textarea>
+            </div>
+            <button className="btn-primary" style={{ padding: '1rem', fontSize: '1rem', fontWeight: 600, width: '100%', border: 'none', cursor: 'pointer' }}>Send Message</button>
+          </form>
         </div>
       </section>
 
