@@ -70,7 +70,7 @@ export default function MarketplaceLayout() {
         <header style={{ height: '72px', background: 'white', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', flexShrink: 0 }}>
           <div>
             <h1 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Marketplace</h1>
-            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Discover and source fresh produce</div>
+            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Discover premium fish, meat, and vegetables</div>
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>

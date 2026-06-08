@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Leaf, User, ShieldCheck, Users, Plug, Settings, HelpCircle, Bell, LogOut } from 'lucide-react';
+import { Leaf, User, ShieldCheck, Users, Plug, Settings, HelpCircle, Bell, LogOut, ArrowLeft } from 'lucide-react';
 
 export default function SetupLayout() {
   const navigate = useNavigate();
@@ -55,12 +55,9 @@ export default function SetupLayout() {
               Our support team is available 24/7 to help you set up your team roles.
             </div>
           </div>
-          <button onClick={() => navigate('/login')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500, borderRadius: '8px', marginBottom: '0.25rem' }}>
+          <button onClick={() => navigate('/login')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500, borderRadius: '8px' }}>
             <LogOut size={20} /> Logout
           </button>
-          <NavLink to="/setup/preferences" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: 'var(--color-text-muted)', textDecoration: 'none', width: '100%', fontWeight: 500, borderRadius: '8px' }}>
-            <Settings size={20} /> Settings
-          </NavLink>
         </div>
       </aside>
 
@@ -68,9 +65,9 @@ export default function SetupLayout() {
       <main className="setup-main">
         <header className="setup-header">
           <div style={{ display: 'flex', gap: '2rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-            <span style={{ color: 'var(--color-text-main)', fontWeight: 500 }}>Dashboard</span>
-            <span>Shipments</span>
-            <span>Inventory</span>
+            <button onClick={() => navigate('/marketplace')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'var(--color-text-main)', fontWeight: 500, cursor: 'pointer' }}>
+              <ArrowLeft size={16} /> Back to Marketplace
+            </button>
           </div>
           <div style={{ display: 'flex', gap: '1rem', color: 'var(--color-text-muted)' }}>
             <Bell size={20} />

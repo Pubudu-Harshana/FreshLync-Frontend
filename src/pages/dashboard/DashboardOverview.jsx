@@ -4,9 +4,9 @@ import SEO from '../../components/SEO';
 
 export default function DashboardOverview() {
   const products = [
-    { sku: 'KALE-001', name: 'Organic Curly Kale', category: 'Leafy Greens', price: '£2.45 / lb', stock: '1250', unit: 'lb', status: 'In Stock' },
-    { sku: 'PEPP-042', name: 'Mixed Bell Peppers', category: 'Vegetables', price: '£1.80 / unit', stock: '42', unit: 'units', status: 'Low Stock' },
-    { sku: 'LETT-115', name: 'Hydroponic Butter Lettuce', category: 'Leafy Greens', price: '£3.10 / head', stock: '850', unit: 'heads', status: 'In Stock' },
+    { sku: 'KALE-001', name: 'Organic Curly Kale', category: 'Vegetables', price: '£2.45 / kg', stock: '1250', unit: 'kg', status: 'In Stock' },
+    { sku: 'PEPP-042', name: 'Mixed Bell Peppers', category: 'Vegetables', price: '£1.80 / kg', stock: '42', unit: 'kg', status: 'Low Stock' },
+    { sku: 'BEEF-882', name: 'Angus Beef (Prime)', category: 'Meat', price: '£32.00 / kg', stock: '850', unit: 'kg', status: 'In Stock' },
   ];
 
   return (

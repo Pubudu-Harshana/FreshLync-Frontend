@@ -19,7 +19,7 @@ export default function VerifyEmail() {
         <div className="split-left-content">
           <h1>Precision in every delivery.</h1>
           <p style={{ fontSize: '1.125rem', opacity: 0.9, maxWidth: '500px', lineHeight: 1.6 }}>
-            Ensuring the freshest produce reaches your market through our rigorously optimized logistics network.
+            Ensuring the freshest fish, meat, and vegetables reach your market through our rigorously optimized logistics network.
           </p>
         </div>
       </div>

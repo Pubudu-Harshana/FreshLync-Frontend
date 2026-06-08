@@ -4,11 +4,11 @@ import SEO from '../../components/SEO';
 
 export default function AdminInventory() {
   const globalInventory = [
-    { sku: 'KALE-001', name: 'Organic Curly Kale', supplier: 'GreenEarth Organics', category: 'Leafy Greens', price: '£2.45 / lb', stock: '1250', status: 'Healthy' },
+    { sku: 'KALE-001', name: 'Organic Curly Kale', supplier: 'GreenEarth Organics', category: 'Vegetables', price: '£2.45 / kg', stock: '1250', status: 'Healthy' },
     { sku: 'BEEF-882', name: 'Angus Beef (Prime)', supplier: 'Valley Prime Meats', category: 'Meat', price: '£32.00 / kg', stock: '450', status: 'Healthy' },
-    { sku: 'SALM-091', name: 'Atlantic Salmon', supplier: 'Atlantic Blue Fisheries', category: 'Seafood', price: '£24.99 / kg', stock: '85', status: 'Low Stock' },
-    { sku: 'PEPP-042', name: 'Mixed Bell Peppers', supplier: 'GreenEarth Organics', category: 'Vegetables', price: '£1.80 / unit', stock: '42', status: 'Low Stock' },
-    { sku: 'CHER-112', name: 'Bing Cherries', supplier: 'Sunrise Orchards', category: 'Fruits', price: '£5.50 / lb', stock: '0', status: 'Depleted' },
+    { sku: 'SALM-091', name: 'Atlantic Salmon', supplier: 'Atlantic Blue Fisheries', category: 'Fish', price: '£24.99 / kg', stock: '85', status: 'Low Stock' },
+    { sku: 'PEPP-042', name: 'Mixed Bell Peppers', supplier: 'GreenEarth Organics', category: 'Vegetables', price: '£1.80 / kg', stock: '42', status: 'Low Stock' },
+    { sku: 'TUNA-112', name: 'Bluefin Tuna Steak', supplier: 'Deep Sea Co.', category: 'Fish', price: '£45.50 / kg', stock: '0', status: 'Depleted' },
   ];
 
   return (

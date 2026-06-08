@@ -5,6 +5,22 @@ import SEO from '../components/SEO';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [scrollY, setScrollY] = React.useState(0);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleMouseMove = (e) => {
+    const { currentTarget, clientX, clientY } = e;
+    const { left, top } = currentTarget.getBoundingClientRect();
+    currentTarget.style.setProperty('--mouse-x', `${clientX - left}px`);
+    currentTarget.style.setProperty('--mouse-y', `${clientY - top}px`);
+  };
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', minHeight: '100vh', background: 'var(--color-surface)' }}>
@@ -18,23 +34,60 @@ export default function Landing() {
           <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Freshlync</span>
         </div>
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', fontWeight: 500 }}>
-          <a href="#" style={{ color: 'white' }}>Solutions</a>
-          <a href="#" style={{ color: 'white' }}>Network</a>
-          <a href="#" style={{ color: 'white' }}>Resources</a>
+          <a href="#" style={{ color: 'white' }}>Fish</a>
+          <a href="#" style={{ color: 'white' }}>Meat</a>
+          <a href="#" style={{ color: 'white' }}>Vegetables</a>
           <button onClick={() => navigate('/login')} style={{ background: 'white', color: 'var(--color-primary)', padding: '0.5rem 1.5rem', borderRadius: '999px', fontWeight: 600 }}>Login</button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section style={{ height: '100vh', backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', display: 'flex', alignItems: 'center', padding: '0 4rem' }}>
+      <section style={{ height: '100vh', backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', display: 'flex', alignItems: 'center', padding: '0 4rem', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(21, 128, 61, 0.9) 0%, rgba(21, 128, 61, 0.4) 100%)' }}></div>
         
-        <div style={{ position: 'relative', zIndex: 1, color: 'white', maxWidth: '800px' }}>
+        {/* Floating Interactive Food Elements with Parallax */}
+        <div style={{ position: 'absolute', top: '5%', right: '5%', zIndex: 2, transform: `translateY(${scrollY * -0.15}px)` }}>
+          <div className="floating-element" style={{ width: '300px', height: '300px', animation: 'float-slow 6s ease-in-out infinite' }}>
+            <img src="/images/floating/salmon.png" alt="Fresh Salmon" style={{ filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.3))' }} />
+          </div>
+        </div>
+        
+        <div style={{ position: 'absolute', top: '30%', right: '25%', zIndex: 2, transform: `translateY(${scrollY * -0.3}px)` }}>
+          <div className="floating-element" style={{ width: '220px', height: '220px', animation: 'float-medium 7s ease-in-out infinite 1s' }}>
+            <img src="/images/floating/broccoli.png" alt="Fresh Broccoli" style={{ filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.25))' }} />
+          </div>
+        </div>
+        
+        <div style={{ position: 'absolute', top: '70%', right: '10%', zIndex: 2, transform: `translateY(${scrollY * -0.25}px)` }}>
+          <div className="floating-element" style={{ width: '260px', height: '260px', animation: 'float-fast 8s ease-in-out infinite 0.5s' }}>
+            <img src="/images/floating/strawberry.png" alt="Fresh Strawberry" style={{ filter: 'drop-shadow(0 18px 28px rgba(0,0,0,0.3))' }} />
+          </div>
+        </div>
+        
+        <div style={{ position: 'absolute', top: '50%', right: '40%', zIndex: 2, transform: `translateY(${scrollY * -0.4}px)` }}>
+          <div className="floating-element" style={{ width: '200px', height: '200px', animation: 'float-slow 5s ease-in-out infinite 2s' }}>
+            <img src="/images/floating/carrot.png" alt="Fresh Carrot" style={{ filter: 'drop-shadow(0 12px 20px rgba(0,0,0,0.2))' }} />
+          </div>
+        </div>
+        
+        <div style={{ position: 'absolute', top: '85%', right: '30%', zIndex: 2, transform: `translateY(${scrollY * -0.2}px)` }}>
+          <div className="floating-element" style={{ width: '240px', height: '240px', animation: 'float-medium 9s ease-in-out infinite 1.5s' }}>
+            <img src="/images/floating/lemon.png" alt="Fresh Lemon" style={{ filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.25))' }} />
+          </div>
+        </div>
+        
+        <div style={{ position: 'absolute', top: '5%', right: '45%', zIndex: 2, transform: `translateY(${scrollY * -0.35}px)` }}>
+          <div className="floating-element" style={{ width: '180px', height: '180px', animation: 'float-fast 6.5s ease-in-out infinite 0.2s' }}>
+            <img src="/images/floating/apple.png" alt="Fresh Apple" style={{ filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.2))' }} />
+          </div>
+        </div>
+        
+        <div style={{ position: 'relative', zIndex: 3, color: 'white', maxWidth: '800px' }}>
           <h1 style={{ fontSize: '4.5rem', fontWeight: 700, lineHeight: 1.1, marginBottom: '1.5rem' }}>
             Smart Distribution,<br/><span style={{ color: '#86efac' }}>Fresh Connection</span>
           </h1>
           <p style={{ fontSize: '1.25rem', opacity: 0.9, marginBottom: '2.5rem', maxWidth: '600px', lineHeight: 1.6 }}>
-            Optimizing the journey from farm to table with real-time data, synchronized intelligence, and sustainable logistics management.
+            Optimizing the journey from farm and sea to table. Synchronized intelligence and sustainable logistics for premium fish, meat, and vegetables.
           </p>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button onClick={() => navigate('/login')} className="btn-primary" style={{ background: 'white', color: 'var(--color-primary)', padding: '1rem 2rem', fontSize: '1.125rem' }}>Get Started</button>
@@ -51,21 +104,21 @@ export default function Landing() {
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
-          <div className="card" style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
+          <div className="card spotlight-card" onMouseMove={handleMouseMove} style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
               <BarChart2 size={32} />
             </div>
             <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Real-time Analytics</h3>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>Monitor inventory levels and market prices dynamically across all regions.</p>
           </div>
-          <div className="card" style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
+          <div className="card spotlight-card" onMouseMove={handleMouseMove} style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: '#DBEAFE', color: '#1E40AF', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
               <ShieldCheck size={32} />
             </div>
             <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>Temp-Guard Monitoring</h3>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>End-to-end cold chain tracking to ensure produce arrives at peak freshness.</p>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>End-to-end cold chain tracking to ensure your fish, meat, and vegetables arrive at peak freshness.</p>
           </div>
-          <div className="card" style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
+          <div className="card spotlight-card" onMouseMove={handleMouseMove} style={{ textAlign: 'center', padding: '2.5rem 2rem' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: '#FEF3C7', color: '#B45309', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
               <Map size={32} />
             </div>
