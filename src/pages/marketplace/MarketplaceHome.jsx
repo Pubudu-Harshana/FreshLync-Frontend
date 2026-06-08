@@ -18,44 +18,6 @@ export default function MarketplaceHome() {
   return (
     <div style={{ display: 'flex', flex: 1, height: '100%' }}>
       <SEO title="Marketplace" />
-      {/* Sidebar */}
-      <aside style={{ width: '260px', background: 'white', borderRight: '1px solid var(--color-border)', padding: '2rem 1.5rem', flexShrink: 0 }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Categories</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', background: '#E0E7FF', color: '#3730A3', borderRadius: '8px', fontWeight: 500, border: 'none', cursor: 'pointer' }}>
-              <span style={{ display: 'flex', gap: '0.75rem' }}>🐟 Fish</span> <span>›</span>
-            </button>
-            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', fontWeight: 500, border: 'none', background: 'transparent', cursor: 'pointer' }}>
-              <span style={{ display: 'flex', gap: '0.75rem' }}>🥩 Meat</span> <span>›</span>
-            </button>
-            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', fontWeight: 500, border: 'none', background: 'transparent', cursor: 'pointer' }}>
-              <span style={{ display: 'flex', gap: '0.75rem' }}>🥦 Vegetables</span> <span>›</span>
-            </button>
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Price Range</h4>
-          <div style={{ height: '4px', background: '#E2E8F0', borderRadius: '2px', position: 'relative', marginBottom: '1rem' }}>
-            <div style={{ position: 'absolute', left: '0', width: '60%', height: '100%', background: 'var(--color-primary)', borderRadius: '2px' }}></div>
-            <div style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', background: 'var(--color-primary)', borderRadius: '50%', boxShadow: 'var(--shadow-sm)' }}></div>
-            <div style={{ position: 'absolute', left: '60%', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', background: 'var(--color-primary)', borderRadius: '50%', boxShadow: 'var(--shadow-sm)' }}></div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 500 }}>
-            <span>£0</span>
-            <span>£10,000</span>
-          </div>
-        </div>
-
-        <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px', padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534', marginBottom: '0.5rem' }}>Pro Insights</div>
-          <p style={{ fontSize: '0.875rem', color: '#14532D', marginBottom: '1rem', lineHeight: 1.5 }}>
-            Market prices for Atlantic Salmon are up 5% this week.
-          </p>
-          <button className="btn-primary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.875rem' }}>View Analytics</button>
-        </div>
-      </aside>
 
       {/* Main Content */}
       <main style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto' }}>
@@ -99,6 +61,45 @@ export default function MarketplaceHome() {
           ))}
         </div>
       </main>
+
+      {/* Sidebar */}
+      <aside style={{ width: '260px', background: 'white', borderLeft: '1px solid var(--color-border)', padding: '2rem 1.5rem', flexShrink: 0 }}>
+        <div style={{ marginBottom: '2rem' }}>
+          <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Categories</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', background: '#E0E7FF', color: '#3730A3', borderRadius: '8px', fontWeight: 500, border: 'none', cursor: 'pointer' }}>
+              <span style={{ display: 'flex', gap: '0.75rem' }}>🐟 Fish</span> <span>›</span>
+            </button>
+            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', fontWeight: 500, border: 'none', background: 'transparent', cursor: 'pointer' }}>
+              <span style={{ display: 'flex', gap: '0.75rem' }}>🥩 Meat</span> <span>›</span>
+            </button>
+            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', fontWeight: 500, border: 'none', background: 'transparent', cursor: 'pointer' }}>
+              <span style={{ display: 'flex', gap: '0.75rem' }}>🥦 Vegetables</span> <span>›</span>
+            </button>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '2rem' }}>
+          <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Price Range</h4>
+          <div style={{ height: '4px', background: '#E2E8F0', borderRadius: '2px', position: 'relative', marginBottom: '1rem' }}>
+            <div style={{ position: 'absolute', left: '0', width: '60%', height: '100%', background: 'var(--color-primary)', borderRadius: '2px' }}></div>
+            <div style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', background: 'var(--color-primary)', borderRadius: '50%', boxShadow: 'var(--shadow-sm)' }}></div>
+            <div style={{ position: 'absolute', left: '60%', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', background: 'var(--color-primary)', borderRadius: '50%', boxShadow: 'var(--shadow-sm)' }}></div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 500 }}>
+            <span>£0</span>
+            <span>£10,000</span>
+          </div>
+        </div>
+
+        <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px', padding: '1.25rem' }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534', marginBottom: '0.5rem' }}>Pro Insights</div>
+          <p style={{ fontSize: '0.875rem', color: '#14532D', marginBottom: '1rem', lineHeight: 1.5 }}>
+            Market prices for Atlantic Salmon are up 5% this week.
+          </p>
+          <button className="btn-primary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.875rem' }}>View Analytics</button>
+        </div>
+      </aside>
     </div>
   );
 }
