@@ -16,7 +16,7 @@ export default function MarketplaceHome() {
   ];
 
   return (
-    <>
+    <div style={{ display: 'flex', flex: 1, height: '100%' }}>
       <SEO title="Marketplace" />
       {/* Sidebar */}
       <aside style={{ width: '260px', background: 'white', borderRight: '1px solid var(--color-border)', padding: '2rem 1.5rem', flexShrink: 0 }}>
@@ -99,6 +99,6 @@ export default function MarketplaceHome() {
           ))}
         </div>
       </main>
-    </>
+    </div>
   );
 }
