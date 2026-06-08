@@ -1,8 +1,9 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import { Leaf, User, ShieldCheck, Users, Plug, Settings, HelpCircle, Bell } from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Leaf, User, ShieldCheck, Users, Plug, Settings, HelpCircle, Bell, LogOut } from 'lucide-react';
 
 export default function SetupLayout() {
+  const navigate = useNavigate();
   const navItems = [
     { path: '/setup/profile', icon: User, label: 'Profile Setup', step: 1 },
     { path: '/setup/verification', icon: ShieldCheck, label: 'Business Verification', step: 2 },
@@ -48,12 +49,18 @@ export default function SetupLayout() {
         </nav>
 
         <div style={{ padding: '2rem' }}>
-          <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px' }}>
+          <div style={{ background: 'var(--color-background)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
             <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.25rem' }}>Need Help?</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
               Our support team is available 24/7 to help you set up your team roles.
             </div>
           </div>
+          <button onClick={() => navigate('/login')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500, borderRadius: '8px', marginBottom: '0.25rem' }}>
+            <LogOut size={20} /> Logout
+          </button>
+          <NavLink to="/setup/preferences" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: 'var(--color-text-muted)', textDecoration: 'none', width: '100%', fontWeight: 500, borderRadius: '8px' }}>
+            <Settings size={20} /> Settings
+          </NavLink>
         </div>
       </aside>
 

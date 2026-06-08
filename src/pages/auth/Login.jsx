@@ -19,7 +19,7 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
     if (role === 'Customer') {
-      navigate('/setup/profile');
+      navigate('/marketplace');
     } else if (role === 'Admin') {
       navigate('/admin');
     } else {
