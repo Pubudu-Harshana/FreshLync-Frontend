@@ -23,7 +23,7 @@ export default function Marketplace() {
       <header style={{ height: '72px', background: 'white', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
-            <Leaf size={28} />
+            <img src="/logo.svg" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
             <span style={{ fontWeight: 700, fontSize: '1.5rem', color: 'var(--color-text-main)' }}>Freshlync</span>
           </div>
           <div style={{ position: 'relative' }}>

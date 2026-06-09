@@ -28,7 +28,7 @@ export default function VerifyEmail() {
       <div className="split-right">
         <div style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '3rem', color: 'var(--color-primary)' }}>
-            <Leaf size={28} />
+            <img src="/logo.svg" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
             <span style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>Freshlync</span>
           </div>
 

@@ -103,7 +103,7 @@ export default function Preferences() {
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Primary Time Zone</label>
               <select 
                 className="input-field" 
-                style={{ appearance: 'none', background: 'white url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2364748b\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'/%3E%3C/svg%3E") no-repeat right 1rem center' }}
+                style={{ appearance: 'none', background: 'white url("/logo.svg") no-repeat right 1rem center', backgroundSize: '24px' }}
                 value={prefs.timeZone}
                 onChange={(e) => setPrefs(prev => ({ ...prev, timeZone: e.target.value }))}
               >
