@@ -25,9 +25,7 @@ export default function MarketplaceLayout() {
       {/* Sidebar */}
       <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#047857', color: 'white', position: 'sticky', top: 0, minWidth: '250px' }}>
         <div style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div style={{ background: 'white', color: '#047857', padding: '0.25rem', borderRadius: '4px' }}>
-            <Leaf size={24} />
-          </div>
+          <img src="/logo.svg" alt="Freshlync logo" style={{ height: '80px', width: 'auto', background: 'white', padding: '2px', borderRadius: '6px', display: 'block' }} />
           <div>
             <div style={{ fontWeight: 700, fontSize: '1.25rem' }}>Freshlync</div>
             <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>Buyer Portal</div>
