@@ -40,9 +40,7 @@ export default function Login() {
       <div className="split-left" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)' }}>
         <div className="split-left-content">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '4rem', color: 'white' }}>
-            <div style={{ background: 'white', color: 'var(--color-primary)', padding: '0.25rem', borderRadius: '4px' }}>
-              <Leaf size={24} />
-            </div>
+            <img src="/logo.svg" alt="Freshlync logo" style={{ height: '80px', width: 'auto', background: 'white', padding: '2px', borderRadius: '6px', display: 'block' }} />
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Freshlync</span>
           </div>
           <h1>Smart Distribution,<br/><span>Fresh Connection</span></h1>

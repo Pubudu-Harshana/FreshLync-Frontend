@@ -18,9 +18,7 @@ export default function SetupLayout() {
       <aside className="setup-sidebar">
         <div style={{ padding: '0 2rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
-            <div style={{ background: 'var(--color-primary)', color: 'white', padding: '0.25rem', borderRadius: '4px' }}>
-              <Leaf size={20} />
-            </div>
+            <img src="/logo.svg" alt="Freshlync logo" style={{ height: '70px', width: 'auto', display: 'block' }} />
             <span style={{ fontWeight: 600, fontSize: '1.25rem', color: 'var(--color-text-main)' }}>Freshlync</span>
           </div>
           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Setup Progress</div>
