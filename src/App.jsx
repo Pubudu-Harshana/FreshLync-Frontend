@@ -16,6 +16,7 @@ import AdminLayout from './components/AdminLayout';
 // Pages
 import Landing from './pages/Landing';
 import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import ProfileSetup from './pages/setup/ProfileSetup';
 import BusinessVerification from './pages/setup/BusinessVerification';
@@ -56,6 +57,7 @@ function App() {
               
               {/* Auth Routes */}
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               
               {/* Setup Routes */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Leaf, Eye, EyeOff, User, Truck, ShieldCheck, ArrowLeft } from 'lucide-react';
 import SEO from '../../components/SEO';
 
@@ -80,6 +80,32 @@ export default function Login() {
 
 
           <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Account Type</label>
+              <div style={{ display: 'flex', background: 'var(--color-background)', borderRadius: '8px', padding: '0.25rem' }}>
+                {['Customer', 'Supplier'].map(r => (
+                  <button 
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem',
+                      borderRadius: '6px',
+                      fontWeight: 500,
+                      background: role === r ? 'white' : 'transparent',
+                      boxShadow: role === r ? 'var(--shadow-sm)' : 'none',
+                      color: role === r ? 'var(--color-text-main)' : 'var(--color-text-muted)',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Email Address</label>
               <input 
@@ -183,7 +209,7 @@ export default function Login() {
 
           <div style={{ textAlign: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-              New to Freshlync? <a href="#" style={{ fontWeight: 600 }}>Request Access</a>
+              New to Freshlync? <Link to="/register" style={{ fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>Request Access</Link>
             </p>
           </div>
         </div>
