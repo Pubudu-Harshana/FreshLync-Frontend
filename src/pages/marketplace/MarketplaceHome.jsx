@@ -1,10 +1,38 @@
 import React from 'react';
-import { Filter, ArrowUpDown, ShoppingCart } from 'lucide-react';
+import { Filter, ArrowUpDown, ShoppingCart, Check } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import SEO from '../../components/SEO';
 
 export default function MarketplaceHome() {
   const { addToCart } = useCart();
+  const [pendingQuantities, setPendingQuantities] = React.useState({});
+
+  const startAdding = (productName) => {
+    setPendingQuantities(prev => ({ ...prev, [productName]: 1 }));
+  };
+
+  const updateQty = (productName, delta) => {
+    setPendingQuantities(prev => {
+      const current = prev[productName] || 1;
+      const next = current + delta;
+      if (next < 1) {
+        const copy = { ...prev };
+        delete copy[productName];
+        return copy;
+      }
+      return { ...prev, [productName]: next };
+    });
+  };
+
+  const confirmAdd = (product) => {
+    const qty = pendingQuantities[product.name] || 1;
+    addToCart(product, qty);
+    setPendingQuantities(prev => {
+      const copy = { ...prev };
+      delete copy[product.name];
+      return copy;
+    });
+  };
 
   const products = [
     { name: 'Atlantic Salmon', price: '£24.99/kg', img: 'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?auto=format&fit=crop&q=80&w=400', desc: 'Premium grade, sustainably farm-raised in the North Atlantic. Rich in Omega-3.', stock: 'In Stock' },
@@ -49,13 +77,26 @@ export default function MarketplaceHome() {
                 <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: '1.5rem', flex: 1 }}>
                   {p.desc}
                 </p>
-                <button 
-                  className="btn-primary" 
-                  style={{ width: '100%' }}
-                  onClick={() => addToCart(p)}
-                >
-                  <ShoppingCart size={18} /> Add to Cart
-                </button>
+                {pendingQuantities[p.name] !== undefined ? (
+                  <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', flex: 1, padding: '0.25rem 0.5rem' }}>
+                      <button onClick={() => updateQty(p.name, -1)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', padding: '0 0.5rem' }}>-</button>
+                      <span style={{ fontWeight: 600 }}>{pendingQuantities[p.name]}</span>
+                      <button onClick={() => updateQty(p.name, 1)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', padding: '0 0.5rem' }}>+</button>
+                    </div>
+                    <button onClick={() => confirmAdd(p)} className="btn-primary" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <Check size={18} /> Add
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    className="btn-primary" 
+                    style={{ width: '100%' }}
+                    onClick={() => startAdding(p.name)}
+                  >
+                    <ShoppingCart size={18} /> Add to Cart
+                  </button>
+                )}
               </div>
             </div>
           ))}
