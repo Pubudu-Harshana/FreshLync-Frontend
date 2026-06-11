@@ -449,7 +449,6 @@ button {
 
 .hero-copy h1 {
   margin: 1rem 0 1.2rem;
-  max-width: 12ch;
   font-size: clamp(2.8rem, 5vw, 5.3rem);
   line-height: 0.98;
   letter-spacing: -0.04em;
@@ -518,6 +517,14 @@ button {
   border: 1px solid rgba(26, 35, 50, 0.08);
   color: #1a2332;
   box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: default;
+}
+
+.trust-pill:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(21, 128, 61, 0.15);
+  border-color: rgba(21, 128, 61, 0.25);
 }
 
 .hero-stats {
@@ -532,6 +539,14 @@ button {
   border-radius: 18px;
   border: 1px solid rgba(26, 35, 50, 0.08);
   background: rgba(255, 255, 255, 0.78);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: default;
+}
+
+.hero-stats article:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  border-color: rgba(21, 128, 61, 0.2);
 }
 
 .hero-stats strong,
@@ -614,7 +629,7 @@ button {
 .lorry-cloud {
   position: absolute;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(173, 216, 230, 0.82); /* light blue */
   filter: blur(1px);
   animation: cloud-drift 11s linear infinite;
 }
@@ -968,6 +983,15 @@ button {
   border: 1px solid rgba(26, 35, 50, 0.08);
   background: rgba(255, 255, 255, 0.88);
   box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: default;
+}
+
+.feature-card:hover,
+.process-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
+  border-color: rgba(21, 128, 61, 0.25);
 }
 
 .feature-card {
