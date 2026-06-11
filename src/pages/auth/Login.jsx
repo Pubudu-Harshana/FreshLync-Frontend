@@ -77,25 +77,7 @@ export default function Login() {
             <p style={{ color: 'var(--color-text-muted)' }}>Access your supply chain dashboard</p>
           </div>
 
-          <div style={{ display: 'flex', background: 'var(--color-background)', borderRadius: '8px', padding: '0.25rem', marginBottom: '2rem' }}>
-            {['Customer', 'Supplier', 'Admin'].map(r => (
-              <button 
-                key={r}
-                onClick={() => setRole(r)}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  borderRadius: '6px',
-                  fontWeight: 500,
-                  background: role === r ? 'white' : 'transparent',
-                  boxShadow: role === r ? 'var(--shadow-sm)' : 'none',
-                  color: role === r ? 'var(--color-text-main)' : 'var(--color-text-muted)'
-                }}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
+
 
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: '1.5rem' }}>
