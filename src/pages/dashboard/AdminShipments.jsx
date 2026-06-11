@@ -4,15 +4,30 @@ import SEO from '../../components/SEO';
 
 export default function AdminShipments() {
   const [shipments, setShipments] = React.useState([
-    { id: 'SHP-9021', date: 'Oct 24, 2023', supplier: 'GreenEarth Organics', destination: 'London Hub', carrier: 'ColdChain Express', driver: '', total: '£12,400.50', status: 'In Transit' },
-    { id: 'SHP-9020', date: 'Oct 24, 2023', supplier: 'Atlantic Blue Fisheries', destination: 'Manchester', carrier: 'Global Freight', driver: 'Mike Johnson', total: '£48,000.00', status: 'Pending Customs' },
-    { id: 'SHP-9019', date: 'Oct 23, 2023', supplier: 'Valley Prime Meats', destination: 'Birmingham', carrier: 'Fresh Logistics', driver: 'Sarah Connor', total: '£3,500.25', status: 'Delivered' },
-    { id: 'SHP-9018', date: 'Oct 23, 2023', supplier: 'Sunrise Orchards', destination: 'London Hub', carrier: 'ColdChain Express', driver: 'David Smith', total: '£8,900.00', status: 'Delivered' },
-    { id: 'SHP-9017', date: 'Oct 22, 2023', supplier: 'GreenEarth Organics', destination: 'Edinburgh', carrier: 'Express Road', driver: '', total: '£21,000.00', status: 'Delayed' },
+    { id: 'SHP-9021', date: 'Oct 24, 2023', supplier: 'GreenEarth Organics', destination: 'London Hub', carrier: 'ColdChain Express', total: '£12,400.50', status: 'In Transit' },
+    { id: 'SHP-9020', date: 'Oct 24, 2023', supplier: 'Atlantic Blue Fisheries', destination: 'Manchester', carrier: 'Global Freight', total: '£48,000.00', status: 'Pending Customs' },
+    { id: 'SHP-9019', date: 'Oct 23, 2023', supplier: 'Valley Prime Meats', destination: 'Birmingham', carrier: 'Fresh Logistics', total: '£3,500.25', status: 'Delivered' },
+    { id: 'SHP-9018', date: 'Oct 23, 2023', supplier: 'Sunrise Orchards', destination: 'London Hub', carrier: 'ColdChain Express', total: '£8,900.00', status: 'Delivered' },
+    { id: 'SHP-9017', date: 'Oct 22, 2023', supplier: 'GreenEarth Organics', destination: 'Edinburgh', carrier: 'Express Road', total: '£21,000.00', status: 'Delayed' },
   ]);
 
-  const handleAssignDriver = (id, driverName) => {
-    setShipments(prev => prev.map(s => s.id === id ? { ...s, driver: driverName } : s));
+  const [pendingChanges, setPendingChanges] = React.useState({});
+  const [syncSuccess, setSyncSuccess] = React.useState(false);
+
+  const handleCarrierChange = (id, newCarrier) => {
+    setPendingChanges(prev => ({ ...prev, [id]: newCarrier }));
+  };
+
+  const handleSync = () => {
+    setShipments(prev => prev.map(s => {
+      if (pendingChanges[s.id]) {
+        return { ...s, carrier: pendingChanges[s.id] };
+      }
+      return s;
+    }));
+    setPendingChanges({});
+    setSyncSuccess(true);
+    setTimeout(() => setSyncSuccess(false), 3000);
   };
 
   return (
@@ -23,7 +38,13 @@ export default function AdminShipments() {
           <h2 style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>Global Shipments</h2>
           <p style={{ color: 'var(--color-text-muted)' }}>Monitor active transit routes across the network.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {Object.keys(pendingChanges).length > 0 && (
+            <button onClick={handleSync} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
+              Sync Changes
+            </button>
+          )}
+          {syncSuccess && <span style={{ color: '#16A34A', fontSize: '0.875rem', fontWeight: 600 }}>Synced Successfully!</span>}
           <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Filter size={18} /> Advanced Filter
           </button>
@@ -46,8 +67,7 @@ export default function AdminShipments() {
               <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>TRACKING ID</th>
               <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>SUPPLIER</th>
               <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>DESTINATION</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>CARRIER</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>DRIVER</th>
+              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>CARRIER / DRIVER</th>
               <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>VALUE</th>
               <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>STATUS</th>
               <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600 }}></th>
@@ -63,22 +83,25 @@ export default function AdminShipments() {
                     <MapPin size={14} /> {s.destination}
                   </div>
                 </td>
-                <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)' }}>{s.carrier}</td>
-                <td style={{ padding: '1rem 1.5rem' }}>
+                <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)' }}>
                   {s.status === 'Delivered' ? (
-                    <span style={{ color: 'var(--color-text-muted)' }}>{s.driver || 'N/A'}</span>
+                    <span>{s.carrier}</span>
                   ) : (
-                    <select 
-                      value={s.driver} 
-                      onChange={(e) => handleAssignDriver(s.id, e.target.value)}
-                      style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid var(--color-border)', outline: 'none', background: 'white' }}
-                    >
-                      <option value="">Unassigned</option>
-                      <option value="Mike Johnson">Mike Johnson</option>
-                      <option value="Sarah Connor">Sarah Connor</option>
-                      <option value="David Smith">David Smith</option>
-                      <option value="James Miller">James Miller</option>
-                    </select>
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <select 
+                        value={pendingChanges[s.id] || s.carrier} 
+                        onChange={(e) => handleCarrierChange(s.id, e.target.value)}
+                        style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: pendingChanges[s.id] ? '1px solid #16A34A' : '1px solid var(--color-border)', outline: 'none', background: pendingChanges[s.id] ? '#F0FDF4' : 'white', minWidth: '160px' }}
+                      >
+                        <option value="ColdChain Express">ColdChain Express</option>
+                        <option value="Global Freight">Global Freight</option>
+                        <option value="Fresh Logistics">Fresh Logistics</option>
+                        <option value="Express Road">Express Road</option>
+                        <option value="Mike Johnson (Independent)">Mike Johnson (Independent)</option>
+                        <option value="Sarah Connor (Independent)">Sarah Connor (Independent)</option>
+                      </select>
+                      {pendingChanges[s.id] && <span style={{ position: 'absolute', top: '-2px', right: '-2px', background: '#EF4444', color: 'white', width: '8px', height: '8px', borderRadius: '50%' }}></span>}
+                    </div>
                   )}
                 </td>
                 <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>{s.total}</td>
