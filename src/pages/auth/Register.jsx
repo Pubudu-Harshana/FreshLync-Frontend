@@ -23,9 +23,8 @@ export default function Register() {
       {/* Left Side - Banner */}
       <div className="split-left" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)' }}>
         <div className="split-left-content">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '4rem', color: 'white' }}>
-            <img src="/logo.svg" alt="Freshlync logo" style={{ height: '80px', width: 'auto', background: 'white', padding: '2px', borderRadius: '6px', display: 'block' }} />
-            <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Freshlync</span>
+          <div style={{ marginBottom: '4rem' }}>
+            <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
           </div>
           <h1>Join the Future of<br/><span>Food Distribution</span></h1>
           <p style={{ fontSize: '1.125rem', opacity: 0.9, maxWidth: '500px', lineHeight: 1.6 }}>

@@ -27,9 +27,8 @@ export default function VerifyEmail() {
       {/* Right Side - Form */}
       <div className="split-right">
         <div style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '3rem', color: 'var(--color-primary)' }}>
-            <img src="/logo.svg" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
-            <span style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>Freshlync</span>
+          <div style={{ marginBottom: '3rem' }}>
+            <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
           </div>
 
           <div style={{ background: 'var(--color-surface)', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '2rem', boxShadow: 'var(--shadow-sm)' }}>

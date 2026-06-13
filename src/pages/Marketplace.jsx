@@ -50,10 +50,7 @@ export default function Marketplace() {
       {/* Topbar */}
       <header style={{ height: '72px', background: 'white', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
-            <img src="/logo.svg" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
-            <span style={{ fontWeight: 700, fontSize: '1.5rem', color: 'var(--color-text-main)' }}>Freshlync</span>
-          </div>
+          <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
           <div style={{ position: 'relative' }}>
             <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
             <input type="text" placeholder="Search marketplace for suppliers" style={{ padding: '0.5rem 1rem 0.5rem 2.5rem', borderRadius: '999px', border: 'none', outline: 'none', width: '300px', background: 'var(--color-background)' }} />
