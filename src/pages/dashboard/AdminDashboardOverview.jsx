@@ -1,8 +1,16 @@
-import React from 'react';
-import { Activity, Users, Truck, DollarSign, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Activity, Users, Truck, DollarSign, TrendingUp, Settings } from 'lucide-react';
 import SEO from '../../components/SEO';
 
 export default function AdminDashboardOverview() {
+  const [margin, setMargin] = useState(15);
+  const [marginSaved, setMarginSaved] = useState(false);
+
+  const handleSaveMargin = () => {
+    localStorage.setItem('freshlync_global_margin', margin);
+    setMarginSaved(true);
+    setTimeout(() => setMarginSaved(false), 3000);
+  };
   return (
     <div>
       <SEO title="Admin Dashboard Overview" />
@@ -83,6 +91,35 @@ export default function AdminDashboardOverview() {
               <div style={{ fontWeight: 600, color: '#1E40AF', marginBottom: '0.25rem' }}>System Update</div>
               <div style={{ fontSize: '0.875rem', color: '#1E3A8A' }}>Scheduled maintenance window in 48 hours.</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Margin Configuration */}
+      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1.5rem' }}>
+        <div className="card" style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.125rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings size={18} /> Platform Margin Configuration</h3>
+            {marginSaved && <span style={{ color: '#16A34A', fontSize: '0.875rem', fontWeight: 600 }}>Saved Successfully!</span>}
+          </div>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1rem' }}>Set the global markup percentage applied to all wholesale transactions through the marketplace.</p>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', maxWidth: '400px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem', color: 'var(--color-text-main)' }}>Global Margin Price (%)</label>
+              <input 
+                type="number" 
+                value={margin} 
+                onChange={(e) => setMargin(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--color-border)', outline: 'none' }}
+              />
+            </div>
+            <button 
+              className="btn-primary" 
+              onClick={handleSaveMargin}
+              style={{ padding: '0.75rem 1.5rem', height: 'max-content' }}
+            >
+              Save Configuration
+            </button>
           </div>
         </div>
       </div>

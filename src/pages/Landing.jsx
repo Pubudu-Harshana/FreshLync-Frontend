@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import SEO from '../components/SEO';
+import { motion } from 'framer-motion';
 
 const featureItems = [
   {
@@ -79,13 +80,20 @@ export default function Landing() {
 
       <main id="top">
         <section className="hero-section">
-          <div className="hero-copy">
+          <motion.div 
+            className="hero-copy"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <div className="hero-eyebrow">
               <span className="hero-eyebrow-dot" />
               Smart distribution. Fresh connection.
             </div>
-            <h1>
-              Move fresh goods with a brand that feels fast, clean, and dependable.
+            <h1 style={{ fontSize: '3rem', lineHeight: '1.1', marginBottom: '5rem' }}>
+              Move fresh goods <br/>
+              with a brand that feels <br/>
+              fast, clean, and dependable.
             </h1>
             <p className="hero-description">
               FreshLync keeps suppliers, intermediaries, and buyers aligned with a modern
@@ -103,7 +111,7 @@ export default function Landing() {
               </a>
             </div>
 
-            <div className="trust-row" aria-label="Platform highlights">
+            <div className="trust-row" aria-label="Platform highlights" style={{ marginTop: '30vh' }}>
               {trustPoints.map((item) => (
                 <span key={item} className="trust-pill">
                   <CheckCircle2 size={14} />
@@ -126,9 +134,15 @@ export default function Landing() {
                 <span>route coordination</span>
               </article>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="hero-visual" aria-hidden="true">
+          <motion.div 
+            className="hero-visual" 
+            aria-hidden="true"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
             <div className="brand-panel">
               <div className="brand-panel-top">
                 <img src="/newlogo.png" alt="FreshLync logo" />
@@ -186,7 +200,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </section>
 
         <section className="landing-section landing-section-muted" id="about">
@@ -200,38 +214,58 @@ export default function Landing() {
           </div>
 
           <div className="feature-grid">
-            {featureItems.map(({ icon: Icon, title, description }) => (
-              <article key={title} className="feature-card">
+            {featureItems.map(({ icon: Icon, title, description }, index) => (
+              <motion.article 
+                key={title} 
+                className="feature-card"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
                 <div className="feature-icon">
                   <Icon size={22} />
                 </div>
                 <h3>{title}</h3>
                 <p>{description}</p>
-              </article>
+              </motion.article>
             ))}
           </div>
         </section>
 
         <section className="landing-section">
           <div className="split-content">
-            <div className="split-copy">
+            <motion.div 
+              className="split-copy"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false, margin: "-50px" }}
+              transition={{ duration: 0.6 }}
+            >
               <span className="section-kicker">Flow</span>
               <h2>Simple order movement from supplier to delivery lorry.</h2>
               <p>
                 Keep the experience focused: one brand story, one clear route, and a visual system
                 that makes the movement of goods easy to understand at a glance.
               </p>
-            </div>
+            </motion.div>
 
             <div className="process-list">
               {processItems.map((item, index) => (
-                <article key={item.title} className="process-item">
+                <motion.article 
+                  key={item.title} 
+                  className="process-item"
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: false, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
                   <div className="process-step">0{index + 1}</div>
                   <div>
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>
                   </div>
-                </article>
+                </motion.article>
               ))}
             </div>
           </div>

@@ -23,17 +23,17 @@ export function CartProvider({ children }) {
     localStorage.setItem('freshlync_cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product) => {
+  const addToCart = (product, addQty = 1) => {
     setCart(prev => {
       const existing = prev.find(item => item.name === product.name);
       if (existing) {
         return prev.map(item => 
           item.name === product.name 
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + addQty }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: addQty }];
     });
   };
 
