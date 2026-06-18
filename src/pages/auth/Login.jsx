@@ -1,29 +1,38 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Leaf, Eye, EyeOff, User, Truck, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, User, Truck, ShieldCheck, ArrowLeft } from 'lucide-react';
 import SEO from '../../components/SEO';
+import { useAuth } from '../../context/AuthContext';
 
 const DUMMY_CREDENTIALS = [
   { role: 'Customer', email: 'customer@freshlync.com', password: 'Customer@123', icon: User, color: '#3b82f6' },
   { role: 'Supplier', email: 'supplier@freshlync.com', password: 'Supplier@123', icon: Truck, color: '#10b981' },
-  { role: 'Admin', email: 'admin@freshlync.com', password: 'Admin@123', icon: ShieldCheck, color: '#8b5cf6' },
+  { role: 'Admin', email: 'admin@freshlync.com', password: 'Admin@1234', icon: ShieldCheck, color: '#8b5cf6' },
 ];
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [role, setRole] = useState('Customer');
+  const navigate   = useNavigate();
+  const { login }  = useAuth();
+  const [role, setRole]           = useState('Customer');
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail]         = useState('');
+  const [password, setPassword]   = useState('');
+  const [error, setError]         = useState('');
+  const [loading, setLoading]     = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (role === 'Customer') {
-      navigate('/marketplace');
-    } else if (role === 'Admin') {
-      navigate('/admin');
-    } else {
-      navigate('/dashboard');
+    setError('');
+    setLoading(true);
+    try {
+      const user = await login(email, password);
+      if (user.role === 'buyer')    navigate('/marketplace');
+      else if (user.role === 'admin') navigate('/admin');
+      else navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,8 +155,13 @@ export default function Login() {
               <label htmlFor="remember" style={{ fontSize: '0.875rem' }}>Remember me for 30 days</label>
             </div>
 
-            <button type="submit" className="btn-primary" style={{ width: '100%', marginBottom: '2rem' }}>
-              Login to Portal
+            {error && (
+              <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '0.75rem 1rem', borderRadius: 8, fontSize: '0.875rem', marginBottom: '1rem' }}>
+                {error}
+              </div>
+            )}
+            <button type="submit" className="btn-primary" style={{ width: '100%', marginBottom: '2rem', opacity: loading ? 0.7 : 1 }} disabled={loading}>
+              {loading ? 'Signing in...' : 'Login to Portal'}
             </button>
           </form>
 

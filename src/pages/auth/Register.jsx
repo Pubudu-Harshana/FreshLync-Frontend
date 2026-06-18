@@ -2,19 +2,34 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import SEO from '../../components/SEO';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Register() {
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
+  const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState('Customer');
+  const [role, setRole]       = useState('Customer');
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError]     = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Simulate successful registration and navigate to verify email
-    navigate('/verify-email');
+    setError('');
+    setLoading(true);
+    try {
+      // Map UI role labels to backend enum values
+      const roleMap = { Customer: 'buyer', Supplier: 'supplier' };
+      const user = await register({ name: fullName, email, password, role: roleMap[role] || 'buyer' });
+      if (user.role === 'buyer')    navigate('/marketplace');
+      else navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -132,8 +147,13 @@ export default function Register() {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary" style={{ width: '100%', marginBottom: '2rem' }}>
-              Create Account
+            {error && (
+              <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '0.75rem 1rem', borderRadius: 8, fontSize: '0.875rem', marginBottom: '1rem' }}>
+                {error}
+              </div>
+            )}
+            <button type="submit" className="btn-primary" style={{ width: '100%', marginBottom: '2rem', opacity: loading ? 0.7 : 1 }} disabled={loading}>
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 

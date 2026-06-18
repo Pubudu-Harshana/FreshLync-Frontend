@@ -1,146 +1,168 @@
-import React from 'react';
-import { Filter, ArrowUpDown, ShoppingCart, Check } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, X, ShoppingCart, Star } from 'lucide-react';
 import SEO from '../../components/SEO';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import EmptyState from '../../components/EmptyState';
+import { productService } from '../../services/productService';
+import { useCart } from '../../context/CartContext';
+
+const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains', 'Other'];
+const PRICE_RANGES = [
+  { label: 'Any Price', max: null },
+  { label: 'Under £5',  max: 5 },
+  { label: 'Under £20', max: 20 },
+  { label: 'Under £50', max: 50 },
+];
 
 export default function MarketplaceHome() {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
-  const [pendingQuantities, setPendingQuantities] = React.useState({});
 
-  const startAdding = (productName) => {
-    setPendingQuantities(prev => ({ ...prev, [productName]: 1 }));
+  const [products, setProducts]   = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [search, setSearch]       = useState('');
+  const [category, setCategory]   = useState('All');
+  const [priceRange, setPriceRange] = useState(PRICE_RANGES[0]);
+  const [addedId, setAddedId]     = useState(null);
+  const [page, setPage]           = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = { page, limit: 12 };
+      if (search) params.search = search;
+      if (category !== 'All') params.category = category;
+      if (priceRange.max) params.maxPrice = priceRange.max;
+      const data = await productService.getProducts(params);
+      setProducts(data.products || []);
+      setTotalPages(data.pages || 1);
+    } catch { /* silent */ }
+    setLoading(false);
+  }, [search, category, priceRange, page]);
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  // debounce search
+  useEffect(() => { setPage(1); }, [search, category, priceRange]);
+
+  const handleAddToCart = (p, e) => {
+    e.stopPropagation();
+    addToCart({ id: p._id, name: p.name, price: p.price, unit: p.unit, image: p.image, supplierName: p.supplierName });
+    setAddedId(p._id);
+    setTimeout(() => setAddedId(null), 1500);
   };
-
-  const updateQty = (productName, delta) => {
-    setPendingQuantities(prev => {
-      const current = prev[productName] || 1;
-      const next = current + delta;
-      if (next < 1) {
-        const copy = { ...prev };
-        delete copy[productName];
-        return copy;
-      }
-      return { ...prev, [productName]: next };
-    });
-  };
-
-  const confirmAdd = (product) => {
-    const qty = pendingQuantities[product.name] || 1;
-    addToCart(product, qty);
-    setPendingQuantities(prev => {
-      const copy = { ...prev };
-      delete copy[product.name];
-      return copy;
-    });
-  };
-
-  const products = [
-    { name: 'Atlantic Salmon', price: '£24.99/kg', img: 'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?auto=format&fit=crop&q=80&w=400', desc: 'Premium grade, sustainably farm-raised in the North Atlantic. Rich in Omega-3.', stock: 'In Stock' },
-    { name: 'Organic Broccoli', price: '£4.50/lb', img: 'https://images.unsplash.com/photo-1583663848850-46af132dc08e?auto=format&fit=crop&q=80&w=400', desc: 'Certified organic, pesticide-free heads harvested from local sustainable farms.', stock: 'In Stock' },
-    { name: 'Angus Beef', price: '£32.00/kg', img: 'https://images.unsplash.com/photo-1603048297172-c92544798d5e?auto=format&fit=crop&q=80&w=400', desc: 'Prime pasture-raised Angus beef. Hand-cut and aged for 21 days for maximum flavor.', stock: 'In Stock' },
-    { name: 'Heirloom Tomatoes', price: '£6.75/lb', img: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&q=80&w=400', desc: 'Mixed variety heirloom tomatoes, non-GMO and vine-ripened for peak sweetness.', stock: 'In Stock' },
-    { name: 'Chilean Seabass', price: '£42.00/kg', img: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&q=80&w=400', desc: 'Wild-caught, MSC certified. Known for its buttery texture and delicate flavor.', stock: 'In Stock' },
-    { name: 'Rainbow Carrots', price: '£3.25/ea', img: 'https://images.unsplash.com/photo-1447175008436-054170c2e979?auto=format&fit=crop&q=80&w=400', desc: 'Artisan bundle of purple, orange, and white carrots. Sweet and crunchy profile.', stock: 'In Stock' },
-  ];
 
   return (
-    <div style={{ display: 'flex', flex: 1, height: '100%' }}>
+    <div style={{ padding: '2rem', fontFamily: 'var(--font-sans)' }}>
       <SEO title="Marketplace" />
 
-      {/* Main Content */}
-      <main style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem' }}>
-          <div>
-            <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Fresh Marketplace</h1>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '1.125rem' }}>Sourced directly from certified suppliers.</p>
-          </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Filter size={18} /> Filter</button>
-            <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ArrowUpDown size={18} /> Sort</button>
-          </div>
+      {/* Header */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.4rem' }}>Fresh Marketplace</h2>
+        <p style={{ color: 'var(--color-text-muted)' }}>Browse premium fish, meat, and vegetables from certified suppliers.</p>
+      </div>
+
+      {/* Search + Filters */}
+      <div style={{ display: 'flex', gap: '0.875rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+          <Search size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
+          <input className="input-field" placeholder="Search products, suppliers..." value={search}
+            onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.5rem' }} />
+          {search && <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}><X size={14} /></button>}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {products.map((p, idx) => (
-            <div key={idx} className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ position: 'relative', height: '200px' }}>
-                <img src={p.img} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', top: '1rem', left: '1rem', background: '#16A34A', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>
-                  {p.stock}
-                </div>
-              </div>
-              <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                  <h3 style={{ fontSize: '1.125rem' }}>{p.name}</h3>
-                  <div style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{p.price}</div>
-                </div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: '1.5rem', flex: 1 }}>
-                  {p.desc}
-                </p>
-                {pendingQuantities[p.name] !== undefined ? (
-                  <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px', flex: 1, padding: '0.25rem 0.5rem' }}>
-                      <button onClick={() => updateQty(p.name, -1)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', padding: '0 0.5rem' }}>-</button>
-                      <span style={{ fontWeight: 600 }}>{pendingQuantities[p.name]}</span>
-                      <button onClick={() => updateQty(p.name, 1)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', padding: '0 0.5rem' }}>+</button>
+        <select value={priceRange.label} onChange={e => setPriceRange(PRICE_RANGES.find(r => r.label === e.target.value))}
+          style={{ padding: '0.6rem 1rem', borderRadius: 8, border: '1px solid var(--color-border)', fontSize: '0.875rem', cursor: 'pointer', background: 'white' }}>
+          {PRICE_RANGES.map(r => <option key={r.label}>{r.label}</option>)}
+        </select>
+      </div>
+
+      {/* Category Tabs */}
+      <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+        {CATEGORIES.map(cat => (
+          <button key={cat} onClick={() => setCategory(cat)} style={{
+            padding: '0.45rem 1rem', borderRadius: 999, fontWeight: 600, fontSize: '0.82rem',
+            border: `2px solid ${category === cat ? 'var(--color-primary)' : 'var(--color-border)'}`,
+            background: category === cat ? 'var(--color-primary)' : 'white',
+            color: category === cat ? 'white' : 'var(--color-text-muted)', cursor: 'pointer', transition: 'all 0.2s',
+          }}>{cat}</button>
+        ))}
+      </div>
+
+      {/* Products Grid */}
+      {loading ? (
+        <LoadingSpinner fullPage={false} message="Loading products..." />
+      ) : products.length === 0 ? (
+        <EmptyState icon={Filter} title="No products found" subtitle="Try a different search or category." />
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            {products.map(p => (
+              <div key={p._id} className="product-card card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }} onClick={() => navigate(`/marketplace/product/${p._id}`)}>
+                <div style={{ height: 180, background: '#E2E8F0', overflow: 'hidden', position: 'relative' }}>
+                  {p.image ? (
+                    <img src={`http://localhost:5000${p.image}`} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%)' }}>
+                      <span style={{ fontSize: '3rem' }}>{p.category === 'Fish' ? '🐟' : p.category === 'Meat' ? '🥩' : '🥬'}</span>
                     </div>
-                    <button onClick={() => confirmAdd(p)} className="btn-primary" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <Check size={18} /> Add
+                  )}
+                  <span style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', background: 'white', borderRadius: 999, padding: '0.2rem 0.65rem', fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>{p.category}</span>
+                  {p.stock < 50 && p.stock > 0 && (
+                    <span style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', background: '#FEF3C7', borderRadius: 999, padding: '0.2rem 0.65rem', fontSize: '0.72rem', fontWeight: 700, color: '#B45309' }}>Low Stock</span>
+                  )}
+                  {p.stock === 0 && (
+                    <span style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', background: '#FEE2E2', borderRadius: 999, padding: '0.2rem 0.65rem', fontSize: '0.72rem', fontWeight: 700, color: '#991B1B' }}>Out of Stock</span>
+                  )}
+                </div>
+
+                <div style={{ padding: '1rem' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>{p.supplierName || 'Supplier'}</div>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.3 }}>{p.name}</h3>
+
+                  {p.rating > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}>
+                      <Star size={13} fill="#F59E0B" color="#F59E0B" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{p.rating.toFixed(1)}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>({p.reviews})</span>
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.75rem' }}>
+                    <div>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>£{Number(p.price).toFixed(2)}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>/{p.unit}</span>
+                    </div>
+                    <button
+                      disabled={p.stock === 0 || addedId === p._id}
+                      onClick={e => handleAddToCart(p, e)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.45rem 0.875rem',
+                        borderRadius: 8, border: 'none', fontWeight: 700, fontSize: '0.78rem', cursor: p.stock === 0 ? 'not-allowed' : 'pointer',
+                        background: addedId === p._id ? '#16A34A' : p.stock === 0 ? '#E2E8F0' : 'var(--color-primary)',
+                        color: p.stock === 0 ? 'var(--color-text-muted)' : 'white', transition: 'all 0.2s',
+                      }}>
+                      <ShoppingCart size={14} />
+                      {addedId === p._id ? 'Added!' : p.stock === 0 ? 'Sold Out' : 'Add'}
                     </button>
                   </div>
-                ) : (
-                  <button 
-                    className="btn-primary" 
-                    style={{ width: '100%' }}
-                    onClick={() => startAdding(p.name)}
-                  >
-                    <ShoppingCart size={18} /> Add to Cart
-                  </button>
-                )}
+                </div>
               </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                <button key={n} onClick={() => setPage(n)} style={{ width: 36, height: 36, borderRadius: 8, border: `1px solid ${n === page ? 'var(--color-primary)' : 'var(--color-border)'}`, background: n === page ? 'var(--color-primary)' : 'white', color: n === page ? 'white' : 'var(--color-text-main)', fontWeight: 700, cursor: 'pointer' }}>{n}</button>
+              ))}
             </div>
-          ))}
-        </div>
-      </main>
-
-      {/* Sidebar */}
-      <aside style={{ width: '260px', background: 'white', borderLeft: '1px solid var(--color-border)', padding: '2rem 1.5rem', flexShrink: 0 }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Categories</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', background: '#E0E7FF', color: '#3730A3', borderRadius: '8px', fontWeight: 500, border: 'none', cursor: 'pointer' }}>
-              <span style={{ display: 'flex', gap: '0.75rem' }}>🐟 Fish</span> <span>›</span>
-            </button>
-            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', fontWeight: 500, border: 'none', background: 'transparent', cursor: 'pointer' }}>
-              <span style={{ display: 'flex', gap: '0.75rem' }}>🥩 Meat</span> <span>›</span>
-            </button>
-            <button style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', fontWeight: 500, border: 'none', background: 'transparent', cursor: 'pointer' }}>
-              <span style={{ display: 'flex', gap: '0.75rem' }}>🥦 Vegetables</span> <span>›</span>
-            </button>
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '0.05em' }}>Price Range</h4>
-          <div style={{ height: '4px', background: '#E2E8F0', borderRadius: '2px', position: 'relative', marginBottom: '1rem' }}>
-            <div style={{ position: 'absolute', left: '0', width: '60%', height: '100%', background: 'var(--color-primary)', borderRadius: '2px' }}></div>
-            <div style={{ position: 'absolute', left: '0', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', background: 'var(--color-primary)', borderRadius: '50%', boxShadow: 'var(--shadow-sm)' }}></div>
-            <div style={{ position: 'absolute', left: '60%', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', background: 'var(--color-primary)', borderRadius: '50%', boxShadow: 'var(--shadow-sm)' }}></div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 500 }}>
-            <span>£0</span>
-            <span>£10,000</span>
-          </div>
-        </div>
-
-        <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px', padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534', marginBottom: '0.5rem' }}>Pro Insights</div>
-          <p style={{ fontSize: '0.875rem', color: '#14532D', marginBottom: '1rem', lineHeight: 1.5 }}>
-            Market prices for Atlantic Salmon are up 5% this week.
-          </p>
-          <button className="btn-primary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.875rem' }}>View Analytics</button>
-        </div>
-      </aside>
+          )}
+        </>
+      )}
     </div>
   );
 }
