@@ -1,76 +1,310 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight,
-  BarChart3,
-  CheckCircle2,
-  Clock3,
-  MapPinned,
-  Package2,
-  ShieldCheck,
-  Users,
+  ArrowRight, BarChart3, CheckCircle2, Clock3, MapPinned,
+  Package2, ShieldCheck, Users, ShoppingBag, Star, Leaf,
+  Fish, Beef, Wheat, Milk, Box, Lock, ChevronRight, Sparkles,
 } from 'lucide-react';
 import SEO from '../components/SEO';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// ── Static fallback products shown when DB has nothing ───────────────────────
+const FALLBACK_PRODUCTS = [
+  { _id: '1', name: 'Atlantic Salmon Fillet', category: 'Fish',       price: 24.99, unit: 'kg', stock: 120, description: 'Fresh, wild-caught Atlantic salmon. Rich omega-3 content.', image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&q=80', rating: 4.8, reviews: 142 },
+  { _id: '2', name: 'Grass-Fed Angus Beef',  category: 'Meat',        price: 32.00, unit: 'kg', stock: 85,  description: 'Prime Angus beef, grass-fed and ethically raised.', image: 'https://images.unsplash.com/photo-1588347818036-c4b8b3a6d6e8?w=400&q=80', rating: 4.9, reviews: 98 },
+  { _id: '3', name: 'Organic Curly Kale',    category: 'Vegetables',  price: 2.45,  unit: 'kg', stock: 350, description: 'Certified organic, harvested daily for peak freshness.', image: 'https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?w=400&q=80', rating: 4.7, reviews: 210 },
+  { _id: '4', name: 'Whole Milk (Fresh)',     category: 'Dairy',       price: 1.20,  unit: 'L',  stock: 500, description: 'Full-fat fresh whole milk from local farms.', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&q=80', rating: 4.6, reviews: 176 },
+  { _id: '5', name: 'Mixed Bell Peppers',    category: 'Vegetables',  price: 1.80,  unit: 'kg', stock: 42,  description: 'Vibrant red, yellow, and green bell peppers.', image: 'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&q=80', rating: 4.5, reviews: 88 },
+  { _id: '6', name: 'Bluefin Tuna Steak',    category: 'Fish',        price: 45.50, unit: 'kg', stock: 30,  description: 'Premium sashimi-grade bluefin tuna, air-flown.', image: 'https://images.unsplash.com/photo-1568727349495-6d4e1dc2c1b5?w=400&q=80', rating: 4.9, reviews: 64 },
+  { _id: '7', name: 'Sourdough Wheat Flour', category: 'Grains',      price: 0.95,  unit: 'kg', stock: 800, description: 'Stone-ground, artisan sourdough wheat flour.', image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&q=80', rating: 4.4, reviews: 320 },
+  { _id: '8', name: 'Free-Range Chicken',    category: 'Meat',        price: 8.50,  unit: 'kg', stock: 200, description: 'Hormone-free free-range chicken, whole or portioned.', image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=400&q=80', rating: 4.7, reviews: 155 },
+];
+
+const CATEGORY_ICONS = {
+  All:        { icon: Sparkles, color: '#6366F1' },
+  Fish:       { icon: Fish,     color: '#0EA5E9' },
+  Meat:       { icon: Beef,     color: '#EF4444' },
+  Vegetables: { icon: Leaf,     color: '#16A34A' },
+  Dairy:      { icon: Milk,     color: '#F59E0B' },
+  Grains:     { icon: Wheat,    color: '#D97706' },
+  Other:      { icon: Box,      color: '#8B5CF6' },
+};
+
+const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains'];
 
 const featureItems = [
-  {
-    icon: Package2,
-    title: 'Live inventory control',
-    description: 'Track stock, batches, and order readiness in one clean workspace.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Cold-chain confidence',
-    description: 'Keep quality visible from dispatch to doorstep with monitored handoffs.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Smarter decisions',
-    description: 'Turn daily movement data into forecasting, planning, and better margins.',
-  },
+  { icon: Package2,   title: 'Live inventory control',   description: 'Track stock, batches, and order readiness in one clean workspace.' },
+  { icon: ShieldCheck, title: 'Cold-chain confidence',   description: 'Keep quality visible from dispatch to doorstep with monitored handoffs.' },
+  { icon: BarChart3,  title: 'Smarter decisions',        description: 'Turn daily movement data into forecasting, planning, and better margins.' },
 ];
 
 const processItems = [
-  {
-    title: 'Order',
-    description: 'Suppliers and buyers stay aligned through a simple, transparent order flow.',
-  },
-  {
-    title: 'Dispatch',
-    description: 'Lorries and routes are coordinated with clear timing and live updates.',
-  },
-  {
-    title: 'Deliver',
-    description: 'Every stop is visible so fresh products arrive on time and in peak condition.',
-  },
+  { title: 'Order',    description: 'Suppliers and buyers stay aligned through a simple, transparent order flow.' },
+  { title: 'Dispatch', description: 'Lorries and routes are coordinated with clear timing and live updates.' },
+  { title: 'Deliver',  description: 'Every stop is visible so fresh products arrive on time and in peak condition.' },
 ];
 
 const trustPoints = ['Fresh produce', 'Meat & seafood', 'Route visibility', 'Team access'];
 
+// ── Product Card ──────────────────────────────────────────────────────────────
+function ProductCard({ product, onBuy }) {
+  const [hovered, setHovered] = useState(false);
+  const stockStatus = product.stock === 0 ? 'Out of Stock' : product.stock < 50 ? 'Low Stock' : 'In Stock';
+  const stockColor  = product.stock === 0 ? '#DC2626' : product.stock < 50 ? '#D97706' : '#16A34A';
+  const catMeta = CATEGORY_ICONS[product.category] || CATEGORY_ICONS.Other;
+  const CatIcon = catMeta.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.4 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'white',
+        borderRadius: 16,
+        overflow: 'hidden',
+        boxShadow: hovered ? '0 16px 48px rgba(0,0,0,0.14)' : '0 2px 12px rgba(0,0,0,0.07)',
+        transition: 'all 0.25s ease',
+        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+        display: 'flex',
+        flexDirection: 'column',
+        border: '1px solid #F1F5F9',
+      }}
+    >
+      {/* Image */}
+      <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: '#F8FAFC' }}>
+        {product.image ? (
+          <img
+            src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`}
+            alt={product.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease', transform: hovered ? 'scale(1.06)' : 'scale(1)' }}
+            onError={e => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ShoppingBag size={48} style={{ color: '#CBD5E1' }} />
+          </div>
+        )}
+        {/* Category badge */}
+        <div style={{
+          position: 'absolute', top: 10, left: 10,
+          background: 'white', borderRadius: 8,
+          padding: '0.3rem 0.65rem',
+          display: 'flex', alignItems: 'center', gap: '0.35rem',
+          fontSize: '0.72rem', fontWeight: 700, color: catMeta.color,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+        }}>
+          <CatIcon size={12} /> {product.category}
+        </div>
+        {/* Stock badge */}
+        <div style={{
+          position: 'absolute', top: 10, right: 10,
+          background: product.stock < 50 && product.stock > 0 ? '#FEF9C3' : product.stock === 0 ? '#FEE2E2' : '#DCFCE7',
+          color: stockColor, borderRadius: 6,
+          padding: '0.25rem 0.55rem',
+          fontSize: '0.68rem', fontWeight: 700,
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+        }}>
+          {stockStatus}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '1.1rem 1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.35rem', lineHeight: 1.3, color: '#0F172A' }}>
+          {product.name}
+        </h3>
+
+        {product.description && (
+          <p style={{ fontSize: '0.78rem', color: '#64748B', marginBottom: '0.75rem', lineHeight: 1.5, flexGrow: 1,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {product.description}
+          </p>
+        )}
+
+        {/* Rating */}
+        {product.rating > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.75rem' }}>
+            {[1,2,3,4,5].map(s => (
+              <Star key={s} size={12} fill={s <= Math.round(product.rating) ? '#F59E0B' : 'none'}
+                style={{ color: '#F59E0B' }} />
+            ))}
+            <span style={{ fontSize: '0.72rem', color: '#94A3B8', marginLeft: '0.2rem' }}>
+              {product.rating.toFixed(1)} ({product.reviews || 0})
+            </span>
+          </div>
+        )}
+
+        {/* Price + CTA */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+          <div>
+            <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#047857' }}>
+              £{Number(product.price).toFixed(2)}
+            </span>
+            <span style={{ fontSize: '0.75rem', color: '#94A3B8', marginLeft: '0.3rem' }}>/ {product.unit}</span>
+          </div>
+          <button
+            onClick={() => onBuy(product)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              background: product.stock === 0 ? '#E5E7EB' : '#047857',
+              color: product.stock === 0 ? '#9CA3AF' : 'white',
+              border: 'none', borderRadius: 8,
+              padding: '0.5rem 0.9rem',
+              fontSize: '0.8rem', fontWeight: 700,
+              cursor: product.stock === 0 ? 'not-allowed' : 'pointer',
+              transition: 'all 0.18s ease',
+            }}
+          >
+            {product.stock === 0 ? 'Sold out' : <><ShoppingBag size={14} /> Buy now</>}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Login Gate Modal ──────────────────────────────────────────────────────────
+function LoginGateModal({ product, onClose, onLogin }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92 }}
+        transition={{ duration: 0.22 }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'white', borderRadius: 20,
+          padding: '2.5rem', maxWidth: 420, width: '100%',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #047857, #065F46)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 1.25rem',
+        }}>
+          <Lock size={28} color="white" />
+        </div>
+
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0F172A' }}>
+          Sign in to purchase
+        </h2>
+        <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+          You've selected <strong style={{ color: '#047857' }}>{product?.name}</strong>.
+        </p>
+        <p style={{ color: '#64748B', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+          Create a free account or log in to start ordering fresh produce directly from verified suppliers.
+        </p>
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column' }}>
+          <button
+            onClick={onLogin}
+            style={{
+              width: '100%', padding: '0.875rem', borderRadius: 12,
+              background: 'linear-gradient(135deg, #047857, #065F46)',
+              color: 'white', fontWeight: 700, fontSize: '0.95rem',
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+            }}
+          >
+            Log in to buy <ArrowRight size={18} />
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              width: '100%', padding: '0.75rem', borderRadius: 12,
+              background: '#F8FAFC', color: '#64748B', fontWeight: 600,
+              border: '1px solid #E2E8F0', cursor: 'pointer', fontSize: '0.9rem',
+            }}
+          >
+            Continue browsing
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ── Main Landing Page ─────────────────────────────────────────────────────────
 export default function Landing() {
   const navigate = useNavigate();
+  const [products, setProducts]       = useState([]);
+  const [loadingProds, setLoadingProds] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const handleJumpTo = (targetId) => (event) => {
     event.preventDefault();
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Fetch products from backend (public endpoint)
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/products?limit=8&page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (data.products || []);
+        setProducts(list.length > 0 ? list : FALLBACK_PRODUCTS);
+      } catch {
+        setProducts(FALLBACK_PRODUCTS);
+      }
+      setLoadingProds(false);
+    };
+    load();
+  }, []);
+
+  const filtered = activeCategory === 'All'
+    ? products
+    : products.filter(p => p.category === activeCategory);
+
+  const handleBuy = (product) => {
+    if (product.stock === 0) return;
+    setSelectedProduct(product);
   };
 
   return (
     <div className="landing-page">
       <SEO title="Home" />
+
+      {/* Login Gate Modal */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <LoginGateModal
+            product={selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+            onLogin={() => navigate('/login')}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Nav ── */}
       <header className="landing-header">
         <nav className="landing-nav">
           <a className="brand-mark" href="#top" onClick={handleJumpTo('top')}>
             <img src="/newlogo.png" alt="FreshLync" className="brand-logo" />
           </a>
           <div className="landing-nav-links">
-            <a href="#top" onClick={handleJumpTo('top')}>Home</a>
-            <a href="#about" onClick={handleJumpTo('about')}>About</a>
-            <a href="#contact" onClick={handleJumpTo('contact')}>Contact</a>
+            <a href="#top"        onClick={handleJumpTo('top')}>Home</a>
+            <a href="#marketplace" onClick={handleJumpTo('marketplace')}>Marketplace</a>
+            <a href="#about"      onClick={handleJumpTo('about')}>About</a>
+            <a href="#contact"    onClick={handleJumpTo('contact')}>Contact</a>
           </div>
           <button className="nav-login-button" onClick={() => navigate('/login')}>
             Login
@@ -79,8 +313,9 @@ export default function Landing() {
       </header>
 
       <main id="top">
+        {/* ── Hero ── */}
         <section className="hero-section">
-          <motion.div 
+          <motion.div
             className="hero-copy"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -96,48 +331,37 @@ export default function Landing() {
               fast, clean, and dependable.
             </h1>
             <p className="hero-description">
-              FreshLync keeps suppliers, intermediaries, and buyers aligned with a modern
-              distribution flow built around live routing, inventory visibility, and a brand
-              palette inspired by the new logo.
+              FreshLync connects verified suppliers with buyers through a modern
+              distribution platform — live routing, instant inventory, and a seamless
+              ordering experience.
             </p>
 
             <div className="hero-actions">
               <button className="primary-action" onClick={() => navigate('/login')}>
-                Get started
-                <ArrowRight size={18} />
+                Get started <ArrowRight size={18} />
               </button>
-              <a className="secondary-action" href="#about" onClick={handleJumpTo('about')}>
-                Explore the platform
+              <a className="secondary-action" href="#marketplace" onClick={handleJumpTo('marketplace')}>
+                Browse products
               </a>
             </div>
 
             <div className="trust-row" aria-label="Platform highlights" style={{ marginTop: '30vh' }}>
               {trustPoints.map((item) => (
                 <span key={item} className="trust-pill">
-                  <CheckCircle2 size={14} />
-                  {item}
+                  <CheckCircle2 size={14} />{item}
                 </span>
               ))}
             </div>
 
             <div className="hero-stats">
-              <article>
-                <strong>Live</strong>
-                <span>dispatch visibility</span>
-              </article>
-              <article>
-                <strong>24/7</strong>
-                <span>shipment tracking</span>
-              </article>
-              <article>
-                <strong>Faster</strong>
-                <span>route coordination</span>
-              </article>
+              <article><strong>Live</strong><span>dispatch visibility</span></article>
+              <article><strong>24/7</strong><span>shipment tracking</span></article>
+              <article><strong>Faster</strong><span>route coordination</span></article>
             </div>
           </motion.div>
 
-          <motion.div 
-            className="hero-visual" 
+          <motion.div
+            className="hero-visual"
             aria-hidden="true"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -147,7 +371,6 @@ export default function Landing() {
               <div className="brand-panel-top">
                 <img src="/newlogo.png" alt="FreshLync logo" />
               </div>
-
               <div className="lorry-scene">
                 <div className="lorry-cloud lorry-cloud-one" />
                 <div className="lorry-cloud lorry-cloud-two" />
@@ -155,77 +378,201 @@ export default function Landing() {
                 <div className="lorry-track-line lorry-track-line-one" />
                 <div className="lorry-track-line lorry-track-line-two" />
                 <div className="lorry-track-line lorry-track-line-three" />
-
                 <div className="lorry-wrap">
-                  <div className="lorry-motion-lines">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-
+                  <div className="lorry-motion-lines"><span /><span /><span /></div>
                   <div className="lorry-body">
                     <div className="lorry-cargo">
-                      <span className="cargo-badge cargo-badge-green">
-                        <Package2 size={14} />
-                      </span>
-                      <span className="cargo-badge cargo-badge-slate">
-                        <Users size={14} />
-                      </span>
-                      <span className="cargo-badge cargo-badge-coral">
-                        <ShieldCheck size={14} />
-                      </span>
+                      <span className="cargo-badge cargo-badge-green"><Package2 size={14} /></span>
+                      <span className="cargo-badge cargo-badge-slate"><Users size={14} /></span>
+                      <span className="cargo-badge cargo-badge-coral"><ShieldCheck size={14} /></span>
                     </div>
-
                     <div className="lorry-cab">
                       <div className="lorry-window" />
                       <div className="lorry-door-line" />
                       <div className="lorry-headlight" />
                     </div>
-
                     <div className="lorry-hitch" />
                     <div className="lorry-wheels">
                       <span className="wheel wheel-left" />
                       <span className="wheel wheel-right" />
                     </div>
                   </div>
-
-                  <div className="lorry-route-card lorry-route-card-top">
-                    <Clock3 size={16} />
-                    <span>Live ETA sync</span>
-                  </div>
-                  <div className="lorry-route-card lorry-route-card-bottom">
-                    <MapPinned size={16} />
-                    <span>Fresh route updates</span>
-                  </div>
+                  <div className="lorry-route-card lorry-route-card-top"><Clock3 size={16} /><span>Live ETA sync</span></div>
+                  <div className="lorry-route-card lorry-route-card-bottom"><MapPinned size={16} /><span>Fresh route updates</span></div>
                 </div>
               </div>
             </div>
           </motion.div>
         </section>
 
+        {/* ── Marketplace Preview ── */}
+        <section id="marketplace" style={{
+          padding: '5rem 2rem',
+          background: 'linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%)',
+        }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              style={{ textAlign: 'center', marginBottom: '3rem' }}
+            >
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                background: '#DCFCE7', color: '#047857',
+                padding: '0.4rem 1rem', borderRadius: 999,
+                fontSize: '0.8rem', fontWeight: 700, marginBottom: '1rem',
+                letterSpacing: '0.04em', textTransform: 'uppercase',
+              }}>
+                <Leaf size={13} /> Live Marketplace
+              </span>
+              <h2 style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.75rem', lineHeight: 1.2 }}>
+                Fresh produce, direct from<br />verified suppliers
+              </h2>
+              <p style={{ color: '#64748B', fontSize: '1rem', maxWidth: 520, margin: '0 auto 0' }}>
+                Browse our full catalogue of premium fish, meat, vegetables, dairy, and grains.
+                <span style={{ color: '#047857', fontWeight: 600 }}> Sign in to place orders.</span>
+              </p>
+            </motion.div>
+
+            {/* Category Filters */}
+            <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
+              {CATEGORIES.map(cat => {
+                const meta = CATEGORY_ICONS[cat];
+                const Icon = meta.icon;
+                const isActive = activeCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.4rem',
+                      padding: '0.5rem 1.1rem', borderRadius: 999,
+                      fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+                      transition: 'all 0.18s ease',
+                      background: isActive ? meta.color : 'white',
+                      color: isActive ? 'white' : meta.color,
+                      border: `2px solid ${meta.color}`,
+                      boxShadow: isActive ? `0 4px 12px ${meta.color}44` : 'none',
+                    }}
+                  >
+                    <Icon size={14} /> {cat}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Products Grid */}
+            {loadingProds ? (
+              <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
+                <div style={{
+                  width: 40, height: 40, border: '3px solid #E2E8F0',
+                  borderTopColor: '#047857', borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
+                }} />
+                Loading fresh products…
+              </div>
+            ) : filtered.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
+                <Box size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                <div>No products in this category yet.</div>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '1.5rem',
+                marginBottom: '2.5rem',
+              }}>
+                {filtered.slice(0, 8).map(product => (
+                  <ProductCard key={product._id} product={product} onBuy={handleBuy} />
+                ))}
+              </div>
+            )}
+
+            {/* CTA Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              style={{
+                background: 'linear-gradient(135deg, #047857 0%, #065F46 60%, #1E3A5F 100%)',
+                borderRadius: 20,
+                padding: '2.5rem 3rem',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                flexWrap: 'wrap', gap: '1.5rem',
+                boxShadow: '0 8px 32px rgba(4,120,87,0.25)',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <Lock size={16} color="#86EFAC" />
+                  <span style={{ color: '#86EFAC', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Buyers only
+                  </span>
+                </div>
+                <h3 style={{ color: 'white', fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.4rem' }}>
+                  Ready to place your order?
+                </h3>
+                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem' }}>
+                  Create a free account and start buying directly from verified suppliers with real-time stock.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => navigate('/login')}
+                  style={{
+                    padding: '0.85rem 2rem', borderRadius: 12,
+                    background: 'white', color: '#047857',
+                    fontWeight: 700, fontSize: '0.95rem',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  Log in to buy <ArrowRight size={18} />
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  style={{
+                    padding: '0.85rem 1.75rem', borderRadius: 12,
+                    background: 'rgba(255,255,255,0.12)',
+                    color: 'white',
+                    fontWeight: 600, fontSize: '0.9rem',
+                    border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer',
+                  }}
+                >
+                  Create account
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── Features ── */}
         <section className="landing-section landing-section-muted" id="about">
           <div className="section-heading">
             <span className="section-kicker">Why it works</span>
             <h2>Designed for a distribution business that needs clarity, speed, and trust.</h2>
             <p>
-              The interface uses the logo’s navy, green, and coral palette to create a clean
-              distribution brand that feels modern without becoming busy.
+              The platform uses live data to create a clean distribution experience
+              that feels modern without becoming busy.
             </p>
           </div>
-
           <div className="feature-grid">
             {featureItems.map(({ icon: Icon, title, description }, index) => (
-              <motion.article 
-                key={title} 
+              <motion.article
+                key={title}
                 className="feature-card"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, margin: "-50px" }}
+                viewport={{ once: false, margin: '-50px' }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <div className="feature-icon">
-                  <Icon size={22} />
-                </div>
+                <div className="feature-icon"><Icon size={22} /></div>
                 <h3>{title}</h3>
                 <p>{description}</p>
               </motion.article>
@@ -233,13 +580,14 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ── Process ── */}
         <section className="landing-section">
           <div className="split-content">
-            <motion.div 
+            <motion.div
               className="split-copy"
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false, margin: "-50px" }}
+              viewport={{ once: false, margin: '-50px' }}
               transition={{ duration: 0.6 }}
             >
               <span className="section-kicker">Flow</span>
@@ -249,15 +597,14 @@ export default function Landing() {
                 that makes the movement of goods easy to understand at a glance.
               </p>
             </motion.div>
-
             <div className="process-list">
               {processItems.map((item, index) => (
-                <motion.article 
-                  key={item.title} 
+                <motion.article
+                  key={item.title}
                   className="process-item"
                   initial={{ opacity: 0, x: 30 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: false, margin: "-50px" }}
+                  viewport={{ once: false, margin: '-50px' }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
                   <div className="process-step">0{index + 1}</div>
@@ -271,6 +618,7 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ── Footer ── */}
         <footer className="landing-footer" id="contact">
           <div className="landing-footer-brand">
             <img src="/newlogo.png" alt="FreshLync" className="footer-logo" />
@@ -279,19 +627,22 @@ export default function Landing() {
               flow, stronger visibility, and a cleaner brand presence.
             </p>
           </div>
-
           <div className="landing-footer-links" aria-label="Footer navigation">
-            <a href="#top" onClick={handleJumpTo('top')}>Home</a>
-            <a href="#about" onClick={handleJumpTo('about')}>About</a>
-            <button type="button" onClick={() => navigate('/login')}>Login</button>
+            <a href="#top"          onClick={handleJumpTo('top')}>Home</a>
+            <a href="#marketplace"  onClick={handleJumpTo('marketplace')}>Marketplace</a>
+            <a href="#about"        onClick={handleJumpTo('about')}>About</a>
+            <button type="button"   onClick={() => navigate('/login')}>Login</button>
           </div>
-
           <div className="landing-footer-meta">
             <span>FreshLync</span>
             <span>Smart distribution for fresh supply chains</span>
           </div>
         </footer>
       </main>
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }

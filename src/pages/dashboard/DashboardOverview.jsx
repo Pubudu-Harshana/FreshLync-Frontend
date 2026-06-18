@@ -1,117 +1,114 @@
-import React from 'react';
-import { LayoutDashboard, Package, ShoppingBag, ShieldCheck, Edit2, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Package, ShoppingBag, ShieldCheck, TrendingUp, AlertTriangle } from 'lucide-react';
 import SEO from '../../components/SEO';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { analyticsService } from '../../services/analyticsService';
+import { orderService } from '../../services/orderService';
+
+function StatCard({ icon: Icon, label, value, badge, badgeColor }) {
+  return (
+    <div className="card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+        <div style={{ width: 40, height: 40, borderRadius: 8, background: badgeColor + '22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={20} style={{ color: badgeColor }} />
+        </div>
+        <span style={{ background: badgeColor + '22', color: badgeColor, padding: '0.2rem 0.6rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 700, height: 'max-content' }}>{badge}</span>
+      </div>
+      <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>{label}</div>
+      <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>{value}</div>
+    </div>
+  );
+}
 
 export default function DashboardOverview() {
-  const products = [
-    { sku: 'KALE-001', name: 'Organic Curly Kale', category: 'Vegetables', price: '£2.45 / kg', stock: '1250', unit: 'kg', status: 'In Stock' },
-    { sku: 'PEPP-042', name: 'Mixed Bell Peppers', category: 'Vegetables', price: '£1.80 / kg', stock: '42', unit: 'kg', status: 'Low Stock' },
-    { sku: 'BEEF-882', name: 'Angus Beef (Prime)', category: 'Meat', price: '£32.00 / kg', stock: '850', unit: 'kg', status: 'In Stock' },
-  ];
+  const navigate = useNavigate();
+  const [stats, setStats]   = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]   = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [summary, ordersData] = await Promise.all([
+          analyticsService.getSummary(),
+          orderService.getOrders({ limit: 5 }),
+        ]);
+        setStats(summary);
+        setOrders(ordersData.orders || []);
+      } catch (e) {
+        setError('Failed to load dashboard data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  if (loading) return <LoadingSpinner fullPage message="Loading dashboard..." />;
+  if (error)   return <div style={{ padding: '2rem', color: '#DC2626' }}>{error}</div>;
+
+  const STATUS_STYLE = {
+    Pending:      { bg: '#FEF3C7', text: '#B45309' },
+    'In Transit': { bg: '#DBEAFE', text: '#1E40AF' },
+    Delivered:    { bg: '#DCFCE7', text: '#166534' },
+    Cancelled:    { bg: '#FEE2E2', text: '#991B1B' },
+  };
 
   return (
     <div>
       <SEO title="Dashboard Overview" />
+
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <LayoutDashboard size={20} />
-            </div>
-            <div style={{ background: '#DCFCE7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, height: 'max-content' }}>+12.5%</div>
-          </div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Total Sales</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>£142,580.00</div>
-        </div>
-        
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#F1F5F9', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ShoppingBag size={20} />
-            </div>
-            <div style={{ background: '#F1F5F9', color: '#475569', padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, height: 'max-content' }}>8 Pending</div>
-          </div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Orders to Fulfill</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>24</div>
-        </div>
-        
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#FEE2E2', color: '#991B1B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Package size={20} />
-            </div>
-            <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, height: 'max-content' }}>Critical</div>
-          </div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Low Stock Alert</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>03 <span style={{ fontSize: '1rem', color: 'var(--color-text-muted)' }}>Items</span></div>
-        </div>
-        
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ShieldCheck size={20} />
-            </div>
-            <div style={{ background: '#DCFCE7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, height: 'max-content' }}>Top Tier</div>
-          </div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Supplier Rating</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>4.92 <span style={{ fontSize: '1rem', color: 'var(--color-text-muted)' }}>/ 5.0</span></div>
-        </div>
+        <StatCard icon={TrendingUp}   label="Total Revenue"    value={`£${Number(stats?.totalRevenue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`}  badge="+Sales"    badgeColor="#16A34A" />
+        <StatCard icon={ShoppingBag}  label="Total Orders"     value={stats?.totalOrders ?? '—'}    badge={`${stats?.totalOrders - stats?.deliveredOrders ?? 0} Pending`} badgeColor="#64748B" />
+        <StatCard icon={Package}      label="Low Stock Items"  value={stats?.lowStockCount ?? '—'}  badge="Alert"     badgeColor="#DC2626" />
+        <StatCard icon={ShieldCheck}  label="Fulfillment Rate" value={`${stats?.fulfillmentRate ?? 0}%`} badge="Top Tier" badgeColor="#16A34A" />
       </div>
 
-      {/* Table Area */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)' }}>
+      {/* Recent Orders */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)' }}>
           <div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Inventory Overview</h3>
-            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Recent updates to stock volumes</div>
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.15rem' }}>Recent Orders</h3>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Latest 5 incoming orders</div>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className="btn-secondary" style={{ padding: '0.5rem 1rem' }}>Export CSV</button>
-          </div>
+          <button className="btn-secondary" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }} onClick={() => navigate('/dashboard/orders')}>View All</button>
         </div>
-        
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <thead style={{ background: 'var(--color-background)', color: 'var(--color-text-muted)' }}>
-            <tr>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>PRODUCT</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>CATEGORY</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>WHOLESALE PRICE</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>STOCK VOLUME</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>STATUS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p, idx) => (
-              <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <td style={{ padding: '1rem 1.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: '#E2E8F0' }}></div>
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{p.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>SKU: {p.sku}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: '1rem 1.5rem' }}>
-                  <span style={{ background: '#E0E7FF', color: '#3730A3', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 500 }}>{p.category}</span>
-                </td>
-                <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>{p.price}</td>
-                <td style={{ padding: '1rem 1.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontWeight: 600 }}>{p.stock}</span>
-                    <span style={{ color: 'var(--color-text-muted)' }}>{p.unit}</span>
-                  </div>
-                </td>
-                <td style={{ padding: '1rem 1.5rem' }}>
-                  <span style={{ background: p.status === 'In Stock' ? '#DCFCE7' : '#FEE2E2', color: p.status === 'In Stock' ? '#166534' : '#991B1B', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>
-                    {p.status}
-                  </span>
-                </td>
+
+        {orders.length === 0 ? (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No orders yet.</div>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead style={{ background: 'var(--color-background)' }}>
+              <tr>
+                {['Order ID', 'Customer', 'Total', 'Status', 'Date'].map((h, i) => (
+                  <th key={h} style={{ padding: '0.75rem 1.25rem', textAlign: i === 4 ? 'right' : 'left', fontWeight: 700, fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {orders.map((o) => {
+                const sc = STATUS_STYLE[o.status] || STATUS_STYLE['Pending'];
+                return (
+                  <tr key={o._id} style={{ borderTop: '1px solid var(--color-border)' }}>
+                    <td style={{ padding: '0.875rem 1.25rem', fontWeight: 700 }}>#{o._id.slice(-6).toUpperCase()}</td>
+                    <td style={{ padding: '0.875rem 1.25rem' }}>{o.buyer?.name || o.delivery?.firstName || '—'}</td>
+                    <td style={{ padding: '0.875rem 1.25rem', fontWeight: 600 }}>£{o.total?.toFixed(2)}</td>
+                    <td style={{ padding: '0.875rem 1.25rem' }}>
+                      <span style={{ background: sc.bg, color: sc.text, padding: '0.2rem 0.65rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 700 }}>{o.status}</span>
+                    </td>
+                    <td style={{ padding: '0.875rem 1.25rem', textAlign: 'right', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
+                      {new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

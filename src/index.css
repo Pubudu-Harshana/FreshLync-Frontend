@@ -1261,3 +1261,102 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Loading Spinner ─────────────────────────────────────── */
+.loading-spinner {
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Modal ───────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fade-in 0.15s ease;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 16px;
+  padding: 1.75rem;
+  width: 100%;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
+  animation: slide-up 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Product card hover lift ─────────────────────────────── */
+.product-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+/* ── Image nav buttons (ProductDetails gallery) ──────────── */
+.img-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+  transition: background 0.2s;
+}
+.img-nav-btn:hover {
+  background: white;
+}
+
+/* ── Chatbot animations ──────────────────────────────────── */
+@keyframes chatbot-pulse {
+  0%, 100% { box-shadow: 0 8px 32px rgba(21, 128, 61, 0.45); }
+  50%       { box-shadow: 0 8px 48px rgba(21, 128, 61, 0.65); }
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── Shared entrance animations ─────────────────────────── */
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Order success timeline connector fix ────────────────── */
+@keyframes cloud-drift {
+  from { transform: translateX(-10%); }
+  to   { transform: translateX(110%); }
+}
+

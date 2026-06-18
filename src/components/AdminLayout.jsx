@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Search, Bell, LayoutDashboard, Truck, Package, Settings, LogOut, Activity, Info } from 'lucide-react';
+import { Search, Bell, LayoutDashboard, Truck, Package, Settings, LogOut, Activity, Info, Users, ShoppingBag } from 'lucide-react';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -30,11 +30,17 @@ export default function AdminLayout() {
           <NavLink to="/admin" end style={navItemStyle}>
             <LayoutDashboard size={20} /> Dashboard
           </NavLink>
+          <NavLink to="/admin/orders" style={navItemStyle}>
+            <ShoppingBag size={20} /> Orders
+          </NavLink>
           <NavLink to="/admin/shipments" style={navItemStyle}>
             <Truck size={20} /> Shipments
           </NavLink>
           <NavLink to="/admin/inventory" style={navItemStyle}>
             <Package size={20} /> Inventory
+          </NavLink>
+          <NavLink to="/admin/users" style={navItemStyle}>
+            <Users size={20} /> User Management
           </NavLink>
         </nav>
 

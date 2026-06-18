@@ -10,13 +10,9 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
     const saved = localStorage.getItem('freshlync_cart');
     if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to parse cart from localStorage", e);
-      }
+      try { return JSON.parse(saved); } catch (e) { return []; }
     }
-    return []; // Array of cart items
+    return [];
   });
 
   useEffect(() => {
@@ -27,8 +23,8 @@ export function CartProvider({ children }) {
     setCart(prev => {
       const existing = prev.find(item => item.name === product.name);
       if (existing) {
-        return prev.map(item => 
-          item.name === product.name 
+        return prev.map(item =>
+          item.name === product.name
             ? { ...item, quantity: item.quantity + addQty }
             : item
         );
@@ -41,16 +37,32 @@ export function CartProvider({ children }) {
     setCart(prev => prev.filter(item => item.name !== productName));
   };
 
+  const updateQuantity = (productName, qty) => {
+    if (qty < 1) { removeFromCart(productName); return; }
+    setCart(prev =>
+      prev.map(item =>
+        item.name === productName ? { ...item, quantity: qty } : item
+      )
+    );
+  };
+
   const clearCart = () => setCart([]);
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
+
+  const cartTotal = cart.reduce((total, item) => {
+    const numeric = parseFloat(String(item.price).replace(/[^0-9.]/g, ''));
+    return total + (isNaN(numeric) ? 0 : numeric * item.quantity);
+  }, 0);
 
   const value = {
     cart,
     addToCart,
     removeFromCart,
+    updateQuantity,
     clearCart,
-    cartItemCount
+    cartItemCount,
+    cartTotal,
   };
 
   return (
