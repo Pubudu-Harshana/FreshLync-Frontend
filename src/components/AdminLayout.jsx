@@ -1,9 +1,78 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Search, Bell, LayoutDashboard, Truck, Package, Settings, LogOut, Activity, Info, Users, ShoppingBag } from 'lucide-react';
+import { Search, Bell, LayoutDashboard, Truck, Package, Settings, LogOut, Info, Users, ShoppingBag, ShieldAlert, Trash2 } from 'lucide-react';
+import { adminService } from '../services/adminService';
+import { analyticsService } from '../services/analyticsService';
+import { useAuth } from '../context/AuthContext';
+
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=100";
+  if (avatar.startsWith('http') || avatar.startsWith('blob:') || avatar.startsWith('data:')) return avatar;
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    : `${window.location.protocol}//${window.location.hostname}:5000`;
+  const normalizedAvatar = avatar.startsWith('/') ? avatar : `/${avatar}`;
+  return `${backendUrl}${normalizedAvatar}`;
+};
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    const fetchNotifs = async () => {
+      try {
+        const notifs = await adminService.getNotifications();
+        setNotifications(notifs);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    
+    fetchNotifs();
+    
+    // Poll notifications every 5 seconds for real-time updates
+    const interval = setInterval(fetchNotifs, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleMarkAllRead = async () => {
+    try {
+      await analyticsService.markAllNotificationsAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteNotif = async (e, id) => {
+    e.stopPropagation();
+    try {
+      await analyticsService.deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleNotifClick = async (n) => {
+    try {
+      if (!n.read) {
+        await analyticsService.markNotificationAsRead(n.id);
+        setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item));
+      }
+      if (n.supplierId) {
+        navigate(`/admin/verification?supplierId=${n.supplierId}`);
+        setShowNotifications(false);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const navItemStyle = ({ isActive }) => ({
     display: 'flex',
@@ -42,13 +111,16 @@ export default function AdminLayout() {
           <NavLink to="/admin/users" style={navItemStyle}>
             <Users size={20} /> User Management
           </NavLink>
+          <NavLink to="/admin/verification" style={navItemStyle}>
+            <ShieldAlert size={20} /> Business Verification
+          </NavLink>
         </nav>
 
         <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <NavLink to="/setup/preferences" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', color: 'rgba(255,255,255,0.8)', textDecoration: 'none' }}>
             <Settings size={20} /> System Settings
           </NavLink>
-          <button onClick={() => navigate('/login')} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', color: '#FCA5A5', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500 }}>
+          <button onClick={() => { logout(); navigate('/login'); }} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1rem', color: '#FCA5A5', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500 }}>
             <LogOut size={20} /> Logout
           </button>
         </div>
@@ -67,15 +139,104 @@ export default function AdminLayout() {
               <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
               <input type="text" placeholder="Search system-wide..." style={{ padding: '0.5rem 1rem 0.5rem 2.5rem', borderRadius: '999px', border: '1px solid var(--color-border)', outline: 'none', width: '300px', background: 'var(--color-background)' }} />
             </div>
-            <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
-              <Bell size={20} />
-            </button>
+
+            {/* Notification Bell with Badge and Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', position: 'relative', display: 'flex', alignItems: 'center' }}
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '-4px', right: '-4px',
+                    background: '#EF4444', color: 'white',
+                    fontSize: '0.65rem', fontWeight: 'bold',
+                    width: '16px', height: '16px', borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div style={{
+                  position: 'absolute', right: 0, top: '2.5rem',
+                  width: '320px', background: 'white', borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                  border: '1px solid var(--color-border)', zIndex: 1000,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FAFAFA' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Notifications</span>
+                    {unreadCount > 0 && (
+                      <button onClick={handleMarkAllRead} style={{ fontSize: '0.72rem', color: 'var(--color-primary)', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700 }}>
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                    {notifications.length === 0 ? (
+                      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
+                        No notifications.
+                      </div>
+                    ) : (
+                      notifications.map(n => (
+                        <div 
+                          key={n.id} 
+                          onClick={() => handleNotifClick(n)}
+                          style={{
+                            padding: '0.75rem 1.25rem', borderBottom: '1px solid #F1F5F9',
+                            background: n.read ? 'white' : '#EEF2F6',
+                            cursor: 'pointer', transition: 'background 0.2s',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem'
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: '0.82rem', fontWeight: 700, color: n.read ? '#4B5563' : 'black', margin: 0 }}>{n.title || 'Notification'}</p>
+                            <p style={{ fontSize: '0.75rem', lineHeight: 1.3, color: '#64748B', margin: '0.15rem 0 0.25rem' }}>{n.text}</p>
+                            <span style={{ fontSize: '0.675rem', color: 'var(--color-text-muted)', display: 'block' }}>{n.time}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <button
+                              onClick={(e) => handleDeleteNotif(e, n.id)}
+                              title="Delete notification"
+                              style={{
+                                border: 'none',
+                                background: 'none',
+                                cursor: 'pointer',
+                                color: '#EF4444',
+                                padding: '0.25rem',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                            {!n.read && (
+                              <span style={{ width: '6px', height: '6px', background: '#EF4444', borderRadius: '50%', flexShrink: 0 }}></span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
               <Info size={20} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => navigate('/setup/profile')} title="View Profile">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => navigate('/admin/profile')} title="View Profile">
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden' }}>
-                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=100" alt="Admin User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={getAvatarUrl(user?.avatar)} alt="Admin User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
             </div>
           </div>

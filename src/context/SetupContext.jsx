@@ -93,7 +93,7 @@ export function SetupProvider({ children }) {
     setSetupState(prev => ({
       ...prev,
       preferences: { ...prev.preferences, ...data },
-      highestStepCompleted: Math.max(prev.highestStepCompleted, 5) // Assuming 5 is max
+      highestStepCompleted: Math.max(prev.highestStepCompleted, 2)
     }));
   };
   

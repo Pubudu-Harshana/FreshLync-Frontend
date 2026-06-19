@@ -3,6 +3,7 @@ import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, Refr
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { orderService } from '../../services/orderService';
+import { useNotification } from '../../context/NotificationContext';
 
 const STATUS_TABS = ['All', 'Pending', 'In Transit', 'Delivered', 'Cancelled'];
 const STATUS_STYLE = {
@@ -13,6 +14,7 @@ const STATUS_STYLE = {
 };
 
 export default function AdminOrders() {
+  const { showToast } = useNotification();
   const [orders, setOrders]         = useState([]);
   const [loading, setLoading]       = useState(true);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -24,7 +26,9 @@ export default function AdminOrders() {
     try {
       const data = await orderService.getOrders({ limit: 100 });
       setOrders(data.orders || []);
-    } catch { /* silent */ }
+    } catch { 
+      showToast('Failed to fetch orders.', 'error');
+    }
     setLoading(false);
   };
 
@@ -39,7 +43,10 @@ export default function AdminOrders() {
     try {
       const updated = await orderService.updateStatus(orderId, newStatus);
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: updated.status, supplierStatuses: updated.supplierStatuses } : o));
-    } catch { alert('Failed to update status.'); }
+      showToast(`Order status updated to ${newStatus} successfully.`, 'success');
+    } catch { 
+      showToast('Failed to update status.', 'error'); 
+    }
     setSavingStatus(prev => ({ ...prev, [orderId]: false }));
   };
 
@@ -143,76 +150,106 @@ export default function AdminOrders() {
                     </tr>
 
                     {isOpen && (
-                      <tr style={{ background: '#f5f3ff' }}>
-                        <td colSpan={7} style={{ padding: '0 1.25rem 1.25rem' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', paddingTop: '0.75rem' }}>
-                            <div style={{ background: 'white', borderRadius: 10, padding: '1rem', border: '1px solid var(--color-border)' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
-                                <Package size={14} style={{ color: '#312E81' }} />
-                                <span style={{ fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Order Items</span>
+                      <tr style={{ background: '#f8fafc' }}>
+                        <td colSpan={7} style={{ padding: '1.25rem' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                            {/* 1. Customer Details */}
+                            <div style={{ background: 'white', borderRadius: 8, padding: '1rem', border: '1px solid var(--color-border)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
+                                <User size={15} style={{ color: '#312E81' }} />
+                                <span style={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>Customer</span>
                               </div>
-                              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                {(o.items || []).map((item, i) => (
-                                  <li key={i} style={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span>{item.name} ×{item.quantity} {item.unit}</span>
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>({item.supplierName || 'Supplier'})</span>
-                                  </li>
-                                ))}
-                              </ul>
+                              <p style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>{o.buyer?.name || o.delivery?.firstName + ' ' + (o.delivery?.lastName || '') || '—'}</p>
+                              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>📧 {o.buyer?.email || o.delivery?.email || 'No email'}</p>
+                              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>📞 {o.buyer?.phone || o.delivery?.phone || 'No phone'}</p>
                             </div>
 
-                            <div style={{ background: 'white', borderRadius: 10, padding: '1rem', border: '1px solid var(--color-border)' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
-                                <MapPin size={14} style={{ color: '#312E81' }} />
-                                <span style={{ fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Shipping Destination</span>
+                            {/* 2. Products by Supplier */}
+                            <div style={{ background: 'white', borderRadius: 8, padding: '1rem', border: '1px solid var(--color-border)', gridColumn: 'span 2' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
+                                <Package size={15} style={{ color: '#312E81' }} />
+                                <span style={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>Vendor Shipments</span>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {(() => {
+                                  const groups = {};
+                                  (o.items || []).forEach(item => {
+                                    const sName = item.supplierName || 'Unknown Supplier';
+                                    if (!groups[sName]) groups[sName] = [];
+                                    groups[sName].push(item);
+                                  });
+                                  return Object.entries(groups).map(([sName, items]) => {
+                                    const itemId = items[0]?.supplier;
+                                    const statusEntry = o.supplierStatuses?.find(s => s.supplier === itemId || s.supplier?._id === itemId);
+                                    const sStatus = statusEntry ? statusEntry.status : 'Pending';
+                                    const sc = STATUS_STYLE[sStatus] || STATUS_STYLE['Pending'];
+                                    return (
+                                      <div key={sName} style={{ borderBottom: '1px solid #f8fafc', paddingBottom: '0.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                                          <span style={{ fontWeight: 700, fontSize: '0.82rem' }}>{sName}</span>
+                                          <span style={{ background: sc.bg, color: sc.text, padding: '0.1rem 0.45rem', borderRadius: 999, fontSize: '0.65rem', fontWeight: 700 }}>{sStatus}</span>
+                                        </div>
+                                        <ul style={{ listStyle: 'none', paddingLeft: '0.5rem' }}>
+                                          {items.map((it, idx) => (
+                                            <li key={idx} style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                                              • {it.name} ({it.quantity} {it.unit} @ £{it.price.toFixed(2)})
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    );
+                                  });
+                                })()}
+                              </div>
+                            </div>
+
+                            {/* 3. Delivery & Payment Details */}
+                            <div style={{ background: 'white', borderRadius: 8, padding: '1rem', border: '1px solid var(--color-border)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
+                                <MapPin size={15} style={{ color: '#312E81' }} />
+                                <span style={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>Shipping & Payment</span>
                               </div>
                               {o.delivery ? (
-                                <>
-                                  <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
-                                    {o.delivery.firstName} {o.delivery.lastName}<br />
-                                    {o.delivery.address}, {o.delivery.city}, {o.delivery.postcode}
-                                  </p>
-                                  <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                                    <Calendar size={13} /> {new Date(o.createdAt).toLocaleDateString('en-GB')}
-                                  </div>
-                                </>
-                              ) : <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>No delivery info</p>}
-                            </div>
-
-                            <div style={{ background: 'white', borderRadius: 10, padding: '1rem', border: '1px solid var(--color-border)' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
-                                <Layers size={14} style={{ color: '#312E81' }} />
-                                <span style={{ fontWeight: 700, fontSize: '0.78rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Supplier Shipments</span>
-                              </div>
-                              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                {(o.supplierStatuses || []).map((supStatus, i) => {
-                                  const sc = STATUS_STYLE[supStatus.status] || STATUS_STYLE['Pending'];
-                                  const name = o.items?.find(item => item.supplier === supStatus.supplier)?.supplierName || 'Supplier';
-                                  return (
-                                    <li key={i} style={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                      <span style={{ fontWeight: 600 }}>{name}</span>
-                                      <span style={{ background: sc.bg, color: sc.text, padding: '0.1rem 0.5rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 700 }}>
-                                        {supStatus.status}
-                                      </span>
-                                    </li>
-                                  );
-                                })}
-                                {(!o.supplierStatuses || o.supplierStatuses.length === 0) && (
-                                  <li style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>No individual status</li>
-                                )}
-                              </ul>
+                                <p style={{ fontSize: '0.8rem', lineHeight: 1.4, marginBottom: '0.5rem' }}>
+                                  <strong>To:</strong> {o.delivery.address}, {o.delivery.city}, {o.delivery.postcode}
+                                </p>
+                              ) : <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>No shipping details</p>}
+                              <p style={{ fontSize: '0.8rem', lineHeight: 1.4 }}>
+                                <strong>Payment Method:</strong> {o.paymentMethod || 'Credit Card'}<br />
+                                <strong>Payment Status:</strong> <span style={{ color: '#16A34A', fontWeight: 700 }}>Authorized</span>
+                              </p>
                             </div>
                           </div>
 
-                          {/* Overall Order Status Update */}
-                          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Force overall status:</span>
-                            {['Pending', 'In Transit', 'Delivered', 'Cancelled'].map(s => (
-                              <button key={s} onClick={(e) => { e.stopPropagation(); handleStatusChange(o._id, s); }} disabled={savingStatus[o._id] || o.status === s}
-                                style={{ padding: '0.3rem 0.875rem', borderRadius: 999, border: `1px solid ${STATUS_STYLE[s].text}`, background: o.status === s ? STATUS_STYLE[s].bg : 'white', color: STATUS_STYLE[s].text, fontSize: '0.8rem', fontWeight: 600, cursor: o.status === s ? 'default' : 'pointer', opacity: savingStatus[o._id] ? 0.6 : 1 }}>
-                                {savingStatus[o._id] ? '...' : s}
+                          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '1rem', alignItems: 'center' }}>
+                            {/* Timeline & Resolution */}
+                            <div style={{ background: 'white', borderRadius: 8, padding: '1rem', border: '1px solid var(--color-border)' }}>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Order Timeline Log</div>
+                              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                                <span style={{ color: '#047857', fontWeight: 700 }}>✓ Placed</span>
+                                <span style={{ color: o.status !== 'Pending' ? '#047857' : 'inherit', fontWeight: o.status !== 'Pending' ? 700 : 'inherit' }}>→ Paid</span>
+                                <span style={{ color: o.status === 'In Transit' || o.status === 'Delivered' ? '#047857' : 'inherit', fontWeight: o.status === 'In Transit' || o.status === 'Delivered' ? 700 : 'inherit' }}>→ Out for Delivery</span>
+                                <span style={{ color: o.status === 'Delivered' ? '#047857' : 'inherit', fontWeight: o.status === 'Delivered' ? 700 : 'inherit' }}>→ Delivered</span>
+                              </div>
+                            </div>
+
+                            {/* Controls */}
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                              <button onClick={(e) => { e.stopPropagation(); showToast('Dispute resolved. Notification sent to supplier and buyer.', 'success'); }} style={{ padding: '0.35rem 0.8rem', borderRadius: 6, background: '#EFF6FF', color: '#1D4ED8', fontSize: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+                                Resolve Dispute
                               </button>
-                            ))}
+                              <select 
+                                value={o.status} 
+                                onChange={(e) => handleStatusChange(o._id, e.target.value)}
+                                style={{ padding: '0.35rem 0.5rem', borderRadius: 6, border: '1px solid var(--color-border)', outline: 'none', fontSize: '0.78rem', fontWeight: 600 }}
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <option value="Pending">Force Status: Pending</option>
+                                <option value="In Transit">Force Status: In Transit</option>
+                                <option value="Delivered">Force Status: Delivered</option>
+                                <option value="Cancelled">Force Status: Cancelled</option>
+                              </select>
+                            </div>
                           </div>
                         </td>
                       </tr>

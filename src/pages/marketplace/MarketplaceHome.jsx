@@ -21,7 +21,10 @@ export default function MarketplaceHome() {
 
   const [products, setProducts]   = useState([]);
   const [loading, setLoading]     = useState(true);
-  const [search, setSearch]       = useState('');
+  const [search, setSearch]       = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('search') || '';
+  });
   const [category, setCategory]   = useState('All');
   const [priceRange, setPriceRange] = useState(PRICE_RANGES[0]);
   const [addedId, setAddedId]     = useState(null);

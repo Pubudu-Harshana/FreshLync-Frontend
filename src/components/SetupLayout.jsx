@@ -1,16 +1,21 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Leaf, User, ShieldCheck, Users, Plug, Settings, HelpCircle, Bell, LogOut, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function SetupLayout() {
   const navigate = useNavigate();
-  const navItems = [
+  const { user } = useAuth();
+  
+  const navItems = user?.role === 'supplier' ? [
     { path: '/setup/profile', icon: User, label: 'Profile Setup', step: 1 },
     { path: '/setup/verification', icon: ShieldCheck, label: 'Business Verification', step: 2 },
-    { path: '/setup/team', icon: Users, label: 'Team Access', step: 3 },
-    { path: '/setup/integrations', icon: Plug, label: 'Integration', step: 4 },
-    { path: '/setup/preferences', icon: Settings, label: 'Preferences', step: 5 },
+    { path: '/setup/preferences', icon: Settings, label: 'Preferences', step: 3 },
+  ] : [
+    { path: '/setup/profile', icon: User, label: 'Profile Setup', step: 1 },
+    { path: '/setup/preferences', icon: Settings, label: 'Preferences', step: 2 },
   ];
+
 
   return (
     <div className="setup-layout" style={{ fontFamily: 'var(--font-sans)' }}>

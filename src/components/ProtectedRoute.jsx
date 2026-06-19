@@ -1,18 +1,16 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSetup } from '../context/SetupContext';
-
-const STEP_ROUTES = [
-  '/setup/profile',       // Step 1
-  '/setup/verification',  // Step 2
-  '/setup/team',          // Step 3
-  '/setup/integrations',  // Step 4
-  '/setup/preferences'    // Step 5
-];
+import { useAuth } from '../context/AuthContext';
 
 export default function ProtectedRoute({ children }) {
   const { setupState } = useSetup();
+  const { user } = useAuth();
   const location = useLocation();
+
+  const STEP_ROUTES = user?.role === 'supplier'
+    ? ['/setup/profile', '/setup/verification', '/setup/preferences']
+    : ['/setup/profile', '/setup/preferences'];
 
   // Find index of current route
   const currentStepIndex = STEP_ROUTES.indexOf(location.pathname);
@@ -20,8 +18,7 @@ export default function ProtectedRoute({ children }) {
   // If we are on a setup route, check if we are allowed to be here
   if (currentStepIndex !== -1) {
     // You can access any step up to highestStepCompleted + 1
-    // (e.g., if highest completed is 0, you can access index 0. If 1, you can access index 1)
-    const allowedMaxStepIndex = setupState.highestStepCompleted;
+    const allowedMaxStepIndex = setupState?.highestStepCompleted ?? 0;
     
     if (currentStepIndex > allowedMaxStepIndex) {
       // Redirect to the highest allowed step they haven't completed yet

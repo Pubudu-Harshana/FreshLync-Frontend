@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Mail, Smartphone, Globe, CheckCircle2 } from 'lucide-react';
 import { useSetup } from '../../context/SetupContext';
+import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/SEO';
 
 export default function Preferences() {
@@ -14,9 +15,14 @@ export default function Preferences() {
     setPrefs(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const { user } = useAuth();
   const handleComplete = () => {
     updatePreferences(prefs);
-    navigate('/dashboard');
+    if (user?.role === 'buyer') {
+      navigate('/marketplace');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -149,15 +155,22 @@ export default function Preferences() {
             <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '2rem', lineHeight: 1.5 }}>
               All onboarding steps are completed. Your supply chain workspace is now optimized.
             </p>
-            <button onClick={handleComplete} style={{ background: 'white', color: 'var(--color-primary)', width: '100%', padding: '1rem', borderRadius: '8px', fontWeight: 600, marginBottom: '1rem' }}>
+            <button onClick={handleComplete} style={{ background: 'white', color: 'var(--color-primary)', width: '100%', padding: '1rem', borderRadius: '8px', fontWeight: 600, marginBottom: '1rem', border: 'none', cursor: 'pointer' }}>
               Complete Setup
             </button>
-            <button onClick={() => { updatePreferences(prefs); navigate('/setup/integrations'); }} style={{ color: 'white', fontSize: '0.875rem' }}>
+            <button onClick={() => { updatePreferences(prefs); navigate('/setup/profile'); }} style={{ color: 'white', fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer' }}>
               Review Previous Steps
             </button>
           </div>
 
         </div>
+      </div>
+
+      {/* Progress Dots */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem' }}>
+        {(user?.role === 'supplier' ? [1, 2, 3] : [1, 2]).map(step => (
+          <div key={step} style={{ width: '40px', height: '4px', borderRadius: '2px', background: (user?.role === 'supplier' ? step === 3 : step === 2) ? 'var(--color-primary)' : 'var(--color-border)' }}></div>
+        ))}
       </div>
     </div>
   );

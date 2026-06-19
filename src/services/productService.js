@@ -11,11 +11,19 @@ export const productService = {
     return res.data;
   },
 
+  async getSupplierInventory(supplierId) {
+    return this.getProducts({ supplierId, limit: 100 });
+  },
+
   async createProduct(formData) {
     const res = await api.post('/products', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return res.data;
+  },
+
+  async addProduct(formData) {
+    return this.createProduct(formData);
   },
 
   async updateProduct(id, data) {

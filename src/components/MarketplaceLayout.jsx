@@ -1,11 +1,23 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Bell, ShoppingCart, LogOut, Info, Store, Users, Truck, Package, Activity, Settings, LayoutGrid } from 'lucide-react';
+import { Bell, ShoppingCart, LogOut, Info, Store, Users, Wallet, Package, Activity, Settings, LayoutGrid } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import ChatbotWidget from './ChatbotWidget';
+
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100";
+  if (avatar.startsWith('http') || avatar.startsWith('blob:') || avatar.startsWith('data:')) return avatar;
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    : `${window.location.protocol}//${window.location.hostname}:5000`;
+  const normalizedAvatar = avatar.startsWith('/') ? avatar : `/${avatar}`;
+  return `${backendUrl}${normalizedAvatar}`;
+};
 
 export default function MarketplaceLayout() {
   const { cartItemCount } = useCart();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const navItemStyle = ({ isActive }) => ({
@@ -33,9 +45,9 @@ export default function MarketplaceLayout() {
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 1rem', gap: '0.15rem' }}>
           <NavLink to="/marketplace" end style={navItemStyle}><Store size={19} /> Marketplace</NavLink>
           <NavLink to="/marketplace/suppliers" style={navItemStyle}><Users size={19} /> Suppliers</NavLink>
-          <NavLink to="/marketplace/logistics" style={navItemStyle}><Truck size={19} /> Logistics</NavLink>
+          <NavLink to="/marketplace/billing" style={navItemStyle}><Wallet size={19} /> Billing & Credit</NavLink>
           <NavLink to="/marketplace/shipments" style={navItemStyle}><LayoutGrid size={19} /> My Shipments</NavLink>
-          <NavLink to="/marketplace/inventory" style={navItemStyle}><Package size={19} /> My Inventory</NavLink>
+          <NavLink to="/marketplace/inventory" style={navItemStyle}><Package size={19} /> Purchase History</NavLink>
           <NavLink to="/marketplace/analytics" style={navItemStyle}><Activity size={19} /> Analytics</NavLink>
 
           {/* Cart shortcut */}
@@ -54,7 +66,7 @@ export default function MarketplaceLayout() {
 
         <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.12)' }}>
           <NavLink to="/setup/preferences" style={navItemStyle}><Settings size={19} /> Settings</NavLink>
-          <button onClick={() => navigate('/login')} style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '0.7rem 1rem', color: '#FCA5A5', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500, fontSize: '0.9rem', borderRadius: 8 }}>
+          <button onClick={() => { logout(); navigate('/login'); }} style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '0.7rem 1rem', color: '#FCA5A5', background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left', fontWeight: 500, fontSize: '0.9rem', borderRadius: 8 }}>
             <LogOut size={19} /> Logout
           </button>
         </div>
@@ -80,9 +92,9 @@ export default function MarketplaceLayout() {
             </button>
             <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Bell size={20} /></button>
             <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Info size={20} /></button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => navigate('/setup/profile')} title="View Profile">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => navigate('/account/settings')} title="View Profile">
               <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '2px solid #047857' }}>
-                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100" alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={getAvatarUrl(user?.avatar)} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
             </div>
           </div>
