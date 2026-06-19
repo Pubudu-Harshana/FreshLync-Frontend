@@ -16,10 +16,28 @@ export const authService = {
     return res.data;
   },
 
+  async getSupplierProfile() {
+    return this.getMe();
+  },
+
   async updateProfile(data) {
-    const res = await api.put('/auth/profile', data);
+    const config = {};
+    if (data instanceof FormData) {
+      config.headers = { 'Content-Type': 'multipart/form-data' };
+    }
+    const res = await api.put('/auth/profile', data, config);
     return res.data;
   },
+
+  async submitBusinessVerification(data) {
+    const config = {};
+    if (data instanceof FormData) {
+      config.headers = { 'Content-Type': 'multipart/form-data' };
+    }
+    const res = await api.put('/auth/verify-details', data, config);
+    return res.data;
+  },
+
 
   async changePassword(currentPassword, newPassword) {
     const res = await api.put('/auth/password', { currentPassword, newPassword });

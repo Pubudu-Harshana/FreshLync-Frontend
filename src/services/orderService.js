@@ -11,6 +11,10 @@ export const orderService = {
     return res.data;
   },
 
+  async getSupplierOrders(params = {}) {
+    return this.getOrders(params);
+  },
+
   async placeOrder(data) {
     const res = await api.post('/orders', data);
     return res.data;
@@ -19,5 +23,9 @@ export const orderService = {
   async updateStatus(id, status) {
     const res = await api.put(`/orders/${id}/status`, { status });
     return res.data;
+  },
+
+  async updateOrderStatus(id, status) {
+    return this.updateStatus(id, status);
   },
 };

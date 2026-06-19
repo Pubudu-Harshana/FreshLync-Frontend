@@ -3,6 +3,7 @@ import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, Refr
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { orderService } from '../../services/orderService';
+import { useNotification } from '../../context/NotificationContext';
 
 const STATUS_TABS = ['All', 'Pending', 'In Transit', 'Delivered', 'Cancelled'];
 const STATUS_STYLE = {
@@ -13,6 +14,7 @@ const STATUS_STYLE = {
 };
 
 export default function Orders() {
+  const { showToast } = useNotification();
   const [orders, setOrders]         = useState([]);
   const [loading, setLoading]       = useState(true);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -24,7 +26,7 @@ export default function Orders() {
     try {
       const data = await orderService.getOrders({ limit: 50 });
       setOrders(data.orders || []);
-    } catch { /* silent */ }
+    } catch { showToast('Failed to fetch orders.', 'error'); }
     setLoading(false);
   };
 
@@ -39,7 +41,8 @@ export default function Orders() {
     try {
       const updated = await orderService.updateStatus(orderId, newStatus);
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: updated.status } : o));
-    } catch { alert('Failed to update status.'); }
+      showToast('Order status updated.', 'success');
+    } catch { showToast('Failed to update status.', 'error'); }
     setSavingStatus(prev => ({ ...prev, [orderId]: false }));
   };
 

@@ -23,8 +23,7 @@ export default function Register() {
       // Map UI role labels to backend enum values
       const roleMap = { Customer: 'buyer', Supplier: 'supplier' };
       const user = await register({ name: fullName, email, password, role: roleMap[role] || 'buyer' });
-      if (user.role === 'buyer')    navigate('/marketplace');
-      else navigate('/dashboard');
+      navigate('/setup/profile');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

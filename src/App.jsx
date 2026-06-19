@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { SetupProvider } from './context/SetupContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import LoadingSpinner from './components/LoadingSpinner';
 
 // Layouts (not lazy — they are shells, loaded immediately)
@@ -35,11 +36,15 @@ const AdminOrders            = lazy(() => import('./pages/dashboard/AdminOrders'
 const AdminShipments         = lazy(() => import('./pages/dashboard/AdminShipments'));
 const AdminInventory         = lazy(() => import('./pages/dashboard/AdminInventory'));
 const AdminUsers             = lazy(() => import('./pages/dashboard/AdminUsers'));
+const AdminVerification      = lazy(() => import('./pages/dashboard/AdminVerification'));
+
 
 // Supplier Dashboard
 const DashboardOverview = lazy(() => import('./pages/dashboard/DashboardOverview'));
 const Inventory         = lazy(() => import('./pages/dashboard/Inventory'));
 const Orders            = lazy(() => import('./pages/dashboard/Orders'));
+const Earnings          = lazy(() => import('./pages/dashboard/Earnings'));
+const Notifications     = lazy(() => import('./pages/dashboard/Notifications'));
 const Analytics         = lazy(() => import('./pages/dashboard/Analytics'));
 const Compliance        = lazy(() => import('./pages/dashboard/Compliance'));
 const Support           = lazy(() => import('./pages/dashboard/Support'));
@@ -54,7 +59,7 @@ const Cart                 = lazy(() => import('./pages/marketplace/Cart'));
 const Checkout             = lazy(() => import('./pages/marketplace/Checkout'));
 const OrderSuccess         = lazy(() => import('./pages/marketplace/OrderSuccess'));
 const Suppliers            = lazy(() => import('./pages/marketplace/Suppliers'));
-const Logistics            = lazy(() => import('./pages/marketplace/Logistics'));
+const Billing              = lazy(() => import('./pages/marketplace/Billing'));
 const MarketplaceAnalytics = lazy(() => import('./pages/marketplace/MarketplaceAnalytics'));
 const MarketplaceShipments = lazy(() => import('./pages/marketplace/MarketplaceShipments'));
 const MarketplaceInventory = lazy(() => import('./pages/marketplace/MarketplaceInventory'));
@@ -70,72 +75,82 @@ function App() {
       <AuthProvider>
         <SetupProvider>
           <CartProvider>
-            <Router>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Public */}
-                <Route path="/"              element={<Landing />} />
-                <Route path="/login"         element={<Login />} />
-                <Route path="/register"      element={<Register />} />
-                <Route path="/verify-email"  element={<VerifyEmail />} />
+            <NotificationProvider>
+              <Router>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* Public */}
+                    <Route path="/"              element={<Landing />} />
+                    <Route path="/login"         element={<Login />} />
+                    <Route path="/register"      element={<Register />} />
+                    <Route path="/verify-email"  element={<VerifyEmail />} />
 
-                {/* Setup */}
-                <Route element={<SetupLayout />}>
-                  <Route path="/setup/profile"       element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
-                  <Route path="/setup/verification"  element={<ProtectedRoute><BusinessVerification /></ProtectedRoute>} />
-                  <Route path="/setup/team"          element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
-                  <Route path="/setup/integrations"  element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
-                  <Route path="/setup/preferences"   element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
-                </Route>
+                    {/* Setup */}
+                    <Route element={<SetupLayout />}>
+                      <Route path="/setup/profile"       element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
+                      <Route path="/setup/verification"  element={<ProtectedRoute><BusinessVerification /></ProtectedRoute>} />
+                      <Route path="/setup/team"          element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
+                      <Route path="/setup/integrations"  element={<ProtectedRoute><Integrations /></ProtectedRoute>} />
+                      <Route path="/setup/preferences"   element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+                    </Route>
 
-                {/* Supplier Dashboard */}
-                <Route path="/dashboard" element={<DashboardLayout />}>
-                  <Route index                        element={<DashboardOverview />} />
-                  <Route path="inventory"             element={<Inventory />} />
-                  <Route path="orders"                element={<Orders />} />
-                  <Route path="analytics"             element={<Analytics />} />
-                  <Route path="compliance"            element={<Compliance />} />
-                  <Route path="support"               element={<Support />} />
-                  <Route path="add-product"           element={<AddProduct />} />
-                  <Route path="edit-product/:id"      element={<EditProduct />} />
-                  <Route path="profile"               element={<SupplierProfile />} />
-                </Route>
+                    {/* Supplier Dashboard */}
+                    <Route path="/dashboard" element={<DashboardLayout />}>
+                      <Route index                        element={<DashboardOverview />} />
+                      <Route path="inventory"             element={<Inventory />} />
+                      <Route path="orders"                element={<Orders />} />
+                      <Route path="earnings"              element={<Earnings />} />
+                      <Route path="notifications"         element={<Notifications />} />
+                      <Route path="analytics"             element={<Analytics />} />
+                      <Route path="compliance"            element={<Compliance />} />
+                      <Route path="support"               element={<Support />} />
+                      <Route path="add-product"           element={<AddProduct />} />
+                      <Route path="edit-product/:id"      element={<EditProduct />} />
+                      <Route path="profile"               element={<SupplierProfile />} />
+                    </Route>
 
-                {/* Admin */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index               element={<AdminDashboardOverview />} />
-                  <Route path="orders"       element={<AdminOrders />} />
-                  <Route path="shipments"    element={<AdminShipments />} />
-                  <Route path="inventory"    element={<AdminInventory />} />
-                  <Route path="users"        element={<AdminUsers />} />
-                </Route>
+                    {/* Admin */}
+                    <Route path="/admin" element={<AdminLayout />}>
+                      <Route index               element={<AdminDashboardOverview />} />
+                      <Route path="orders"       element={<AdminOrders />} />
+                      <Route path="shipments"    element={<AdminShipments />} />
+                      <Route path="inventory"    element={<AdminInventory />} />
+                      <Route path="users"        element={<AdminUsers />} />
+                      <Route path="verification" element={<AdminVerification />} />
+                      <Route path="profile"      element={<SupplierProfile />} />
+                    </Route>
 
-                {/* Marketplace (Customer Buyer) */}
-                <Route path="/marketplace" element={<MarketplaceLayout />}>
-                  <Route index                   element={<MarketplaceHome />} />
-                  <Route path="product/:id"      element={<ProductDetails />} />
-                  <Route path="cart"             element={<Cart />} />
-                  <Route path="checkout"         element={<Checkout />} />
-                  <Route path="order-success"    element={<OrderSuccess />} />
-                  <Route path="suppliers"        element={<Suppliers />} />
-                  <Route path="logistics"        element={<Logistics />} />
-                  <Route path="shipments"        element={<MarketplaceShipments />} />
-                  <Route path="inventory"        element={<MarketplaceInventory />} />
-                  <Route path="analytics"        element={<MarketplaceAnalytics />} />
-                </Route>
+                    {/* Marketplace (Customer Buyer) */}
+                    <Route path="/marketplace" element={<MarketplaceLayout />}>
+                      <Route index                   element={<MarketplaceHome />} />
+                      <Route path="product/:id"      element={<ProductDetails />} />
+                      <Route path="cart"             element={<Cart />} />
+                      <Route path="checkout"         element={<Checkout />} />
+                      <Route path="order-success"    element={<OrderSuccess />} />
+                      <Route path="suppliers"        element={<Suppliers />} />
+                      <Route path="billing"          element={<Billing />} />
+                      <Route path="shipments"        element={<MarketplaceShipments />} />
+                      <Route path="inventory"        element={<MarketplaceInventory />} />
+                      <Route path="analytics"        element={<MarketplaceAnalytics />} />
+                    </Route>
 
-                {/* Utilities */}
-                <Route path="/route-scanner" element={<ActiveRoute />} />
+                    {/* Redirects */}
+                    <Route path="/account/settings" element={<Navigate to="/setup/profile" replace />} />
+                    <Route path="/orders/track"     element={<Navigate to="/marketplace/shipments" replace />} />
 
-                {/* 404 Fallback */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </Router>
-        </CartProvider>
-      </SetupProvider>
-    </AuthProvider>
-  </HelmetProvider>
+                    {/* Utilities */}
+                    <Route path="/route-scanner" element={<ActiveRoute />} />
+
+                    {/* 404 Fallback */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
+              </Router>
+            </NotificationProvider>
+          </CartProvider>
+        </SetupProvider>
+      </AuthProvider>
+    </HelmetProvider>
   );
 }
 

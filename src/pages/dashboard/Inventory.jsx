@@ -6,6 +6,8 @@ import ConfirmModal from '../../components/ConfirmModal';
 import EmptyState from '../../components/EmptyState';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { productService } from '../../services/productService';
+import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 
 const PAGE_SIZE = 8;
 const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains', 'Other'];
@@ -18,6 +20,8 @@ const statusColor = {
 
 export default function Inventory() {
   const navigate = useNavigate();
+  const { showToast } = useNotification();
+  const { user, loading: authLoading } = useAuth();
   const [products, setProducts]     = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState('');
@@ -30,16 +34,25 @@ export default function Inventory() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const data = await productService.getProducts({ limit: 100 });
-      setProducts(data.products || []);
+      if (user && (user.id || user._id)) {
+        const params = { limit: 100 };
+        params.supplierId = user._id || user.id;
+        const data = await productService.getProducts(params);
+        setProducts(data.products || []);
+      }
     } catch {
-      setError('Failed to load inventory.');
+      setError('Failed to fetch products');
+      showToast('Failed to fetch products.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    if (!authLoading) {
+      fetchProducts();
+    }
+  }, [user, authLoading]);
 
   const filtered = useMemo(() => products.filter(p => {
     const q = search.toLowerCase();
@@ -55,7 +68,10 @@ export default function Inventory() {
     try {
       await productService.deleteProduct(deleteTarget._id);
       setProducts(prev => prev.filter(p => p._id !== deleteTarget._id));
-    } catch { alert('Delete failed.'); }
+      showToast(`Product "${deleteTarget.name}" deleted successfully.`, 'success');
+    } catch { 
+      showToast('Delete failed.', 'error'); 
+    }
     setDeleteTarget(null);
   };
 
@@ -69,7 +85,7 @@ export default function Inventory() {
     setStockSaving(prev => ({ ...prev, [product._id]: false }));
   };
 
-  if (loading) return <LoadingSpinner fullPage message="Loading inventory..." />;
+  if (loading || authLoading) return <LoadingSpinner fullPage message="Loading inventory..." />;
 
   return (
     <div>
@@ -162,8 +178,14 @@ export default function Inventory() {
                       <span style={{ background: sc.bg, color: sc.text, padding: '0.2rem 0.65rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 700 }}>{status}</span>
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem', textAlign: 'right' }}>
-                      <button title="Edit" onClick={() => navigate(`/dashboard/edit-product/${p._id}`)} style={{ padding: '0.35rem', borderRadius: 6, border: 'none', background: '#EDE9FE', color: '#7C3AED', cursor: 'pointer', marginRight: '0.5rem' }}><Edit2 size={15} /></button>
-                      <button title="Delete" onClick={() => setDeleteTarget(p)} style={{ padding: '0.35rem', borderRadius: 6, border: 'none', background: '#FEE2E2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={15} /></button>
+                      {(user?.role === 'admin' || (p.supplier?._id || p.supplier) === (user?._id || user?.id)) ? (
+                        <>
+                          <button title="Edit" onClick={() => navigate(`/dashboard/edit-product/${p._id}`)} style={{ padding: '0.35rem', borderRadius: 6, border: 'none', background: '#EDE9FE', color: '#7C3AED', cursor: 'pointer', marginRight: '0.5rem' }}><Edit2 size={15} /></button>
+                          <button title="Delete" onClick={() => setDeleteTarget(p)} style={{ padding: '0.35rem', borderRadius: 6, border: 'none', background: '#FEE2E2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={15} /></button>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', background: '#F1F5F9', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>View Only</span>
+                      )}
                     </td>
                   </tr>
                 );
