@@ -3,8 +3,23 @@ import { Filter, Download, ExternalLink, MapPin, ChevronDown, ChevronUp, Package
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { orderService } from '../../services/orderService';
+import { useNotification } from '../../context/NotificationContext';
+
+const getProductImageUrl = (item) => {
+  const imgPath = item.image || item.img || item.imagePath;
+  if (!imgPath) return null;
+  if (imgPath.startsWith('http') || imgPath.startsWith('data:')) {
+    return imgPath;
+  }
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    : `${window.location.protocol}//${window.location.hostname}:5000`;
+  const normalizedPath = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
+  return `${backendUrl}${normalizedPath}`;
+};
 
 const STATUS_STYLE = {
+  'Pending Payment Verification': { bg: '#E0F2FE', text: '#0369A1' },
   Pending:      { bg: '#FEF3C7', text: '#B45309' },
   'In Transit': { bg: '#DBEAFE', text: '#1E40AF' },
   Delivered:    { bg: '#DCFCE7', text: '#166534' },
@@ -20,10 +35,39 @@ const TRACKING_STEPS = [
 ];
 
 export default function MarketplaceShipments() {
+  const { showToast } = useNotification();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
   const [statusFilter, setStatusFilter] = useState('All');
+  const [isUploadingMap, setIsUploadingMap] = useState({});
+
+  const handleReuploadSlip = async (orderId, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("File size exceeds 10MB limit.", "error");
+      return;
+    }
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      showToast("Only JPG, JPEG, PNG, and PDF formats are accepted.", "error");
+      return;
+    }
+
+    setIsUploadingMap(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const uploadRes = await orderService.uploadPaymentSlip(file);
+      const updatedOrder = await orderService.reuploadSlip(orderId, uploadRes.filePath);
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, paymentSlip: updatedOrder.paymentSlip, paymentStatus: updatedOrder.paymentStatus, status: updatedOrder.status } : o));
+      showToast("Payment slip resubmitted successfully!", "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to resubmit payment slip.", "error");
+    } finally {
+      setIsUploadingMap(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -61,6 +105,8 @@ export default function MarketplaceShipments() {
 
   const getStepIndex = (status) => {
     switch (status) {
+      case 'Pending Payment Verification':
+        return 0;
       case 'Pending':
         return 1; // Order Placed, Processing in progress
       case 'Processing':
@@ -177,6 +223,45 @@ export default function MarketplaceShipments() {
                       <tr style={{ background: '#f8fafc' }}>
                         <td colSpan={6} style={{ padding: '1.5rem' }}>
                           
+                          {/* Payment Slip Awaiting Approval Warning Banner */}
+                          {o.status === 'Pending Payment Verification' && (
+                            <div style={{ background: '#E0F2FE', border: '1px solid #BAE6FD', color: '#0369A1', borderRadius: 8, padding: '1rem', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <div style={{ fontWeight: 700 }}>Order Awaiting Payment Verification</div>
+                              <p style={{ fontSize: '0.85rem', margin: 0 }}>
+                                Your order has been registered and is currently awaiting administrator review of your uploaded payment slip. Suppliers will begin processing your items once verified.
+                              </p>
+                              {o.paymentSlip && (
+                                <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
+                                  <span>Uploaded Document:</span>
+                                  <a href={getProductImageUrl({ image: o.paymentSlip })} target="_blank" rel="noreferrer" style={{ color: '#0284C7', fontWeight: 600 }}>
+                                    View Receipt
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Rejected Slip Re-upload Warning Banner */}
+                          {o.paymentMethod === 'bank' && o.paymentStatus === 'Rejected' && (
+                            <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', borderRadius: 8, padding: '1rem', marginBottom: '1.5rem' }}>
+                              <div style={{ fontWeight: 700, marginBottom: '0.25rem' }}>⚠️ Payment Slip Rejected</div>
+                              <p style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                                Your uploaded payment slip was rejected by the administrator. Please upload a valid payment receipt to confirm your order.
+                              </p>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <label className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem', cursor: 'pointer' }}>
+                                  {isUploadingMap[o._id] ? 'Uploading...' : 'Upload New Payment Slip'}
+                                  <input 
+                                    type="file" 
+                                    accept=".jpg,.jpeg,.png,.pdf" 
+                                    onChange={(e) => handleReuploadSlip(o._id, e)} 
+                                    style={{ display: 'none' }} 
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Visual Step Timeline */}
                           {o.status !== 'Cancelled' ? (
                             <div style={{ background: 'white', borderRadius: 10, padding: '1.5rem', border: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
@@ -187,7 +272,7 @@ export default function MarketplaceShipments() {
                               <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 1rem' }}>
                                 {/* Horizontal timeline line */}
                                 <div style={{ position: 'absolute', top: '15px', left: '2rem', right: '2rem', height: '3px', background: '#E2E8F0', zIndex: 1 }}>
-                                  <div style={{ width: `${((currentStep - 1) / (TRACKING_STEPS.length - 1)) * 100}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.4s ease' }}></div>
+                                  <div style={{ width: `${currentStep > 0 ? ((currentStep - 1) / (TRACKING_STEPS.length - 1)) * 100 : 0}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.4s ease' }}></div>
                                 </div>
 
                                 {TRACKING_STEPS.map((step, index) => {

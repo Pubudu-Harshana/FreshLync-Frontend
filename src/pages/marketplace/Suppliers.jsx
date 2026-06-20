@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Search, MapPin, Star, ShieldCheck, Filter, Clock, Box, RefreshCw } from 'lucide-react';
 import SEO from '../../components/SEO';
 

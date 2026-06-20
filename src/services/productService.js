@@ -40,4 +40,9 @@ export const productService = {
     const res = await api.patch(`/products/${id}/stock`, { stock });
     return res.data;
   },
+
+  async appealProduct(id, reason) {
+    const res = await api.post(`/products/${id}/appeal`, { reason });
+    return res.data;
+  },
 };

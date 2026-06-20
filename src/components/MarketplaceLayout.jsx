@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom';
 import { Bell, ShoppingCart, LogOut, Info, Store, Users, Wallet, Package, Activity, Settings, LayoutGrid } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +20,10 @@ export default function MarketplaceLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  if (user && user.role === 'supplier') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const navItemStyle = ({ isActive }) => ({
     display: 'flex',
     alignItems: 'center',
@@ -38,8 +42,13 @@ export default function MarketplaceLayout() {
     <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)', display: 'flex' }}>
       {/* Sidebar */}
       <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#047857', color: 'white', position: 'sticky', top: 0, width: 248, flexShrink: 0 }}>
-        <div style={{ padding: '1.25rem 1.5rem', marginBottom: '0.5rem' }}>
-          <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '72px', width: 'auto', display: 'block' }} />
+        <div style={{ padding: '1.25rem 1.5rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+          <img 
+            src="/newlogo.png" 
+            alt="Freshlync logo" 
+            style={{ height: '72px', width: 'auto', display: 'block', cursor: 'pointer' }} 
+            onClick={() => navigate('/')}
+          />
         </div>
 
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 1rem', gap: '0.15rem' }}>
@@ -90,7 +99,13 @@ export default function MarketplaceLayout() {
                 </span>
               )}
             </button>
-            <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Bell size={20} /></button>
+            <button 
+              onClick={() => navigate('/dashboard/notifications')}
+              style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+              title="Notifications"
+            >
+              <Bell size={20} />
+            </button>
             <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Info size={20} /></button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => navigate('/account/settings')} title="View Profile">
               <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '2px solid #047857' }}>

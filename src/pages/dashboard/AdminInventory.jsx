@@ -202,7 +202,10 @@ export default function AdminInventory() {
                     <td style={{ padding: '0.875rem 1.25rem' }}>
                       <span style={{ background: '#E0E7FF', color: '#3730A3', padding: '0.2rem 0.5rem', borderRadius: 4, fontSize: '0.75rem', fontWeight: 600 }}>{p.category}</span>
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem', fontWeight: 600 }}>£{Number(p.price).toFixed(2)} / {p.unit}</td>
+                    <td style={{ padding: '0.875rem 1.25rem' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>Supplier: £{Number(p.basePrice || p.price).toFixed(2)} / {p.unit}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.15rem' }}>Marketplace: £{Number(p.sellingPrice || p.price).toFixed(2)} / {p.unit}</div>
+                    </td>
                     <td style={{ padding: '0.875rem 1.25rem', fontWeight: 700, color: stockColor }}>
                       {p.stock} {p.unit} {isDepleted && '(Depleted)'} {isLow && '(Low)'}
                     </td>

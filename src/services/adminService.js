@@ -2,6 +2,11 @@ import api from './api';
 
 export const adminService = {
   // Existing live methods
+  async predictSales(data) {
+    const res = await api.post('/analytics/predict', data);
+    return res.data;
+  },
+
   async getPlatformStats() {
     const res = await api.get('/admin/stats');
     return res.data;
@@ -28,25 +33,29 @@ export const adminService = {
   },
 
 
-  // 1. Dashboard Stats
   async getDashboardStats() {
     try {
       const stats = await this.getPlatformStats();
       return {
-        totalOrders: stats.totalOrders || 142,
-        totalCustomers: stats.totalBuyers || 54,
-        totalSuppliers: stats.activeSuppliers || 18,
-        activeUsers: Math.round((stats.totalBuyers || 54) * 0.65),
-        ordersToday: 12,
-        pendingOrders: stats.totalOrders - (stats.deliveredOrders || 102) || 40,
-        completedOrders: stats.deliveredOrders || 102,
-        cancelledOrders: 5,
-        totalProducts: 48,
-        newSuppliersThisMonth: 3,
-        revenueOverview: stats.totalGMV || 15820.50,
-        platformGrowthRate: 12.8,
-        totalGMV: stats.totalGMV || 15820.50,
-        activeSuppliers: stats.activeSuppliers || 18,
+        totalOrders: stats.totalOrders !== undefined ? stats.totalOrders : 142,
+        totalCustomers: stats.totalCustomers !== undefined ? stats.totalCustomers : 54,
+        totalSuppliers: stats.totalSuppliers !== undefined ? stats.totalSuppliers : 18,
+        activeUsers: stats.activeUsers !== undefined ? stats.activeUsers : 35,
+        ordersToday: stats.ordersToday !== undefined ? stats.ordersToday : 12,
+        pendingOrders: stats.pendingOrders !== undefined ? stats.pendingOrders : 40,
+        completedOrders: stats.completedOrders !== undefined ? stats.completedOrders : 102,
+        cancelledOrders: stats.cancelledOrders !== undefined ? stats.cancelledOrders : 5,
+        totalProducts: stats.totalProducts !== undefined ? stats.totalProducts : 48,
+        newSuppliersThisMonth: stats.newSuppliersThisMonth !== undefined ? stats.newSuppliersThisMonth : 3,
+        revenueOverview: stats.revenueOverview !== undefined ? stats.revenueOverview : 15820.50,
+        platformGrowthRate: stats.platformGrowthRate !== undefined ? stats.platformGrowthRate : 12.8,
+        totalGMV: stats.totalGMV !== undefined ? stats.totalGMV : 15820.50,
+        activeSuppliers: stats.activeSuppliers !== undefined ? stats.activeSuppliers : 18,
+        weeklyOrders: stats.weeklyOrders,
+        margin: stats.margin !== undefined ? stats.margin : 15,
+        platformProfit: stats.platformProfit,
+        dailyRevenue: stats.dailyRevenue,
+        activities: stats.activities,
       };
     } catch {
       // Return fully functional mock fallback if backend is down
@@ -91,75 +100,34 @@ export const adminService = {
     ];
   },
 
-  // 4. Mock AI Predictions
+  // 4. AI Predictions
   async getMarketPredictions() {
-    return {
-      predictedDemandIndex: 82.5,
-      forecastGrowthRate: 15.4,
-      inventoryRiskScore: 28,
-      productTrendScore: 78.2,
-      supplierStabilityIndex: 94.6,
-      customerDemandPrediction: 86.4,
-    };
+    const res = await api.get('/admin/predictions/market');
+    return res.data;
   },
 
-  // 5. Mock AI Demand Forecast
+  // 5. AI Demand Forecast
   async getDemandForecast(range = '30 Days') {
-    const data = {
-      '7 Days': [
-        { label: 'Day 1', historical: 450, predicted: 450 },
-        { label: 'Day 2', historical: 480, predicted: 480 },
-        { label: 'Day 3', historical: 520, predicted: 520 },
-        { label: 'Day 4', historical: 490, predicted: 490 },
-        { label: 'Day 5', historical: 550, predicted: 550 },
-        { label: 'Day 6', historical: 0, predicted: 580 },
-        { label: 'Day 7', historical: 0, predicted: 610 },
-      ],
-      '30 Days': [
-        { label: 'Wk 1', historical: 2400, predicted: 2400 },
-        { label: 'Wk 2', historical: 2650, predicted: 2650 },
-        { label: 'Wk 3', historical: 2900, predicted: 2950 },
-        { label: 'Wk 4', historical: 0, predicted: 3100 },
-      ],
-      '90 Days': [
-        { label: 'Month 1', historical: 10500, predicted: 10500 },
-        { label: 'Month 2', historical: 11200, predicted: 11500 },
-        { label: 'Month 3', historical: 0, predicted: 12800 },
-      ]
-    };
-    return data[range] || data['30 Days'];
+    const res = await api.get('/admin/predictions/forecast', { params: { range } });
+    return res.data;
   },
 
-  // 6. Mock Regional Insights
+  // 6. Regional Insights
   async getRegionalInsights() {
-    return [
-      { city: 'London', demandGrowth: '+18.2%', trend: 'High Vegetables & Organic', confidence: 94 },
-      { city: 'Manchester', demandGrowth: '+12.5%', trend: 'Meat & Prime Cuts', confidence: 88 },
-      { city: 'Birmingham', demandGrowth: '+14.1%', trend: 'Dairy Products demand rising', confidence: 91 },
-      { city: 'Liverpool', demandGrowth: '+8.9%', trend: 'Grains & Fresh Produce', confidence: 85 },
-      { city: 'Leeds', demandGrowth: '+10.4%', trend: 'Seafood and Fish items', confidence: 87 },
-    ];
+    const res = await api.get('/admin/predictions/regions');
+    return res.data;
   },
 
-  // 7. Mock Supplier Forecasts
+  // 7. Supplier Forecasts
   async getSupplierForecasts() {
-    return [
-      { name: 'GreenEarth Organics', currentScore: 92, predictedScore: 94, risk: 'Low', recommendation: 'Upgrade to Platinum Class' },
-      { name: 'Valley Prime Meats', currentScore: 85, predictedScore: 84, risk: 'Low', recommendation: 'Maintain current inventory ratios' },
-      { name: 'Atlantic Blue Fisheries', currentScore: 74, predictedScore: 78, risk: 'Medium', recommendation: 'Inspect cold chain telemetry logs' },
-      { name: 'Sunrise Orchards', currentScore: 88, predictedScore: 91, risk: 'Low', recommendation: 'Increase fruit orders by 10%' },
-      { name: 'Deep Sea Co.', currentScore: 62, predictedScore: 58, risk: 'High', recommendation: 'Add backup supplier options' },
-    ];
+    const res = await api.get('/admin/predictions/suppliers');
+    return res.data;
   },
 
-  // 8. Mock AI Recommendations
+  // 8. AI Recommendations
   async getAIRecommendations() {
-    return [
-      { id: 1, type: 'inventory', text: 'Increase Dairy inventory by 15% due to upcoming regional festival in London.', importance: 'High' },
-      { id: 2, type: 'trend', text: 'Frozen Foods demand expected to rise 18% in Manchester next month.', importance: 'Medium' },
-      { id: 3, type: 'supplier', text: 'Supplier GreenEarth Organics showing stable growth; optimal for premium vegetable contracts.', importance: 'Low' },
-      { id: 4, type: 'market', text: 'Beverage category expected to outperform fresh vegetables next month by 4.5%.', importance: 'Medium' },
-    ];
+    const res = await api.get('/admin/predictions/recommendations');
+    return res.data;
   },
 
   // 9. Mock Notifications

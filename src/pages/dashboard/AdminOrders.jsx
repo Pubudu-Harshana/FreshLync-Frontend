@@ -1,12 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, RefreshCw, Layers } from 'lucide-react';
+import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, RefreshCw, Layers, ExternalLink } from 'lucide-react';
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { orderService } from '../../services/orderService';
 import { useNotification } from '../../context/NotificationContext';
 
-const STATUS_TABS = ['All', 'Pending', 'In Transit', 'Delivered', 'Cancelled'];
+const getProductImageUrl = (item) => {
+  const imgPath = item.image || item.img || item.imagePath;
+  if (!imgPath) return null;
+  if (imgPath.startsWith('http') || imgPath.startsWith('data:')) {
+    return imgPath;
+  }
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    : `${window.location.protocol}//${window.location.hostname}:5000`;
+  const normalizedPath = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
+  return `${backendUrl}${normalizedPath}`;
+};
+
+const STATUS_TABS = ['All', 'Pending Payment Verification', 'Pending', 'In Transit', 'Delivered', 'Cancelled'];
 const STATUS_STYLE = {
+  'Pending Payment Verification': { bg: '#E0F2FE', text: '#0369A1' },
   Pending:      { bg: '#FEF3C7', text: '#B45309' },
   'In Transit': { bg: '#DBEAFE', text: '#1E40AF' },
   Delivered:    { bg: '#DCFCE7', text: '#166534' },
@@ -14,7 +28,7 @@ const STATUS_STYLE = {
 };
 
 export default function AdminOrders() {
-  const { showToast } = useNotification();
+  const { showToast, showConfirm } = useNotification();
   const [orders, setOrders]         = useState([]);
   const [loading, setLoading]       = useState(true);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -44,10 +58,29 @@ export default function AdminOrders() {
       const updated = await orderService.updateStatus(orderId, newStatus);
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: updated.status, supplierStatuses: updated.supplierStatuses } : o));
       showToast(`Order status updated to ${newStatus} successfully.`, 'success');
-    } catch { 
+    } catch (err) { 
       showToast('Failed to update status.', 'error'); 
     }
     setSavingStatus(prev => ({ ...prev, [orderId]: false }));
+  };
+
+  const handleVerifyPayment = (orderId, action) => {
+    showConfirm({
+      title: `${action === 'approve' ? 'Approve' : 'Reject'} Payment Slip?`,
+      message: `Are you sure you want to ${action} this payment slip? This action will notify the customer.`,
+      confirmText: action === 'approve' ? 'Yes, Approve' : 'Yes, Reject',
+      cancelText: 'Cancel',
+      type: action === 'approve' ? 'success' : 'danger',
+      onConfirm: async () => {
+        try {
+          const updated = await orderService.verifyPayment(orderId, action);
+          setOrders(prev => prev.map(o => o._id === orderId ? { ...o, paymentStatus: updated.paymentStatus, status: updated.status, supplierStatuses: updated.supplierStatuses } : o));
+          showToast(`Payment slip successfully ${action}d.`, 'success');
+        } catch {
+          showToast(`Failed to ${action} payment slip.`, 'error');
+        }
+      }
+    });
   };
 
   const handleExportCSV = () => {
@@ -190,11 +223,19 @@ export default function AdminOrders() {
                                           <span style={{ background: sc.bg, color: sc.text, padding: '0.1rem 0.45rem', borderRadius: 999, fontSize: '0.65rem', fontWeight: 700 }}>{sStatus}</span>
                                         </div>
                                         <ul style={{ listStyle: 'none', paddingLeft: '0.5rem' }}>
-                                          {items.map((it, idx) => (
-                                            <li key={idx} style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
-                                              • {it.name} ({it.quantity} {it.unit} @ £{it.price.toFixed(2)})
-                                            </li>
-                                          ))}
+                                          {items.map((it, idx) => {
+                                            const base = it.supplierPrice !== undefined ? it.supplierPrice : it.price;
+                                            const selling = it.marketplacePrice !== undefined ? it.marketplacePrice : it.price;
+                                            const marginVal = selling - base;
+                                            return (
+                                              <li key={idx} style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>
+                                                • <strong>{it.name}</strong> ({it.quantity} {it.unit})<br />
+                                                <span style={{ paddingLeft: '0.75rem', display: 'inline-block', fontSize: '0.75rem' }}>
+                                                  Supplier: £{base.toFixed(2)} | Marketplace: £{selling.toFixed(2)} (Margin: £{marginVal.toFixed(2)}/unit)
+                                                </span>
+                                              </li>
+                                            );
+                                          })}
                                         </ul>
                                       </div>
                                     );
@@ -214,10 +255,51 @@ export default function AdminOrders() {
                                   <strong>To:</strong> {o.delivery.address}, {o.delivery.city}, {o.delivery.postcode}
                                 </p>
                               ) : <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>No shipping details</p>}
-                              <p style={{ fontSize: '0.8rem', lineHeight: 1.4 }}>
-                                <strong>Payment Method:</strong> {o.paymentMethod || 'Credit Card'}<br />
-                                <strong>Payment Status:</strong> <span style={{ color: '#16A34A', fontWeight: 700 }}>Authorized</span>
+                              <p style={{ fontSize: '0.8rem', lineHeight: 1.4, marginBottom: '0.5rem' }}>
+                                <strong>Payment Method:</strong> {o.paymentMethod === 'bank' ? 'Bank Transfer' : (o.paymentMethod || 'Credit Card')}<br />
+                                <strong>Payment Status:</strong> <span style={{ 
+                                  color: o.paymentStatus === 'Approved' ? '#16A34A' : (o.paymentStatus === 'Rejected' ? '#EF4444' : '#F59E0B'),
+                                  fontWeight: 700 
+                                }}>{o.paymentStatus || 'Pending Verification'}</span>
                               </p>
+                              
+                              {/* Order financial breakdown */}
+                              <div style={{ fontSize: '0.78rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem', marginTop: '0.5rem', lineHeight: 1.4 }}>
+                                <div><strong>Customer Paid:</strong> £{o.total?.toFixed(2)}</div>
+                                {(() => {
+                                  const supplierTotal = (o.items || []).reduce((sum, item) => sum + (item.supplierPrice !== undefined ? item.supplierPrice : item.price) * item.quantity, 0);
+                                  const profitTotal = o.total - supplierTotal;
+                                  return (
+                                    <>
+                                      <div><strong>Supplier Payout:</strong> £{supplierTotal.toFixed(2)}</div>
+                                      <div style={{ color: '#047857', fontWeight: 700 }}><strong>Profit Margin:</strong> £{profitTotal.toFixed(2)}</div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                              {o.paymentMethod === 'bank' && o.paymentSlip && (
+                                <div style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
+                                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Payment Slip:</div>
+                                  <a 
+                                    href={getProductImageUrl({ image: o.paymentSlip })} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="btn-secondary"
+                                    onClick={e => e.stopPropagation()}
+                                    style={{ 
+                                      display: 'inline-flex', 
+                                      alignItems: 'center', 
+                                      gap: '0.25rem', 
+                                      padding: '0.25rem 0.5rem', 
+                                      fontSize: '0.75rem',
+                                      borderRadius: '4px',
+                                      textDecoration: 'none'
+                                    }}
+                                  >
+                                    View Payment Slip <ExternalLink size={12} />
+                                  </a>
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -234,7 +316,29 @@ export default function AdminOrders() {
                             </div>
 
                             {/* Controls */}
-                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
+                              {o.paymentMethod === 'bank' && o.paymentStatus === 'Pending Verification' && (
+                                <>
+                                  <button 
+                                    onClick={(e) => { 
+                                      e.stopPropagation(); 
+                                      handleVerifyPayment(o._id, 'approve'); 
+                                    }} 
+                                    style={{ padding: '0.35rem 0.8rem', borderRadius: 6, background: '#D1FAE5', color: '#065F46', fontSize: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer' }}
+                                  >
+                                    Approve Payment
+                                  </button>
+                                  <button 
+                                    onClick={(e) => { 
+                                      e.stopPropagation(); 
+                                      handleVerifyPayment(o._id, 'reject'); 
+                                    }} 
+                                    style={{ padding: '0.35rem 0.8rem', borderRadius: 6, background: '#FEE2E2', color: '#991B1B', fontSize: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer' }}
+                                  >
+                                    Reject Payment
+                                  </button>
+                                </>
+                              )}
                               <button onClick={(e) => { e.stopPropagation(); showToast('Dispute resolved. Notification sent to supplier and buyer.', 'success'); }} style={{ padding: '0.35rem 0.8rem', borderRadius: 6, background: '#EFF6FF', color: '#1D4ED8', fontSize: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
                                 Resolve Dispute
                               </button>

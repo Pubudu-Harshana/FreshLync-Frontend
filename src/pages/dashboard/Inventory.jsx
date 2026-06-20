@@ -30,6 +30,9 @@ export default function Inventory() {
   const [page, setPage]             = useState(1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [stockSaving, setStockSaving]   = useState({});
+  const [appealTarget, setAppealTarget] = useState(null);
+  const [appealReason, setAppealReason] = useState('');
+  const [appealSubmitting, setAppealSubmitting] = useState(false);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -73,6 +76,25 @@ export default function Inventory() {
       showToast('Delete failed.', 'error'); 
     }
     setDeleteTarget(null);
+  };
+
+  const handleAppealSubmit = async (e) => {
+    e.preventDefault();
+    if (!appealReason.trim()) {
+      showToast('Please enter a reason for the appeal.', 'error');
+      return;
+    }
+    setAppealSubmitting(true);
+    try {
+      await productService.appealProduct(appealTarget._id, appealReason);
+      showToast(`Appeal submitted successfully for "${appealTarget.name}".`, 'success');
+      setAppealTarget(null);
+      setAppealReason('');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to submit appeal.', 'error');
+    } finally {
+      setAppealSubmitting(false);
+    }
   };
 
   const handleStockChange = async (product, newStock) => {
@@ -147,9 +169,9 @@ export default function Inventory() {
                 const status = p.stock === 0 ? 'Out of Stock' : p.stock < 50 ? 'Low Stock' : 'In Stock';
                 const sc = statusColor[status];
                 return (
-                  <tr key={p._id} style={{ borderTop: '1px solid var(--color-border)', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                    onMouseLeave={e => e.currentTarget.style.background = ''}>
+                  <tr key={p._id} style={{ borderTop: '1px solid var(--color-border)', background: p.isActive === false ? '#FAF5F5' : '', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = p.isActive === false ? '#F5EEEE' : '#f8fafc'}
+                    onMouseLeave={e => e.currentTarget.style.background = p.isActive === false ? '#FAF5F5' : ''}>
                     <td style={{ padding: '0.875rem 1.25rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
                         <div style={{ width: 40, height: 40, borderRadius: 8, background: '#E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
@@ -175,11 +197,34 @@ export default function Inventory() {
                       </div>
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem' }}>
-                      <span style={{ background: sc.bg, color: sc.text, padding: '0.2rem 0.65rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 700 }}>{status}</span>
+                      {p.isActive === false ? (
+                        <span style={{ background: '#FEE2E2', color: '#991B1B', padding: '0.2rem 0.65rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 700 }}>Flagged / Rejected</span>
+                      ) : (
+                        <span style={{ background: sc.bg, color: sc.text, padding: '0.2rem 0.65rem', borderRadius: 999, fontSize: '0.75rem', fontWeight: 700 }}>{status}</span>
+                      )}
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem', textAlign: 'right' }}>
                       {(user?.role === 'admin' || (p.supplier?._id || p.supplier) === (user?._id || user?.id)) ? (
                         <>
+                          {p.isActive === false && (
+                            <button 
+                              title="Appeal Rejection" 
+                              onClick={() => setAppealTarget(p)} 
+                              style={{ 
+                                padding: '0.25rem 0.6rem', 
+                                borderRadius: 6, 
+                                border: 'none', 
+                                background: '#EFF6FF', 
+                                color: '#2563EB', 
+                                cursor: 'pointer', 
+                                marginRight: '0.5rem',
+                                fontSize: '0.75rem',
+                                fontWeight: 700
+                              }}
+                            >
+                              Appeal
+                            </button>
+                          )}
                           <button title="Edit" onClick={() => navigate(`/dashboard/edit-product/${p._id}`)} style={{ padding: '0.35rem', borderRadius: 6, border: 'none', background: '#EDE9FE', color: '#7C3AED', cursor: 'pointer', marginRight: '0.5rem' }}><Edit2 size={15} /></button>
                           <button title="Delete" onClick={() => setDeleteTarget(p)} style={{ padding: '0.35rem', borderRadius: 6, border: 'none', background: '#FEE2E2', color: '#DC2626', cursor: 'pointer' }}><Trash2 size={15} /></button>
                         </>
@@ -207,6 +252,39 @@ export default function Inventory() {
       )}
 
       <ConfirmModal isOpen={!!deleteTarget} title="Delete Product" message={`Delete "${deleteTarget?.name}"? This cannot be undone.`} confirmLabel="Delete" onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
+      
+      {/* Appeal Rejection Modal */}
+      {appealTarget && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="card" style={{ width: '100%', maxWidth: '480px', padding: '1.75rem', boxShadow: 'var(--shadow-xl)', animation: 'slideUp 0.2s ease-out' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Appeal Listing Rejection</h3>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+              Explain why <strong>{appealTarget.name}</strong> should be re-approved. Administrators will review your request.
+            </p>
+            <form onSubmit={handleAppealSubmit}>
+              <textarea
+                className="input-field"
+                placeholder="Describe corrections, attach compliance details or notes..."
+                value={appealReason}
+                onChange={e => setAppealReason(e.target.value)}
+                required
+                rows={4}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: 8, outline: 'none', resize: 'vertical', fontSize: '0.875rem', marginBottom: '1.25rem', fontFamily: 'inherit', border: '1px solid var(--color-border)' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button type="button" className="btn-secondary" onClick={() => { setAppealTarget(null); setAppealReason(''); }} disabled={appealSubmitting}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={appealSubmitting}>
+                  {appealSubmitting ? 'Submitting...' : 'Submit Appeal'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

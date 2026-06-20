@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Search, Bell, LayoutDashboard, Truck, Package, Settings, LogOut, Info, Users, ShoppingBag, ShieldAlert, Trash2 } from 'lucide-react';
+import { Search, Bell, LayoutDashboard, Truck, Package, Settings, LogOut, Info, Users, ShoppingBag, ShieldAlert, Trash2, Star } from 'lucide-react';
 import { adminService } from '../services/adminService';
 import { analyticsService } from '../services/analyticsService';
 import { useAuth } from '../context/AuthContext';
@@ -65,10 +65,28 @@ export default function AdminLayout() {
         await analyticsService.markNotificationAsRead(n.id);
         setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item));
       }
-      if (n.supplierId) {
-        navigate(`/admin/verification?supplierId=${n.supplierId}`);
-        setShowNotifications(false);
+      
+      const titleLower = (n.title || '').toLowerCase();
+      const textLower = (n.text || '').toLowerCase();
+
+      // Check if this is an order payment verification vs supplier verification
+      const isPaymentRelated = titleLower.includes('payment') || textLower.includes('payment') || titleLower.includes('slip') || textLower.includes('slip');
+
+      if (isPaymentRelated) {
+        navigate(`/admin/orders`);
+      } else if (n.supplierId || titleLower.includes('verification') || textLower.includes('verification') || titleLower.includes('verify') || textLower.includes('verify')) {
+        const supParam = n.supplierId ? `?supplierId=${n.supplierId}` : '';
+        navigate(`/admin/verification${supParam}`);
+      } else if (titleLower.includes('appeal') || titleLower.includes('product') || titleLower.includes('listing') || titleLower.includes('inventory') || textLower.includes('appeal') || textLower.includes('product') || textLower.includes('listing') || textLower.includes('inventory')) {
+        navigate(`/admin/inventory`);
+      } else if (titleLower.includes('order') || textLower.includes('order')) {
+        navigate(`/admin/orders`);
+      } else if (titleLower.includes('review') || textLower.includes('review')) {
+        navigate(`/admin/reviews`);
+      } else {
+        navigate(`/admin`);
       }
+      setShowNotifications(false);
     } catch (err) {
       console.error(err);
     }
@@ -91,8 +109,13 @@ export default function AdminLayout() {
     <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)' }}>
       {/* Sidebar */}
       <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#312E81', color: 'white', position: 'sticky', top: 0 }}>
-        <div style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-          <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
+        <div style={{ padding: '2rem 1.5rem 1rem', display: 'flex', justifyContent: 'center' }}>
+          <img 
+            src="/newlogo.png" 
+            alt="Freshlync logo" 
+            style={{ height: '80px', width: 'auto', display: 'block', cursor: 'pointer' }} 
+            onClick={() => navigate('/')}
+          />
         </div>
 
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 1rem', gap: '0.25rem' }}>
@@ -113,6 +136,9 @@ export default function AdminLayout() {
           </NavLink>
           <NavLink to="/admin/verification" style={navItemStyle}>
             <ShieldAlert size={20} /> Business Verification
+          </NavLink>
+          <NavLink to="/admin/reviews" style={navItemStyle}>
+            <Star size={20} /> Reviews
           </NavLink>
         </nav>
 

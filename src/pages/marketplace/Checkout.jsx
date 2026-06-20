@@ -18,18 +18,95 @@ const SHIPPING_OPTIONS = [
   { id: 'priority', label: 'Priority Delivery', price: 25.00, desc: 'Next-day priority dispatcher' }
 ];
 
+const getProductImageUrl = (item) => {
+  const imgPath = item.image || item.img || item.imagePath;
+  if (!imgPath) return null;
+  if (imgPath.startsWith('http') || imgPath.startsWith('data:')) {
+    return imgPath;
+  }
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    : `${window.location.protocol}//${window.location.hostname}:5000`;
+  const normalizedPath = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
+  return `${backendUrl}${normalizedPath}`;
+};
+
 export default function Checkout() {
   const navigate     = useNavigate();
   const { showToast } = useNotification();
   const { cart: cartItems, cartTotal, clearCart } = useCart();
   const [step, setStep] = useState(1);
-  const [payMethod, setPayMethod] = useState('card');
+  const [payMethod, setPayMethod] = useState('bank');
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
   const [delivery, setDelivery] = useState({
     firstName: '', lastName: '', company: '', email: '',
     address: '', city: '', postcode: '', country: 'United Kingdom',
   });
+  const [paymentSlip, setPaymentSlip] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handlePaymentMethodSelect = (methodId) => {
+    if (methodId !== 'bank') {
+      showToast("Currently, only Bank Transfer payments are available. Additional payment methods will be supported in future updates.", "info");
+      setPayMethod('bank');
+    } else {
+      setPayMethod('bank');
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("File size exceeds 10MB limit.", "error");
+      return;
+    }
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      showToast("Only JPG, JPEG, PNG, and PDF formats are accepted.", "error");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      const res = await orderService.uploadPaymentSlip(file);
+      setPaymentSlip(res.filePath);
+      showToast("Payment slip uploaded successfully!", "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to upload payment slip.", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showToast("File size exceeds 10MB limit.", "error");
+      return;
+    }
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowed.includes(file.type)) {
+      showToast("Only JPG, JPEG, PNG, and PDF formats are accepted.", "error");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      const res = await orderService.uploadPaymentSlip(file);
+      setPaymentSlip(res.filePath);
+      showToast("Payment slip uploaded successfully!", "success");
+    } catch (err) {
+      showToast("Failed to upload payment slip.", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Enterprise additions
   const [shipping, setShipping] = useState('standard');
@@ -94,7 +171,7 @@ export default function Checkout() {
         showToast('Recurring order schedule template saved successfully!', 'success');
       }
 
-      const order = await orderService.placeOrder({ items, delivery, paymentMethod: payMethod, notes: notesPayload });
+      const order = await orderService.placeOrder({ items, delivery, paymentMethod: payMethod, notes: notesPayload, paymentSlip });
       clearCart();
       showToast('Order placed successfully.', 'success');
       navigate('/marketplace/order-success', { state: { orderId: order._id, total: order.total + shippingPrice } });
@@ -185,15 +262,74 @@ export default function Checkout() {
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem' }}>Payment Method</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 {PAYMENT_METHODS.map(m => (
-                  <button key={m.id} type="button" onClick={() => setPayMethod(m.id)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 10, border: `2px solid ${payMethod === m.id ? 'var(--color-primary)' : 'var(--color-border)'}`, background: payMethod === m.id ? '#f0fdf4' : 'white', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s' }}>
+                  <button key={m.id} type="button" onClick={() => handlePaymentMethodSelect(m.id)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: 10, border: `2px solid ${payMethod === m.id ? 'var(--color-primary)' : 'var(--color-border)'}`, background: payMethod === m.id ? '#f0fdf4' : 'white', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s' }}>
                     <m.icon size={22} style={{ color: payMethod === m.id ? 'var(--color-primary)' : 'var(--color-text-muted)' }} />
                     <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{m.label}</span>
                   </button>
                 ))}
               </div>
+
+              {payMethod === 'bank' && (
+                <div style={{ marginTop: '1.5rem', background: '#F8FAFC', borderRadius: 10, padding: '1.25rem', border: '1px solid var(--color-border)', marginBottom: '1.5rem' }}>
+                  <h4 style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--color-text-main)' }}>Bank Transfer Details</h4>
+                  <div style={{ fontSize: '0.85rem', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '0.4rem', color: '#334155', marginBottom: '1rem' }}>
+                    <div><strong>Bank Name:</strong> FreshLync Central Bank</div>
+                    <div><strong>Account Name:</strong> FreshLync Ltd</div>
+                    <div><strong>Account Number:</strong> 9876 5432 1098</div>
+                    <div><strong>Branch:</strong> London B2B Operations</div>
+                    <div><strong>Reference:</strong> Order ID</div>
+                    <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#FEF3C7', color: '#92400E', borderRadius: 6, fontSize: '0.78rem', fontWeight: 600 }}>
+                      ⚠️ Please include your Order ID as the payment reference when making the transfer.
+                    </div>
+                  </div>
+
+                  <h4 style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.75rem', color: 'var(--color-text-main)' }}>Upload Payment Slip / Proof of Payment</h4>
+                  <div 
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    style={{
+                      border: '2px dashed var(--color-border)',
+                      borderRadius: 8,
+                      padding: '1.5rem',
+                      textAlign: 'center',
+                      background: 'white',
+                      cursor: 'pointer',
+                      position: 'relative'
+                    }}
+                  >
+                    <input 
+                      type="file" 
+                      accept=".jpg,.jpeg,.png,.pdf" 
+                      onChange={handleFileUpload} 
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} 
+                    />
+                    {isUploading ? (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>Uploading slip...</div>
+                    ) : paymentSlip ? (
+                      <div style={{ fontSize: '0.85rem', color: '#16A34A', fontWeight: 600 }}>
+                        ✓ Payment slip uploaded successfully!
+                        <div style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--color-text-muted)', marginTop: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{paymentSlip}</div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                        Drag & Drop or Click to Upload Payment Slip<br/>
+                        <span style={{ fontSize: '0.75rem' }}>(Accepts JPG, JPEG, PNG, PDF up to 10MB)</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <button className="btn-secondary" onClick={() => setStep(1)} style={{ flex: 1 }}>Back</button>
-                <button className="btn-primary" onClick={() => setStep(3)} style={{ flex: 2 }}>Review Order</button>
+                <button 
+                  className="btn-primary" 
+                  onClick={() => setStep(3)} 
+                  disabled={payMethod === 'bank' && !paymentSlip}
+                  style={{ flex: 2, opacity: (payMethod === 'bank' && !paymentSlip) ? 0.5 : 1 }}
+                >
+                  Review Order
+                </button>
               </div>
             </div>
           )}
@@ -206,7 +342,13 @@ export default function Checkout() {
                   {cartItems.map(item => (
                     <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
                       <div style={{ width: 44, height: 44, borderRadius: 8, background: '#E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
-                        {item.image && <img src={item.image.startsWith('http') ? item.image : `http://localhost:5000${item.image}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                        {getProductImageUrl(item) && (
+                          <img 
+                            src={getProductImageUrl(item)} 
+                            alt="" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                        )}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.name}</div>

@@ -15,22 +15,24 @@ const QUICK_PROMPTS = [
   'Compare salmon prices',
 ];
 
-async function fetchAIResponse(message) {
-  // API placeholder — replace with real endpoint
-  await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
-  const responses = {
-    fish: "We currently have Atlantic Salmon (£24.99/kg) and Chilean Seabass (£42.00/kg) in stock. Both are MSC certified and available for bulk orders.",
-    order: "You can track your orders in the **My Shipments** section of the marketplace. You'll also receive email updates at each stage.",
-    minimum: "Minimum order quantities vary by product — typically 3–12 units. Check each product detail page for exact requirements.",
-    salmon: "Atlantic Salmon: £24.99/kg from North Atlantic Co. Chilean Seabass: £42.00/kg from Pacific Catch Ltd. Salmon is the better value for volume orders.",
-    default: "Thanks for your question! Our team will follow up within 1 business hour. In the meantime, you can browse the marketplace for available products and real-time stock levels.",
-  };
-  const lower = message.toLowerCase();
-  if (lower.includes('fish') || lower.includes('salmon') && !lower.includes('compare')) return responses.fish;
-  if (lower.includes('track') || lower.includes('order')) return responses.order;
-  if (lower.includes('minimum') || lower.includes('quantity')) return responses.minimum;
-  if (lower.includes('salmon') || lower.includes('compare')) return responses.salmon;
-  return responses.default;
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+async function fetchAIResponse(message, history) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/api/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ message, history }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to get a response.');
+  }
+  const data = await res.json();
+  return data.reply;
 }
 
 export default function ChatbotWidget() {
@@ -63,12 +65,25 @@ export default function ChatbotWidget() {
     if (!msg) return;
     setInput('');
     const userMsg = { id: Date.now(), role: 'user', text: msg, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    setMessages(prev => [...prev, userMsg]);
-    setTyping(true);
-    const reply = await fetchAIResponse(msg);
-    setTyping(false);
-    setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+    setMessages(prev => {
+      const updated = [...prev, userMsg];
+      // Kick off AI response with the updated history
+      (async () => {
+        setTyping(true);
+        try {
+          const historyForAI = updated.filter(m => m.id !== 'welcome');
+          const reply = await fetchAIResponse(msg, historyForAI.slice(0, -1)); // exclude the just-added user msg
+          setMessages(p => [...p, { id: Date.now() + 1, role: 'ai', text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        } catch (err) {
+          setMessages(p => [...p, { id: Date.now() + 1, role: 'ai', text: "Sorry, I'm having trouble connecting right now. Please try again in a moment.", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+        } finally {
+          setTyping(false);
+        }
+      })();
+      return updated;
+    });
   };
+
 
   const handleKey = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, ShoppingBag, Package, ShieldCheck, Check, Trash2, RefreshCw, Layers } from 'lucide-react';
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { analyticsService } from '../../services/analyticsService';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 
 const TYPE_ICONS = {
   order: { icon: ShoppingBag, color: '#2563EB', bg: '#DBEAFE' },
@@ -13,8 +15,57 @@ const TYPE_ICONS = {
 };
 
 export default function Notifications() {
+  const navigate = useNavigate();
   const { showToast } = useNotification();
+  const { user } = useAuth();
   const [list, setList] = useState([]);
+
+  const handleNotificationClick = async (item) => {
+    // Mark as read if unread
+    if (!item.read) {
+      try {
+        await analyticsService.markNotificationAsRead(item.id);
+        setList(prev => prev.map(n => n.id === item.id ? { ...n, read: true } : n));
+      } catch (err) {
+        console.error('Failed to mark notification as read on click:', err);
+      }
+    }
+
+    // Navigate to relevant page
+    const type = item.type;
+    const titleLower = (item.title || '').toLowerCase();
+    const messageLower = (item.message || '').toLowerCase();
+    const isBuyer = user?.role === 'buyer';
+    const isAdmin = user?.role === 'admin';
+
+    const isPaymentRelated = titleLower.includes('payment') || messageLower.includes('payment') || titleLower.includes('slip') || messageLower.includes('slip');
+
+    if (isPaymentRelated) {
+      if (isAdmin) navigate('/admin/orders');
+      else if (isBuyer) navigate('/marketplace/shipments');
+      else navigate('/dashboard/orders');
+    } else if (type === 'stock' || titleLower.includes('product') || titleLower.includes('listing') || messageLower.includes('product') || messageLower.includes('listing')) {
+      if (isAdmin) navigate('/admin/inventory');
+      else if (isBuyer) navigate('/marketplace/inventory');
+      else navigate('/dashboard/inventory');
+    } else if (type === 'order' || titleLower.includes('order') || messageLower.includes('order')) {
+      if (isAdmin) navigate('/admin/orders');
+      else if (isBuyer) navigate('/marketplace/shipments');
+      else navigate('/dashboard/orders');
+    } else if (type === 'payout' || titleLower.includes('payout') || titleLower.includes('earnings') || messageLower.includes('payout') || messageLower.includes('earnings')) {
+      if (isAdmin) navigate('/admin');
+      else if (isBuyer) navigate('/marketplace');
+      else navigate('/dashboard/earnings');
+    } else if (titleLower.includes('verification') || titleLower.includes('verify') || messageLower.includes('verification') || messageLower.includes('verify')) {
+      if (isAdmin) navigate('/admin/profile');
+      else if (isBuyer) navigate('/setup/profile');
+      else navigate('/dashboard/profile');
+    } else {
+      if (isAdmin) navigate('/admin');
+      else if (isBuyer) navigate('/marketplace');
+      else navigate('/dashboard');
+    }
+  };
   const [filter, setFilter] = useState('all'); // all, unread, read
   const [loading, setLoading] = useState(true);
 
@@ -135,6 +186,8 @@ export default function Notifications() {
               return (
                 <div
                   key={item.id}
+                  className="notification-row"
+                  onClick={() => handleNotificationClick(item)}
                   style={{
                     display: 'flex',
                     alignItems: 'flex-start',
@@ -142,7 +195,8 @@ export default function Notifications() {
                     padding: '1.25rem 1.5rem',
                     borderTop: i > 0 ? '1px solid var(--color-border)' : 'none',
                     background: item.read ? 'white' : 'rgba(16, 185, 129, 0.03)',
-                    transition: 'background 0.2s ease'
+                    transition: 'background 0.2s ease',
+                    cursor: 'pointer'
                   }}
                 >
                   {/* Icon */}
@@ -154,7 +208,7 @@ export default function Notifications() {
                       background: typeMeta.bg,
                       display: 'flex',
                       alignItems: 'center',
-                      justifycontent: 'center',
+                      justifyContent: 'center',
                       alignContent: 'center',
                       justifyItems: 'center',
                       flexShrink: 0
@@ -183,7 +237,10 @@ export default function Notifications() {
                   <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'center' }}>
                     {!item.read && (
                       <button
-                        onClick={() => handleMarkAsRead(item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMarkAsRead(item.id);
+                        }}
                         title="Mark as Read"
                         style={{ padding: '0.4rem', borderRadius: '6px', cursor: 'pointer', border: 'none', background: '#F0FDF4', color: '#16A34A', display: 'flex', alignItems: 'center' }}
                       >
@@ -191,7 +248,10 @@ export default function Notifications() {
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item.id);
+                      }}
                       title="Delete"
                       style={{ padding: '0.4rem', borderRadius: '6px', cursor: 'pointer', border: 'none', background: '#FEF2F2', color: '#EF4444', display: 'flex', alignItems: 'center' }}
                     >

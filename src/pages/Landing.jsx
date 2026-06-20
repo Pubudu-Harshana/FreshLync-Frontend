@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
+import LandingReviews from '../components/LandingReviews';
+import { useAuth } from '../context/AuthContext';
 
 // ── Static fallback products shown when DB has nothing ───────────────────────
 const FALLBACK_PRODUCTS = [
@@ -142,7 +144,7 @@ function ProductCard({ product, onBuy }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
           <div>
             <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#047857' }}>
-              £{Number(product.price).toFixed(2)}
+              £{Number(product.displayPrice || product.sellingPrice || product.price).toFixed(2)}
             </span>
             <span style={{ fontSize: '0.75rem', color: '#94A3B8', marginLeft: '0.3rem' }}>/ {product.unit}</span>
           </div>
@@ -240,9 +242,20 @@ function LoginGateModal({ product, onClose, onLogin }) {
   );
 }
 
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100";
+  if (avatar.startsWith('http') || avatar.startsWith('blob:') || avatar.startsWith('data:')) return avatar;
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    : `${window.location.protocol}//${window.location.hostname}:5000`;
+  const normalizedAvatar = avatar.startsWith('/') ? avatar : `/${avatar}`;
+  return `${backendUrl}${normalizedAvatar}`;
+};
+
 // ── Main Landing Page ─────────────────────────────────────────────────────────
 export default function Landing() {
   const navigate = useNavigate();
+  const { user, logout, isAuthenticated } = useAuth();
   const [products, setProducts]       = useState([]);
   const [loadingProds, setLoadingProds] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -302,13 +315,56 @@ export default function Landing() {
           </a>
           <div className="landing-nav-links">
             <a href="#top"        onClick={handleJumpTo('top')}>Home</a>
-            <a href="#marketplace" onClick={handleJumpTo('marketplace')}>Marketplace</a>
+            {!(user?.role === 'supplier') && <a href="#marketplace" onClick={handleJumpTo('marketplace')}>Marketplace</a>}
             <a href="#about"      onClick={handleJumpTo('about')}>About</a>
             <a href="#contact"    onClick={handleJumpTo('contact')}>Contact</a>
           </div>
-          <button className="nav-login-button" onClick={() => navigate('/login')}>
-            Login
-          </button>
+          {isAuthenticated ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button 
+                className="nav-login-button" 
+                onClick={() => {
+                  if (user?.role === 'admin') navigate('/admin');
+                  else if (user?.role === 'supplier') navigate('/dashboard');
+                  else navigate('/marketplace');
+                }}
+                style={{ background: '#047857', color: 'white' }}
+              >
+                {user?.role === 'admin' ? 'Admin Portal' : user?.role === 'supplier' ? 'Supplier Portal' : 'Marketplace'}
+              </button>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                onClick={() => {
+                  if (user?.role === 'admin') navigate('/admin/profile');
+                  else if (user?.role === 'supplier') navigate('/dashboard/profile');
+                  else navigate('/setup/profile');
+                }}
+                title="View Profile"
+              >
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '2px solid #047857' }}>
+                  <img src={getAvatarUrl(user?.avatar)} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              </div>
+              <button 
+                onClick={logout} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: '#64748B', 
+                  fontSize: '0.85rem', 
+                  fontWeight: 600, 
+                  cursor: 'pointer',
+                  padding: '0.4rem 0.6rem'
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <button className="nav-login-button" onClick={() => navigate('/login')}>
+              Login
+            </button>
+          )}
         </nav>
       </header>
 
@@ -406,151 +462,156 @@ export default function Landing() {
         </section>
 
         {/* ── Marketplace Preview ── */}
-        <section id="marketplace" style={{
-          padding: '5rem 2rem',
-          background: 'linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%)',
-        }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              style={{ textAlign: 'center', marginBottom: '3rem' }}
-            >
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                background: '#DCFCE7', color: '#047857',
-                padding: '0.4rem 1rem', borderRadius: 999,
-                fontSize: '0.8rem', fontWeight: 700, marginBottom: '1rem',
-                letterSpacing: '0.04em', textTransform: 'uppercase',
-              }}>
-                <Leaf size={13} /> Live Marketplace
-              </span>
-              <h2 style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.75rem', lineHeight: 1.2 }}>
-                Fresh produce, direct from<br />verified suppliers
-              </h2>
-              <p style={{ color: '#64748B', fontSize: '1rem', maxWidth: 520, margin: '0 auto 0' }}>
-                Browse our full catalogue of premium fish, meat, vegetables, dairy, and grains.
-                <span style={{ color: '#047857', fontWeight: 600 }}> Sign in to place orders.</span>
-              </p>
-            </motion.div>
+        {!(user?.role === 'supplier') && (
+          <section id="marketplace" style={{
+            padding: '5rem 2rem',
+            background: 'linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%)',
+          }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+              {/* Header */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                style={{ textAlign: 'center', marginBottom: '3rem' }}
+              >
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  background: '#DCFCE7', color: '#047857',
+                  padding: '0.4rem 1rem', borderRadius: 999,
+                  fontSize: '0.8rem', fontWeight: 700, marginBottom: '1rem',
+                  letterSpacing: '0.04em', textTransform: 'uppercase',
+                }}>
+                  <Leaf size={13} /> Live Marketplace
+                </span>
+                <h2 style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.75rem', lineHeight: 1.2 }}>
+                  Fresh produce, direct from<br />verified suppliers
+                </h2>
+                <p style={{ color: '#64748B', fontSize: '1rem', maxWidth: 520, margin: '0 auto 0' }}>
+                  Browse our full catalogue of premium fish, meat, vegetables, dairy, and grains.
+                  <span style={{ color: '#047857', fontWeight: 600 }}> Sign in to place orders.</span>
+                </p>
+              </motion.div>
 
-            {/* Category Filters */}
-            <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
-              {CATEGORIES.map(cat => {
-                const meta = CATEGORY_ICONS[cat];
-                const Icon = meta.icon;
-                const isActive = activeCategory === cat;
-                return (
+              {/* Category Filters */}
+              <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
+                {CATEGORIES.map(cat => {
+                  const meta = CATEGORY_ICONS[cat];
+                  const Icon = meta.icon;
+                  const isActive = activeCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveCategory(cat)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.4rem',
+                        padding: '0.5rem 1.1rem', borderRadius: 999,
+                        fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
+                        transition: 'all 0.18s ease',
+                        background: isActive ? meta.color : 'white',
+                        color: isActive ? 'white' : meta.color,
+                        border: `2px solid ${meta.color}`,
+                        boxShadow: isActive ? `0 4px 12px ${meta.color}44` : 'none',
+                      }}
+                    >
+                      <Icon size={14} /> {cat}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Products Grid */}
+              {loadingProds ? (
+                <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
+                  <div style={{
+                    width: 40, height: 40, border: '3px solid #E2E8F0',
+                    borderTopColor: '#047857', borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
+                  }} />
+                  Loading fresh products…
+                </div>
+              ) : filtered.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
+                  <Box size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                  <div>No products in this category yet.</div>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                  gap: '1.5rem',
+                  marginBottom: '2.5rem',
+                }}>
+                  {filtered.slice(0, 8).map(product => (
+                    <ProductCard key={product._id} product={product} onBuy={handleBuy} />
+                  ))}
+                </div>
+              )}
+
+              {/* CTA Banner */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  background: 'linear-gradient(135deg, #047857 0%, #065F46 60%, #1E3A5F 100%)',
+                  borderRadius: 20,
+                  padding: '2.5rem 3rem',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  flexWrap: 'wrap', gap: '1.5rem',
+                  boxShadow: '0 8px 32px rgba(4,120,87,0.25)',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <Lock size={16} color="#86EFAC" />
+                    <span style={{ color: '#86EFAC', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Buyers only
+                    </span>
+                  </div>
+                  <h3 style={{ color: 'white', fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.4rem' }}>
+                    Ready to place your order?
+                  </h3>
+                  <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem' }}>
+                    Create a free account and start buying directly from verified suppliers with real-time stock.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                   <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
+                    onClick={() => navigate('/login')}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '0.4rem',
-                      padding: '0.5rem 1.1rem', borderRadius: 999,
-                      fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer',
-                      transition: 'all 0.18s ease',
-                      background: isActive ? meta.color : 'white',
-                      color: isActive ? 'white' : meta.color,
-                      border: `2px solid ${meta.color}`,
-                      boxShadow: isActive ? `0 4px 12px ${meta.color}44` : 'none',
+                      padding: '0.85rem 2rem', borderRadius: 12,
+                      background: 'white', color: '#047857',
+                      fontWeight: 700, fontSize: '0.95rem',
+                      border: 'none', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     }}
                   >
-                    <Icon size={14} /> {cat}
+                    Log in to buy <ArrowRight size={18} />
                   </button>
-                );
-              })}
-            </div>
-
-            {/* Products Grid */}
-            {loadingProds ? (
-              <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
-                <div style={{
-                  width: 40, height: 40, border: '3px solid #E2E8F0',
-                  borderTopColor: '#047857', borderRadius: '50%',
-                  animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
-                }} />
-                Loading fresh products…
-              </div>
-            ) : filtered.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '4rem', color: '#64748B' }}>
-                <Box size={40} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-                <div>No products in this category yet.</div>
-              </div>
-            ) : (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: '1.5rem',
-                marginBottom: '2.5rem',
-              }}>
-                {filtered.slice(0, 8).map(product => (
-                  <ProductCard key={product._id} product={product} onBuy={handleBuy} />
-                ))}
-              </div>
-            )}
-
-            {/* CTA Banner */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              style={{
-                background: 'linear-gradient(135deg, #047857 0%, #065F46 60%, #1E3A5F 100%)',
-                borderRadius: 20,
-                padding: '2.5rem 3rem',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                flexWrap: 'wrap', gap: '1.5rem',
-                boxShadow: '0 8px 32px rgba(4,120,87,0.25)',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <Lock size={16} color="#86EFAC" />
-                  <span style={{ color: '#86EFAC', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Buyers only
-                  </span>
+                  <button
+                    onClick={() => navigate('/register')}
+                    style={{
+                      padding: '0.85rem 1.75rem', borderRadius: 12,
+                      background: 'rgba(255,255,255,0.12)',
+                      color: 'white',
+                      fontWeight: 600, fontSize: '0.9rem',
+                      border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer',
+                    }}
+                  >
+                    Create account
+                  </button>
                 </div>
-                <h3 style={{ color: 'white', fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.4rem' }}>
-                  Ready to place your order?
-                </h3>
-                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.9rem' }}>
-                  Create a free account and start buying directly from verified suppliers with real-time stock.
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => navigate('/login')}
-                  style={{
-                    padding: '0.85rem 2rem', borderRadius: 12,
-                    background: 'white', color: '#047857',
-                    fontWeight: 700, fontSize: '0.95rem',
-                    border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  }}
-                >
-                  Log in to buy <ArrowRight size={18} />
-                </button>
-                <button
-                  onClick={() => navigate('/register')}
-                  style={{
-                    padding: '0.85rem 1.75rem', borderRadius: 12,
-                    background: 'rgba(255,255,255,0.12)',
-                    color: 'white',
-                    fontWeight: 600, fontSize: '0.9rem',
-                    border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer',
-                  }}
-                >
-                  Create account
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+              </motion.div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Reviews ── */}
+        <LandingReviews />
 
         {/* ── Features ── */}
         <section className="landing-section landing-section-muted" id="about">
@@ -629,7 +690,7 @@ export default function Landing() {
           </div>
           <div className="landing-footer-links" aria-label="Footer navigation">
             <a href="#top"          onClick={handleJumpTo('top')}>Home</a>
-            <a href="#marketplace"  onClick={handleJumpTo('marketplace')}>Marketplace</a>
+            {!(user?.role === 'supplier') && <a href="#marketplace"  onClick={handleJumpTo('marketplace')}>Marketplace</a>}
             <a href="#about"        onClick={handleJumpTo('about')}>About</a>
             <button type="button"   onClick={() => navigate('/login')}>Login</button>
           </div>

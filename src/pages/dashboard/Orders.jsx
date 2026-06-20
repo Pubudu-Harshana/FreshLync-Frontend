@@ -145,7 +145,7 @@ export default function Orders() {
                                 {(o.items || []).map((item, i) => (
                                   <li key={i} style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-primary)', flexShrink: 0 }} />
-                                    {item.name} ×{item.quantity} {item.unit}
+                                    {item.name} (Qty: {item.quantity} {item.unit} @ £{Number(item.price).toFixed(2)} = £{(item.price * item.quantity).toFixed(2)})
                                   </li>
                                 ))}
                               </ul>
