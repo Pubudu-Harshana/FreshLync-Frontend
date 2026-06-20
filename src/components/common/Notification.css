@@ -212,11 +212,13 @@
   background: #dc2626;
 }
 
-.modal-btn-confirm.btn-primary {
+.modal-btn-confirm.btn-primary,
+.modal-btn-confirm.btn-success {
   background: #10b981;
 }
 
-.modal-btn-confirm.btn-primary:hover {
+.modal-btn-confirm.btn-primary:hover,
+.modal-btn-confirm.btn-success:hover {
   background: #059669;
 }
 

@@ -5,6 +5,25 @@ import { useCart } from '../../context/CartContext';
 import EmptyState from '../../components/EmptyState';
 import SEO from '../../components/SEO';
 
+const getProductImageUrl = (item) => {
+  const imgPath = item.image || item.img || item.imagePath;
+  if (!imgPath) return null;
+  if (imgPath.startsWith('http') || imgPath.startsWith('data:')) {
+    return imgPath;
+  }
+  const backendUrl = import.meta.env.VITE_API_URL 
+    ? import.meta.env.VITE_API_URL.replace('/api', '') 
+    : `${window.location.protocol}//${window.location.hostname}:5000`;
+  const normalizedPath = imgPath.startsWith('/') ? imgPath : `/${imgPath}`;
+  return `${backendUrl}${normalizedPath}`;
+};
+
+const formatItemPrice = (item) => {
+  const priceVal = parseFloat(String(item.price).replace(/[^0-9.]/g, ''));
+  if (isNaN(priceVal)) return item.price;
+  return `£${priceVal.toFixed(2)}${item.unit ? ` / ${item.unit}` : ''}`;
+};
+
 export default function Cart() {
   const navigate = useNavigate();
   const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
@@ -44,12 +63,18 @@ export default function Cart() {
             {cart.map((item, idx) => (
               <div key={idx} className="card" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
                 <div style={{ width: 80, height: 80, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#f1f5f9' }}>
-                  {item.img && <img src={item.img} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  {getProductImageUrl(item) && (
+                    <img 
+                      src={getProductImageUrl(item)} 
+                      alt={item.name} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  )}
                 </div>
 
                 <div style={{ flex: 1 }}>
                   <h3 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>{item.name}</h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{item.price}</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{formatItemPrice(item)}</p>
                 </div>
 
                 {/* Quantity Controls */}
@@ -64,7 +89,7 @@ export default function Cart() {
                 </div>
 
                 <div style={{ minWidth: 90, textAlign: 'right', fontWeight: 700, fontSize: '1.05rem', color: 'var(--color-primary)' }}>
-                  {item.price}
+                  {formatItemPrice(item)}
                   <div style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--color-text-muted)' }}>× {item.quantity}</div>
                 </div>
 

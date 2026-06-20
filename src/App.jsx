@@ -21,6 +21,8 @@ const Landing          = lazy(() => import('./pages/Landing'));
 const Login            = lazy(() => import('./pages/auth/Login'));
 const Register         = lazy(() => import('./pages/auth/Register'));
 const VerifyEmail      = lazy(() => import('./pages/auth/VerifyEmail'));
+const ForgotPassword   = lazy(() => import('./pages/auth/ForgotPassword'));
+const ResetPassword    = lazy(() => import('./pages/auth/ResetPassword'));
 const ActiveRoute      = lazy(() => import('./pages/ActiveRoute'));
 
 // Setup
@@ -37,6 +39,7 @@ const AdminShipments         = lazy(() => import('./pages/dashboard/AdminShipmen
 const AdminInventory         = lazy(() => import('./pages/dashboard/AdminInventory'));
 const AdminUsers             = lazy(() => import('./pages/dashboard/AdminUsers'));
 const AdminVerification      = lazy(() => import('./pages/dashboard/AdminVerification'));
+const AdminReviews           = lazy(() => import('./pages/dashboard/AdminReviews'));
 
 
 // Supplier Dashboard
@@ -80,10 +83,12 @@ function App() {
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Public */}
-                    <Route path="/"              element={<Landing />} />
-                    <Route path="/login"         element={<Login />} />
-                    <Route path="/register"      element={<Register />} />
-                    <Route path="/verify-email"  element={<VerifyEmail />} />
+                    <Route path="/"                  element={<Landing />} />
+                    <Route path="/login"             element={<Login />} />
+                    <Route path="/register"          element={<Register />} />
+                    <Route path="/verify-email"      element={<VerifyEmail />} />
+                    <Route path="/forgot-password"   element={<ForgotPassword />} />
+                    <Route path="/reset-password"    element={<ResetPassword />} />
 
                     {/* Setup */}
                     <Route element={<SetupLayout />}>
@@ -117,6 +122,7 @@ function App() {
                       <Route path="inventory"    element={<AdminInventory />} />
                       <Route path="users"        element={<AdminUsers />} />
                       <Route path="verification" element={<AdminVerification />} />
+                      <Route path="reviews"      element={<AdminReviews />} />
                       <Route path="profile"      element={<SupplierProfile />} />
                     </Route>
 

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Star, Package, Shield, Truck, ChevronLeft, ChevronRight, Plus, Minus } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { productService } from '../../services/productService';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import SEO from '../../components/SEO';
 
 const PRODUCTS = [
@@ -31,10 +33,58 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const { addToCart, cart } = useCart();
 
-  const product = PRODUCTS.find(p => p.id === id);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      setLoading(true);
+      if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+        try {
+          const data = await productService.getProduct(id);
+          if (data) {
+            const mapped = {
+              id: data._id,
+              name: data.name,
+              price: `£${Number(data.sellingPrice || data.displayPrice || data.price || 0).toFixed(2)}/${data.unit || 'kg'}`,
+              priceNum: data.sellingPrice || data.displayPrice || data.price || 0,
+              img: data.image ? `http://localhost:5000${data.image}` : '',
+              imagePath: data.image || '',
+              images: data.image ? [`http://localhost:5000${data.image}`] : [],
+              desc: data.description || 'No description available.',
+              stock: data.stock === 0 ? 'Out of Stock' : (data.stock < 50 ? 'Low Stock' : 'In Stock'),
+              stockQty: data.stock || 0,
+              category: data.category,
+              supplier: data.supplierName || (data.supplier && (data.supplier.company || data.supplier.name)) || 'Supplier',
+              rating: data.rating || 0,
+              reviews: data.reviews || 0,
+              sku: data.sku || '—',
+              unit: data.unit || 'kg',
+              minOrder: data.minOrder || 1
+            };
+            setProduct(mapped);
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.error("Failed to load dynamic product:", err);
+        }
+      }
+      
+      const mock = PRODUCTS.find(p => p.id === id);
+      setProduct(mock || null);
+      setLoading(false);
+    };
+
+    loadProduct();
+  }, [id]);
+
+  if (loading) {
+    return <LoadingSpinner fullPage message="Loading product details..." />;
+  }
 
   if (!product) {
     return (
@@ -48,7 +98,14 @@ export default function ProductDetails() {
   }
 
   const handleAddToCart = () => {
-    addToCart(product, qty);
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.priceNum,
+      unit: product.unit,
+      image: product.imagePath || product.img,
+      supplierName: product.supplier
+    }, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -70,8 +127,14 @@ export default function ProductDetails() {
         {/* Image Gallery */}
         <div>
           <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: 380, background: '#f1f5f9' }}>
-            <img src={product.images[imgIdx]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            {product.images.length > 1 && (
+            {product.images && product.images.length > 0 && product.images[imgIdx] ? (
+              <img src={product.images[imgIdx]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%)' }}>
+                <span style={{ fontSize: '6rem' }}>{product.category === 'Fish' ? '🐟' : product.category === 'Meat' ? '🥩' : '🥬'}</span>
+              </div>
+            )}
+            {product.images && product.images.length > 1 && (
               <>
                 <button onClick={() => setImgIdx(i => Math.max(0, i - 1))} className="img-nav-btn" style={{ left: 12 }}><ChevronLeft size={20} /></button>
                 <button onClick={() => setImgIdx(i => Math.min(product.images.length - 1, i + 1))} className="img-nav-btn" style={{ right: 12 }}><ChevronRight size={20} /></button>
@@ -83,7 +146,7 @@ export default function ProductDetails() {
               </span>
             </div>
           </div>
-          {product.images.length > 1 && (
+          {product.images && product.images.length > 1 && (
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
               {product.images.map((img, i) => (
                 <div key={i} onClick={() => setImgIdx(i)} style={{ width: 72, height: 72, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: `2px solid ${i === imgIdx ? 'var(--color-primary)' : 'transparent'}` }}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Activity, Users, Truck, DollarSign, TrendingUp, Settings, 
   RefreshCw, AlertTriangle, ShieldCheck, MapPin, Sparkles, 
@@ -12,12 +13,14 @@ import { adminService } from '../../services/adminService';
 import { useNotification } from '../../context/NotificationContext';
 
 export default function AdminDashboardOverview() {
+  const navigate = useNavigate();
   const { showToast } = useNotification();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [margin, setMargin] = useState(15);
   const [marginSaved, setMarginSaved] = useState(false);
+  const [hoveredRevenueNode, setHoveredRevenueNode] = useState(null);
 
   // Tab: AI predictions states
   const [forecastRange, setForecastRange] = useState('30 Days');
@@ -26,6 +29,18 @@ export default function AdminDashboardOverview() {
   const [regionalInsights, setRegionalInsights] = useState([]);
   const [supplierForecasts, setSupplierForecasts] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
+
+  // Interactive ML Predictor States
+  const [mlInput, setMlInput] = useState({
+    product_name: 'Tomato',
+    category: 'Vegetables',
+    day_of_week: 'Monday',
+    is_holiday: false,
+    weather_condition: 'Sunny',
+  });
+  const [mlPrediction, setMlPrediction] = useState(null);
+  const [mlLoading, setMlLoading] = useState(false);
+  const [mlError, setMlError] = useState(null);
 
   // Tab: Support Tickets states
   const [tickets, setTickets] = useState([]);
@@ -50,14 +65,45 @@ export default function AdminDashboardOverview() {
   });
   const [settingsSaved, setSettingsSaved] = useState(false);
 
-  // Recent Activity Feed (dynamic based on mockup data)
-  const activities = [
+  // Helper to format timestamps to relative time
+  const formatRelativeTime = (timestamp) => {
+    if (!timestamp) return 'unknown';
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now - date;
+    if (isNaN(diffMs) || diffMs < 0) return 'Just now';
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  };
+
+  // Recent Activity Feed (dynamic fallback)
+  const defaultActivities = [
     { type: 'customer', title: 'New Customer Registered', desc: 'SuperMart Inc. joined the marketplace', time: '10m ago' },
     { type: 'supplier', title: 'New Supplier Applied', desc: 'OceanBreeze Fish Co. submitted documentation', time: '1h ago' },
     { type: 'order', title: 'Order Completed', desc: 'Order ORD-A882 successfully delivered', time: '2h ago' },
     { type: 'product', title: 'Product Approval Requested', desc: 'GreenEarth Organics submitted Organic Red Chard', time: '4h ago' },
     { type: 'support', title: 'Dispute Ticket Opened', desc: 'Supplier GreenEarth raised dispute on ORD-A23B', time: '6h ago' },
   ];
+
+  const handleActivityClick = (act) => {
+    if (act.type === 'product' || act.type === 'support') {
+      navigate('/admin/inventory');
+    } else if (act.type === 'order') {
+      navigate('/admin/orders');
+    } else if (act.type === 'customer' || act.type === 'supplier') {
+      navigate('/admin/users');
+    }
+  };
+
+  const activitiesList = stats?.activities || defaultActivities;
 
   const loadData = async () => {
     setLoading(true);
@@ -126,6 +172,30 @@ export default function AdminDashboardOverview() {
     }
   };
 
+  const handleMLPredict = async (e) => {
+    e.preventDefault();
+    setMlLoading(true);
+    setMlError(null);
+    setMlPrediction(null);
+    try {
+      const res = await adminService.predictSales({
+        product_name: mlInput.product_name,
+        category: mlInput.category,
+        day_of_week: mlInput.day_of_week,
+        is_holiday: mlInput.is_holiday,
+        weather_condition: mlInput.weather_condition,
+      });
+      setMlPrediction(res);
+      showToast('AI prediction generated successfully!', 'success');
+    } catch (err) {
+      console.error(err);
+      setMlError(err.response?.data?.message || err.message || 'Prediction failed');
+      showToast('Failed to generate prediction.', 'error');
+    } finally {
+      setMlLoading(false);
+    }
+  };
+
   const handleTicketStatusChange = (id, nextStatus) => {
     setTickets(prev => prev.map(t => t.id === id ? { ...t, status: nextStatus } : t));
     if (selectedTicket?.id === id) {
@@ -164,7 +234,7 @@ export default function AdminDashboardOverview() {
     { label: 'Total Orders', value: stats?.totalOrders || 0, icon: Truck, bg: '#E0E7FF', color: '#312E81', badge: 'Active' },
     { label: 'Total Customers', value: stats?.totalCustomers || 0, icon: Users, bg: '#DBEAFE', color: '#1E40AF', badge: 'Active' },
     { label: 'Total Suppliers', value: stats?.totalSuppliers || 0, icon: Building, bg: '#D1FAE5', color: '#065F46', badge: 'Verified' },
-    { label: 'Active Users', value: stats?.activeUsers || 0, icon: Activity, bg: '#F3E8FF', color: '#6827B0', badge: 'Realtime' },
+    { label: 'Platform Profit', value: `£${Number(stats?.platformProfit || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, icon: DollarSign, bg: '#F3E8FF', color: '#6827B0', badge: `${stats?.margin || 15}% Margin` },
     { label: 'Orders Today', value: stats?.ordersToday || 0, icon: List, bg: '#FFF1F2', color: '#9F1239', badge: 'New' },
     { label: 'Pending Orders', value: stats?.pendingOrders || 0, icon: Clock, bg: '#FEF3C7', color: '#92400E', badge: 'In Queue' },
     { label: 'Completed Orders', value: stats?.completedOrders || 0, icon: CheckCircle2, bg: '#DCFCE7', color: '#166534', badge: 'Delivered' },
@@ -256,28 +326,205 @@ export default function AdminDashboardOverview() {
                 <div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>Weekly Orders Trend (Units Flipped)</div>
                   <div style={{ background: '#f8fafc', borderRadius: 8, height: 160, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '1rem' }}>
-                    {[12, 28, 45, 32, 60, 52, 78, 65, 90].map((val, idx) => (
-                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', flex: 1 }}>
-                        <div style={{ width: 12, height: `${val * 1.2}px`, background: '#312E81', borderRadius: '2px 2px 0 0', opacity: 0.85 }} />
-                        <span style={{ fontSize: '0.625rem', color: 'var(--color-text-muted)' }}>W{idx+1}</span>
-                      </div>
-                    ))}
+                    {(() => {
+                      const weeklyData = stats?.weeklyOrders || [12, 28, 45, 32, 60, 52, 78, 65, 90];
+                      const maxVal = Math.max(...weeklyData);
+                      return weeklyData.map((val, idx) => {
+                        const barHeight = maxVal > 0 ? (val / maxVal) * 110 : 0;
+                        return (
+                          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem', flex: 1 }}>
+                            <div style={{ width: 12, height: `${barHeight}px`, background: '#312E81', borderRadius: '2px 2px 0 0', opacity: 0.85 }} title={`Orders: ${val}`} />
+                            <span style={{ fontSize: '0.625rem', color: 'var(--color-text-muted)' }}>W{idx+1}</span>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>Customer vs Supplier Growth (Monthly)</div>
-                  <div style={{ background: '#f8fafc', borderRadius: 8, height: 160, position: 'relative', overflow: 'hidden', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    {/* SVG Line chart mockup */}
-                    <svg viewBox="0 0 100 40" style={{ width: '100%', height: '100%' }}>
-                      <path d="M0,35 Q15,30 30,22 T60,18 T90,8" fill="none" stroke="#1D4ED8" strokeWidth="2" />
-                      <path d="M0,38 Q15,36 30,32 T60,28 T90,20" fill="none" stroke="#059669" strokeWidth="2" />
-                    </svg>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.625rem', color: 'var(--color-text-muted)' }}>
-                      <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Daily Platform Performance (Last 7 Days)</div>
+                    <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.7rem', fontWeight: 700 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#1D4ED8' }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1D4ED8', display: 'inline-block' }} /> Revenue
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#10B981' }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} /> Profit
+                      </span>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.75rem', position: 'absolute', bottom: '0.5rem', right: '0.5rem', background: 'white', padding: '0.2rem 0.5rem', borderRadius: 4, border: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: '0.55rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#1D4ED8', display: 'inline-block' }}></span>Buyers</span>
-                      <span style={{ fontSize: '0.55rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#059669', display: 'inline-block' }}></span>Suppliers</span>
+                  </div>
+                  <div style={{ background: '#f8fafc', borderRadius: 8, minHeight: 160, position: 'relative', overflow: 'visible', padding: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    {(() => {
+                      const dailyData = stats?.dailyRevenue || [
+                        { label: 'Sat', revenue: 100, profit: 13.04 },
+                        { label: 'Sun', revenue: 120, profit: 15.65 },
+                        { label: 'Mon', revenue: 90, profit: 11.74 },
+                        { label: 'Tue', revenue: 150, profit: 19.57 },
+                        { label: 'Wed', revenue: 200, profit: 26.09 },
+                        { label: 'Thu', revenue: 170, profit: 22.17 },
+                        { label: 'Fri', revenue: 250, profit: 32.61 }
+                      ];
+                      const maxRev = Math.max(...dailyData.map(d => d.revenue), 1);
+                      const marginSetting = stats?.margin || 15;
+
+                      const points = dailyData.map((d, idx) => {
+                        const x = (idx / (dailyData.length - 1)) * 100;
+                        const y = 35 - (d.revenue / maxRev) * 28;
+                        return `${x},${y}`;
+                      });
+                      const pathD = points.length > 0 ? `M${points.join(' L')}` : '';
+
+                      const profitPoints = dailyData.map((d, idx) => {
+                        const x = (idx / (dailyData.length - 1)) * 100;
+                        const profitVal = d.profit !== undefined ? d.profit : (d.revenue * (marginSetting / (100 + marginSetting)));
+                        const y = 35 - (profitVal / maxRev) * 28;
+                        return `${x},${y}`;
+                      });
+                      const pathProfitD = profitPoints.length > 0 ? `M${profitPoints.join(' L')}` : '';
+
+                      return (
+                        <>
+                          <div style={{ position: 'relative', width: '100%' }}>
+                            <svg viewBox="0 0 100 40" style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+                              {/* Area under curves */}
+                              {points.length > 0 && (
+                                <path 
+                                  d={`${pathD} L100,35 L0,35 Z`} 
+                                  fill="rgba(29, 78, 216, 0.08)" 
+                                  stroke="none" 
+                                />
+                              )}
+                              {profitPoints.length > 0 && (
+                                <path 
+                                  d={`${pathProfitD} L100,35 L0,35 Z`} 
+                                  fill="rgba(16, 185, 129, 0.08)" 
+                                  stroke="none" 
+                                />
+                              )}
+                              
+                              {/* Lines */}
+                              <path d={pathD} fill="none" stroke="#1D4ED8" strokeWidth="1.5" strokeLinecap="round" />
+                              <path d={pathProfitD} fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" />
+
+                              {/* Data points */}
+                              {dailyData.map((d, idx) => {
+                                const x = (idx / (dailyData.length - 1)) * 100;
+                                const yRev = 35 - (d.revenue / maxRev) * 28;
+                                const profitVal = d.profit !== undefined ? d.profit : (d.revenue * (marginSetting / (100 + marginSetting)));
+                                const yProf = 35 - (profitVal / maxRev) * 28;
+
+                                return (
+                                  <g key={idx}>
+                                    {/* Revenue Circle */}
+                                    <circle 
+                                      cx={x} 
+                                      cy={yRev} 
+                                      r="1.8" 
+                                      fill="#1D4ED8" 
+                                      stroke="white" 
+                                      strokeWidth="0.4"
+                                      style={{ cursor: 'pointer' }}
+                                      onMouseEnter={() => setHoveredRevenueNode({ label: d.label, revenue: d.revenue, profit: profitVal, x, y: yRev })}
+                                      onMouseLeave={() => setHoveredRevenueNode(null)}
+                                    />
+                                    {/* Profit Circle */}
+                                    <circle 
+                                      cx={x} 
+                                      cy={yProf} 
+                                      r="1.8" 
+                                      fill="#10B981" 
+                                      stroke="white" 
+                                      strokeWidth="0.4"
+                                      style={{ cursor: 'pointer' }}
+                                      onMouseEnter={() => setHoveredRevenueNode({ label: d.label, revenue: d.revenue, profit: profitVal, x, y: yProf })}
+                                      onMouseLeave={() => setHoveredRevenueNode(null)}
+                                    />
+                                  </g>
+                                );
+                              })}
+                            </svg>
+                            
+                            {/* Floating interactive tooltip */}
+                            {hoveredRevenueNode && (
+                              <div style={{
+                                position: 'absolute',
+                                left: `${hoveredRevenueNode.x}%`,
+                                top: `${hoveredRevenueNode.y / 40 * 100}%`,
+                                transform: 'translate(-50%, -125%)',
+                                background: '#1E293B',
+                                color: 'white',
+                                padding: '0.4rem 0.7rem',
+                                borderRadius: 8,
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                pointerEvents: 'none',
+                                boxShadow: 'var(--shadow-md)',
+                                whiteSpace: 'nowrap',
+                                zIndex: 10,
+                                transition: 'all 0.05s ease',
+                                lineHeight: 1.4,
+                                border: '1px solid #334155'
+                              }}>
+                                <div style={{ color: '#94A3B8', fontSize: '0.55rem', marginBottom: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{hoveredRevenueNode.label} Details</div>
+                                <div style={{ color: '#38BDF8', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+                                  <span>Revenue:</span>
+                                  <span>£{hoveredRevenueNode.revenue.toFixed(2)}</span>
+                                </div>
+                                <div style={{ color: '#34D399', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+                                  <span>Profit:</span>
+                                  <span>£{hoveredRevenueNode.profit.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          <div style={{ position: 'relative', width: '100%', height: '14px', fontSize: '0.625rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', overflow: 'visible' }}>
+                            {dailyData.map((d, idx) => {
+                              const x = (idx / (dailyData.length - 1)) * 100;
+                              return (
+                                <span 
+                                  key={idx} 
+                                  title={`£${d.revenue}`} 
+                                  style={{ 
+                                    position: 'absolute', 
+                                    left: `${x}%`, 
+                                    transform: 'translateX(-50%)', 
+                                    whiteSpace: 'nowrap',
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  {d.label}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Revenue Split */}
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Financial Split Overview (Platform Cumulative)</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                  <div style={{ background: '#F8FAFC', padding: '0.875rem 1.25rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Marketplace Revenue (Customer Paid)</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1E40AF', marginTop: '0.25rem' }}>
+                      £{Number(stats?.marketplaceRevenue || stats?.totalGMV || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                  <div style={{ background: '#F8FAFC', padding: '0.875rem 1.25rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Supplier Payouts (Wholesale Share)</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#047857', marginTop: '0.25rem' }}>
+                      £{Number(stats?.supplierRevenue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                  <div style={{ background: '#F8FAFC', padding: '0.875rem 1.25rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Platform Profit Margin Revenue</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#7C3AED', marginTop: '0.25rem' }}>
+                      £{Number(stats?.marginRevenue || stats?.platformProfit || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                 </div>
@@ -310,19 +557,30 @@ export default function AdminDashboardOverview() {
             <div className="card">
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={18} /> System Activity Feed</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {activities.map((act, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.875rem', borderBottom: idx < activities.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                {activitiesList.map((act, idx) => (
+                  <div 
+                    key={idx} 
+                    className="activity-feed-row"
+                    onClick={() => handleActivityClick(act)}
+                    style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      paddingBottom: '0.875rem', 
+                      borderBottom: idx < activitiesList.length - 1 ? '1px solid var(--color-border)' : 'none' 
+                    }}
+                  >
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                       <div style={{
-                        width: 8, height: 8, borderRadius: '50%',
-                        background: act.type === 'customer' ? '#3B82F6' : (act.type === 'supplier' ? '#10B981' : (act.type === 'order' ? '#8B5CF6' : '#EF4444'))
+                        width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                        background: act.type === 'customer' ? '#3B82F6' : (act.type === 'supplier' ? '#10B981' : (act.type === 'order' ? '#8B5CF6' : (act.type === 'product' ? '#06B6D4' : '#EF4444')))
                       }} />
                       <div>
                         <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{act.title}</div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{act.desc}</div>
                       </div>
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{act.time}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', flexShrink: 0 }}>{act.time || formatRelativeTime(act.timestamp)}</span>
                   </div>
                 ))}
               </div>
@@ -572,6 +830,139 @@ export default function AdminDashboardOverview() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Interactive ML Predictor */}
+          <div className="card" style={{ padding: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <Sparkles size={20} style={{ color: 'var(--color-primary)' }} />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Interactive Sales & Price Predictor</h3>
+            </div>
+            
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+              Select hypothetical market parameters below to run the trained XGBoost model and forecast quantity sold and recommended price.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flexWrap: 'wrap' }}>
+              {/* Form */}
+              <form onSubmit={handleMLPredict} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Product Name</label>
+                    <select
+                      value={mlInput.product_name}
+                      onChange={e => setMlInput(prev => ({ ...prev, product_name: e.target.value }))}
+                      style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--color-border)', borderRadius: 8, outline: 'none', fontSize: '0.85rem' }}
+                    >
+                      {['Tomato', 'Potato', 'Beans', 'Carrot', 'Chicken', 'Pork', 'Seer Fish', 'Tuna'].map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Category</label>
+                    <select
+                      value={mlInput.category}
+                      onChange={e => setMlInput(prev => ({ ...prev, category: e.target.value }))}
+                      style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--color-border)', borderRadius: 8, outline: 'none', fontSize: '0.85rem' }}
+                    >
+                      {['Vegetables', 'Meat', 'Fish'].map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Day of Week</label>
+                    <select
+                      value={mlInput.day_of_week}
+                      onChange={e => setMlInput(prev => ({ ...prev, day_of_week: e.target.value }))}
+                      style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--color-border)', borderRadius: 8, outline: 'none', fontSize: '0.85rem' }}
+                    >
+                      {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Weather Condition</label>
+                    <select
+                      value={mlInput.weather_condition}
+                      onChange={e => setMlInput(prev => ({ ...prev, weather_condition: e.target.value }))}
+                      style={{ width: '100%', padding: '0.6rem', border: '1px solid var(--color-border)', borderRadius: 8, outline: 'none', fontSize: '0.85rem' }}
+                    >
+                      {['Sunny', 'Cloudy', 'Rainy'].map(w => (
+                        <option key={w} value={w}>{w}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
+                  <input
+                    type="checkbox"
+                    id="ml_is_holiday"
+                    checked={mlInput.is_holiday}
+                    onChange={e => setMlInput(prev => ({ ...prev, is_holiday: e.target.checked }))}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <label htmlFor="ml_is_holiday" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-main)', cursor: 'pointer' }}>Is Holiday?</label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={mlLoading}
+                  className="btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.7rem' }}
+                >
+                  {mlLoading ? 'Generating Forecast...' : <><Sparkles size={16} /> Run ML Prediction</>}
+                </button>
+              </form>
+
+              {/* Results */}
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#F8FAFC', borderRadius: 12, padding: '1.5rem', border: '1px solid var(--color-border)' }}>
+                {mlLoading ? (
+                  <div style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                    <div style={{ width: 32, height: 32, border: '3px solid #E2E8F0', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 0.75rem' }} />
+                    Crunching real-time market data...
+                  </div>
+                ) : mlError ? (
+                  <div style={{ color: '#EF4444', textAlign: 'center', fontSize: '0.9rem' }}>
+                    <AlertTriangle size={32} style={{ margin: '0 auto 0.5rem', display: 'block' }} />
+                    <strong>Error generating prediction</strong>
+                    <div style={{ fontSize: '0.8rem', marginTop: '0.25rem' }}>{mlError}</div>
+                  </div>
+                ) : mlPrediction ? (
+                  <div>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1E293B', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Forecast Results</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div style={{ background: 'white', padding: '1rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '0.25rem' }}>PREDICTED DEMAND</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                          {mlPrediction.quantity_sold.toFixed(1)} <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>units</span>
+                        </div>
+                      </div>
+                      <div style={{ background: 'white', padding: '1rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '0.25rem' }}>RECOMMENDED PRICE</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#047857' }}>
+                          £{mlPrediction.price.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '1rem', fontStyle: 'italic' }}>
+                      * Forecast generated using the tuned multi-output XGBoost regression model trained on active supply chain records.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+                    <Sparkles size={36} style={{ color: '#A5B4FC', margin: '0 auto 0.75rem', display: 'block' }} />
+                    Configure parameters and click "Run ML Prediction" to see forecasted values.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

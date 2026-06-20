@@ -52,7 +52,7 @@ export default function MarketplaceHome() {
 
   const handleAddToCart = (p, e) => {
     e.stopPropagation();
-    addToCart({ id: p._id, name: p.name, price: p.price, unit: p.unit, image: p.image, supplierName: p.supplierName });
+    addToCart({ id: p._id, name: p.name, price: p.displayPrice, unit: p.unit, image: p.image, supplierName: p.supplierName });
     setAddedId(p._id);
     setTimeout(() => setAddedId(null), 1500);
   };
@@ -135,7 +135,7 @@ export default function MarketplaceHome() {
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.75rem' }}>
                     <div>
-                      <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>£{Number(p.price).toFixed(2)}</span>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-primary)' }}>£{Number(p.displayPrice).toFixed(2)}</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>/{p.unit}</span>
                     </div>
                     <button

@@ -85,19 +85,26 @@ export default function DashboardLayout() {
                                titleLower.includes('stock') || 
                                titleLower.includes('inventory');
 
+      const isOrderRelated = titleLower.includes('order') || textLower.includes('order');
+      
+      const isPayoutRelated = titleLower.includes('payout') || titleLower.includes('earnings') || textLower.includes('payout') || textLower.includes('earnings');
+
       if (isVerificationRelated) {
         navigate('/dashboard/profile');
-        setShowNotifications(false);
       } else if (isProductRelated) {
         if (n.productId) {
           navigate(`/dashboard/edit-product/${n.productId}`);
         } else {
           navigate('/dashboard/inventory');
         }
-        setShowNotifications(false);
+      } else if (isOrderRelated) {
+        navigate('/dashboard/orders');
+      } else if (isPayoutRelated) {
+        navigate('/dashboard/earnings');
       } else {
-        setShowNotifications(false);
+        navigate('/dashboard/notifications');
       }
+      setShowNotifications(false);
     } catch (err) {
       console.error(err);
     }
@@ -125,8 +132,13 @@ export default function DashboardLayout() {
     <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)' }}>
       {/* Sidebar */}
       <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--color-primary)', color: 'white', position: 'sticky', top: 0, width: 248 }}>
-        <div style={{ padding: '1.25rem 1.5rem', marginBottom: '0.5rem' }}>
-          <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '72px', width: 'auto', display: 'block' }} />
+        <div style={{ padding: '2rem 1.5rem 1rem', display: 'flex', justifyContent: 'center' }}>
+          <img 
+            src="/newlogo.png" 
+            alt="Freshlync logo" 
+            style={{ height: '72px', width: 'auto', display: 'block', cursor: 'pointer' }} 
+            onClick={() => navigate('/')}
+          />
         </div>
 
         {/* Quick Action */}

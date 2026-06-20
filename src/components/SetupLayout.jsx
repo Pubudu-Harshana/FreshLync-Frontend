@@ -22,8 +22,13 @@ export default function SetupLayout() {
       {/* Sidebar */}
       <aside className="setup-sidebar">
         <div style={{ padding: '0 2rem', marginBottom: '2rem' }}>
-          <div style={{ marginBottom: '0.5rem' }}>
-            <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '70px', width: 'auto', display: 'block' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <img 
+              src="/newlogo.png" 
+              alt="Freshlync logo" 
+              style={{ height: '70px', width: 'auto', display: 'block', cursor: 'pointer' }} 
+              onClick={() => window.location.href = '/'}
+            />
           </div>
           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Setup Progress</div>
         </div>
