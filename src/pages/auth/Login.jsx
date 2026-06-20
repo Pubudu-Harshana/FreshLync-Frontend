@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, User, Truck, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { useAuth } from '../../context/AuthContext';
 
-const DUMMY_CREDENTIALS = [
-  { role: 'Customer', email: 'customer@freshlync.com', password: 'Customer@123', icon: User, color: '#3b82f6' },
-  { role: 'Supplier', email: 'supplier@freshlync.com', password: 'Supplier@123', icon: Truck, color: '#10b981' },
-  { role: 'Admin', email: 'admin@freshlync.com', password: 'Admin@1234', icon: ShieldCheck, color: '#8b5cf6' },
-];
 
 export default function Login() {
   const navigate   = useNavigate();
@@ -36,11 +31,6 @@ export default function Login() {
     }
   };
 
-  const handleAutoFill = (cred) => {
-    setRole(cred.role);
-    setEmail(cred.email);
-    setPassword(cred.password);
-  };
 
   return (
     <div className="split-layout" style={{ fontFamily: 'var(--font-sans)' }}>
@@ -164,61 +154,6 @@ export default function Login() {
               {loading ? 'Signing in...' : 'Login to Portal'}
             </button>
           </form>
-
-          {/* Dummy Credentials Panel */}
-          <div style={{ 
-            background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0f9ff 100%)', 
-            borderRadius: '12px', 
-            padding: '1.25rem', 
-            marginBottom: '1.5rem',
-            border: '1px dashed var(--color-primary)',
-          }}>
-            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', textAlign: 'center' }}>
-              🔑 Demo Credentials — Click to auto-fill
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {DUMMY_CREDENTIALS.map((cred) => {
-                const Icon = cred.icon;
-                return (
-                  <button
-                    key={cred.role}
-                    type="button"
-                    onClick={() => handleAutoFill(cred)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.625rem 0.875rem',
-                      borderRadius: '8px',
-                      background: role === cred.role ? 'white' : 'rgba(255,255,255,0.6)',
-                      border: role === cred.role ? `2px solid ${cred.color}` : '1px solid rgba(0,0,0,0.06)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: role === cred.role ? `0 2px 8px ${cred.color}22` : 'none',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      background: `${cred.color}15`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}>
-                      <Icon size={16} style={{ color: cred.color }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: cred.color, marginBottom: '0.125rem' }}>{cred.role}</div>
-                      <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>{cred.email} / {cred.password}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           <div style={{ textAlign: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
