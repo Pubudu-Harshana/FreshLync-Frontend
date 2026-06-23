@@ -53,7 +53,9 @@ export default function MarketplaceLayout() {
 
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 1rem', gap: '0.15rem' }}>
           <NavLink to="/marketplace" end style={navItemStyle}><Store size={19} /> Marketplace</NavLink>
-          <NavLink to="/marketplace/suppliers" style={navItemStyle}><Users size={19} /> Suppliers</NavLink>
+          {user?.role !== 'buyer' && (
+            <NavLink to="/marketplace/suppliers" style={navItemStyle}><Users size={19} /> Suppliers</NavLink>
+          )}
           <NavLink to="/marketplace/billing" style={navItemStyle}><Wallet size={19} /> Billing & Credit</NavLink>
           <NavLink to="/marketplace/shipments" style={navItemStyle}><LayoutGrid size={19} /> My Shipments</NavLink>
           <NavLink to="/marketplace/inventory" style={navItemStyle}><Package size={19} /> Purchase History</NavLink>

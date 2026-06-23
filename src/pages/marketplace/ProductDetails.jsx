@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { productService } from '../../services/productService';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SEO from '../../components/SEO';
+import { useAuth } from '../../context/AuthContext';
 
 const PRODUCTS = [
   { id: '1', name: 'Atlantic Salmon', price: '£24.99/kg', priceNum: 24.99, img: 'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?auto=format&fit=crop&q=80&w=800', images: ['https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?auto=format&fit=crop&q=80&w=800', 'https://images.unsplash.com/photo-1574781330855-d0db8cc6a79c?auto=format&fit=crop&q=80&w=800'], desc: 'Premium grade, sustainably farm-raised in the North Atlantic. Rich in Omega-3 fatty acids and ideal for restaurants, catering, and wholesale buyers.', stock: 'In Stock', stockQty: 850, category: 'Fish', supplier: 'North Atlantic Co.', rating: 4.8, reviews: 124, sku: 'SALM-091', unit: 'per kg', minOrder: 5 },
@@ -32,6 +33,7 @@ export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, cart } = useCart();
+  const { user } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ export default function ProductDetails() {
               stock: data.stock === 0 ? 'Out of Stock' : (data.stock < 50 ? 'Low Stock' : 'In Stock'),
               stockQty: data.stock || 0,
               category: data.category,
-              supplier: data.supplierName || (data.supplier && (data.supplier.company || data.supplier.name)) || 'Supplier',
+              supplier: user?.role === 'buyer' ? 'FreshLync' : (data.supplierName || (data.supplier && (data.supplier.company || data.supplier.name)) || 'Supplier'),
               rating: data.rating || 0,
               reviews: data.reviews || 0,
               sku: data.sku || '—',
@@ -75,7 +77,11 @@ export default function ProductDetails() {
       }
       
       const mock = PRODUCTS.find(p => p.id === id);
-      setProduct(mock || null);
+      if (mock && user?.role === 'buyer') {
+        setProduct({ ...mock, supplier: 'FreshLync' });
+      } else {
+        setProduct(mock || null);
+      }
       setLoading(false);
     };
 

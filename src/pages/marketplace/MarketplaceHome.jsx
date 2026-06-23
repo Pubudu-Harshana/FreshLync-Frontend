@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
 import { productService } from '../../services/productService';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains', 'Other'];
 const PRICE_RANGES = [
@@ -18,6 +19,7 @@ const PRICE_RANGES = [
 export default function MarketplaceHome() {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user } = useAuth();
 
   const [products, setProducts]   = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -52,7 +54,7 @@ export default function MarketplaceHome() {
 
   const handleAddToCart = (p, e) => {
     e.stopPropagation();
-    addToCart({ id: p._id, name: p.name, price: p.displayPrice, unit: p.unit, image: p.image, supplierName: p.supplierName });
+    addToCart({ id: p._id, name: p.name, price: p.displayPrice, unit: p.unit, image: p.image, supplierName: user?.role === 'buyer' ? 'FreshLync' : p.supplierName });
     setAddedId(p._id);
     setTimeout(() => setAddedId(null), 1500);
   };
@@ -71,7 +73,7 @@ export default function MarketplaceHome() {
       <div style={{ display: 'flex', gap: '0.875rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
           <Search size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
-          <input className="input-field" placeholder="Search products, suppliers..." value={search}
+          <input className="input-field" placeholder={user?.role === 'buyer' ? "Search products..." : "Search products, suppliers..."} value={search}
             onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.5rem' }} />
           {search && <button onClick={() => setSearch('')} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}><X size={14} /></button>}
         </div>
@@ -122,7 +124,7 @@ export default function MarketplaceHome() {
                 </div>
 
                 <div style={{ padding: '1rem' }}>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>{p.supplierName || 'Supplier'}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>{user?.role === 'buyer' ? 'FreshLync' : (p.supplierName || 'Supplier')}</div>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', lineHeight: 1.3 }}>{p.name}</h3>
 
                   {p.rating > 0 && (
