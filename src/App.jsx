@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import LoadingSpinner from './components/LoadingSpinner';
+import SplashScreen   from './components/SplashScreen';
 
 // Layouts (not lazy — they are shells, loaded immediately)
 import SetupLayout       from './components/SetupLayout';
@@ -73,8 +74,27 @@ function PageLoader() {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = React.useState(true);
+  const [isExiting, setIsExiting] = React.useState(false);
+
+  React.useEffect(() => {
+    const exitTimer = setTimeout(() => {
+      setIsExiting(true);
+    }, 2200);
+
+    const removeTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2800);
+
+    return () => {
+      clearTimeout(exitTimer);
+      clearTimeout(removeTimer);
+    };
+  }, []);
+
   return (
     <HelmetProvider>
+      {showSplash && <SplashScreen isExiting={isExiting} />}
       <AuthProvider>
         <SetupProvider>
           <CartProvider>
