@@ -5,6 +5,7 @@ import SEO from '../../components/SEO';
 import { useCart } from '../../context/CartContext';
 import { orderService } from '../../services/orderService';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 
 const PAYMENT_METHODS = [
   { id: 'card', label: 'Credit / Debit Card', icon: CreditCard },
@@ -35,6 +36,7 @@ export default function Checkout() {
   const navigate     = useNavigate();
   const { showToast } = useNotification();
   const { cart: cartItems, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [payMethod, setPayMethod] = useState('bank');
   const [loading, setLoading] = useState(false);
@@ -161,7 +163,7 @@ export default function Checkout() {
             quantity: item.quantity,
             unit: item.unit || 'kg',
             image: item.image,
-            supplierName: item.supplierName || 'Supplier'
+            supplierName: user?.role === 'buyer' ? 'FreshLync' : (item.supplierName || 'Supplier')
           })),
           nextDelivery: recurringFreq === 'weekly' ? 'Next Monday' : '1st of Next Month',
           active: true
@@ -373,7 +375,7 @@ export default function Checkout() {
                       </li>
                     ))}
                   </ul>
-                  <div style={{ marginTop: '0.5rem', opacity: 0.9 }}>Note: Suppliers may decline orders if their MOQ requirements are not satisfied.</div>
+                  <div style={{ marginTop: '0.5rem', opacity: 0.9 }}>Note: {user?.role === 'buyer' ? 'FreshLync' : 'Suppliers'} may decline orders if their MOQ requirements are not satisfied.</div>
                 </div>
               )}
 

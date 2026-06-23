@@ -4,6 +4,7 @@ import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { orderService } from '../../services/orderService';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 
 const getProductImageUrl = (item) => {
   const imgPath = item.image || item.img || item.imagePath;
@@ -36,6 +37,7 @@ const TRACKING_STEPS = [
 
 export default function MarketplaceShipments() {
   const { showToast } = useNotification();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -184,7 +186,7 @@ export default function MarketplaceShipments() {
                 const isOpen = expandedId === o._id;
                 const orderId = o._id.slice(-6).toUpperCase();
                 const sc = STATUS_STYLE[o.status] || STATUS_STYLE['Pending'];
-                const suppliersInvolved = [...new Set(o.items?.map(item => item.supplierName || 'Supplier'))];
+                const suppliersInvolved = [...new Set(o.items?.map(item => user?.role === 'buyer' ? 'FreshLync' : (item.supplierName || 'Supplier')))];
 
                 const currentStep = getStepIndex(o.status);
 
@@ -320,7 +322,7 @@ export default function MarketplaceShipments() {
 
                               {(o.supplierStatuses || []).map((supStatus, i) => {
                                 const supItems = o.items?.filter(item => item.supplier === supStatus.supplier) || [];
-                                const supplierName = supItems[0]?.supplierName || 'Supplier';
+                                const supplierName = user?.role === 'buyer' ? 'FreshLync' : (supItems[0]?.supplierName || 'Supplier');
                                 const ssc = STATUS_STYLE[supStatus.status] || STATUS_STYLE['Pending'];
 
                                 return (

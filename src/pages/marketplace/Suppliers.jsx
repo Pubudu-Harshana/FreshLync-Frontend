@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Search, MapPin, Star, ShieldCheck, Filter, Clock, Box, RefreshCw } from 'lucide-react';
 import SEO from '../../components/SEO';
+import { useAuth } from '../../context/AuthContext';
 
 const INITIAL_SUPPLIERS = [
   { name: 'GreenEarth Organics', location: 'Salinas, CA', rating: '4.9', certs: 3, categories: 'Leafy Greens, Root Veg, Salad', since: '2019', moqValue: 50, leadTimeValue: 2, moq: '50 kg', leadTime: '2 Days' },
@@ -11,7 +12,12 @@ const INITIAL_SUPPLIERS = [
 ];
 
 export default function Suppliers() {
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  if (user?.role === 'buyer') {
+    return <Navigate to="/marketplace" replace />;
+  }
   const [search, setSearch] = useState('');
   const [locationFilter, setLocationFilter] = useState('All');
   const [moqFilter, setMoqFilter] = useState(250);

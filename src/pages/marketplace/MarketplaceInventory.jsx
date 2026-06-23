@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { useNotification } from '../../context/NotificationContext';
 import { orderService } from '../../services/orderService';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useAuth } from '../../context/AuthContext';
 
 const MOCK_HISTORY_ITEMS = [
   { id: 'prod-1', name: 'Atlantic Salmon', price: 24.99, unit: 'kg', supplierName: 'Atlantic Blue Fisheries', category: 'Fish', lastPurchased: '18 Jun 2026', image: null },
@@ -15,6 +16,7 @@ const MOCK_HISTORY_ITEMS = [
 export default function MarketplaceInventory() {
   const { addToCart } = useCart();
   const { showToast } = useNotification();
+  const { user } = useAuth();
   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function MarketplaceInventory() {
             name: item.name,
             price: item.price,
             unit: item.unit || 'kg',
-            supplierName: item.supplierName || 'Supplier',
+            supplierName: user?.role === 'buyer' ? 'FreshLync' : (item.supplierName || 'Supplier'),
             category: item.category || (item.name.toLowerCase().includes('salmon') || item.name.toLowerCase().includes('fish') ? 'Fish' : item.name.toLowerCase().includes('beef') || item.name.toLowerCase().includes('meat') ? 'Meat' : 'Vegetables'),
             lastPurchased: orderDate,
             image: item.image || null,
@@ -76,7 +78,10 @@ export default function MarketplaceInventory() {
     // Add mock seeds if they don't overlap, to ensure rich first-time experiences
     MOCK_HISTORY_ITEMS.forEach(mock => {
       if (!itemsMap[mock.id]) {
-        itemsMap[mock.id] = mock;
+        itemsMap[mock.id] = {
+          ...mock,
+          supplierName: user?.role === 'buyer' ? 'FreshLync' : mock.supplierName
+        };
       }
     });
 
@@ -183,7 +188,7 @@ export default function MarketplaceInventory() {
           <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
           <input
             type="text"
-            placeholder="Search past purchased products or suppliers..."
+            placeholder={user?.role === 'buyer' ? "Search past purchased products..." : "Search past purchased products or suppliers..."}
             style={{ width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem', borderRadius: 8, border: '1px solid var(--color-border)', outline: 'none', boxSizing: 'border-box' }}
             value={search}
             onChange={e => setSearch(e.target.value)}
