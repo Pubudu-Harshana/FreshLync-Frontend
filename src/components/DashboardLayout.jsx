@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Search, Bell, LayoutDashboard, Package, ShoppingBag, BarChart3, ShieldCheck, HelpCircle, Settings, LogOut, Info, Plus, User, Wallet, Trash2 } from 'lucide-react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Search, Bell, LayoutDashboard, Package, ShoppingBag, BarChart3, ShieldCheck, HelpCircle, Settings, LogOut, Info, Plus, User, Wallet, Trash2, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsService } from '../services/analyticsService';
 
@@ -16,10 +16,17 @@ const getAvatarUrl = (avatar) => {
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const fetchNotifs = async () => {
     try {
@@ -130,8 +137,26 @@ export default function DashboardLayout() {
 
   return (
     <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)' }}>
+      {/* Backdrop for mobile */}
+      {isMobileMenuOpen && (
+        <div className="sidebar-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--color-primary)', color: 'white', position: 'sticky', top: 0, width: 248 }}>
+      <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'open' : ''}`} style={{ background: 'var(--color-primary)' }}>
+        {/* Mobile close button */}
+        <button 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="mobile-menu-close"
+          style={{
+            position: 'absolute', top: '1rem', right: '1rem',
+            background: 'none', border: 'none', color: 'white',
+            cursor: 'pointer', display: 'none'
+          }}
+        >
+          <X size={22} />
+        </button>
+
         <div style={{ padding: '2rem 1.5rem 1rem', display: 'flex', justifyContent: 'center' }}>
           <img 
             src="/newlogo.png" 
@@ -174,15 +199,24 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="dashboard-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--color-background)' }}>
+      <main className="dashboard-main">
         <header style={{ height: '68px', background: 'white', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', flexShrink: 0 }}>
-          <div>
-            <h1 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Supplier Portal</h1>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Welcome back, {user?.company || user?.name || 'Supplier'}</div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button 
+              className="mobile-menu-toggle" 
+              onClick={() => setIsMobileMenuOpen(true)}
+              style={{ display: 'none', marginRight: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              <Menu size={22} />
+            </button>
+            <div>
+              <h1 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Supplier Portal</h1>
+              <div className="header-subtitle" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Welcome back, {user?.company || user?.name || 'Supplier'}</div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <div style={{ position: 'relative' }}>
+            <div className="header-search-container" style={{ position: 'relative' }}>
               <Search size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
               <input type="text" placeholder="Search orders, stock..." style={{ padding: '0.45rem 1rem 0.45rem 2.4rem', borderRadius: 999, border: '1px solid var(--color-border)', outline: 'none', width: 260, background: 'var(--color-background)', fontSize: '0.85rem' }} />
             </div>

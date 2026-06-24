@@ -1,6 +1,6 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate, Navigate } from 'react-router-dom';
-import { Bell, ShoppingCart, LogOut, Info, Store, Users, Wallet, Package, Activity, Settings, LayoutGrid } from 'lucide-react';
+import { NavLink, Outlet, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import { Bell, ShoppingCart, LogOut, Info, Store, Users, Wallet, Package, Activity, Settings, LayoutGrid, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import ChatbotWidget from './ChatbotWidget';
@@ -19,6 +19,13 @@ export default function MarketplaceLayout() {
   const { cartItemCount } = useCart();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   if (user && user.role === 'supplier') {
     return <Navigate to="/dashboard" replace />;
@@ -39,9 +46,27 @@ export default function MarketplaceLayout() {
   });
 
   return (
-    <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)', display: 'flex' }}>
+    <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)' }}>
+      {/* Backdrop for mobile */}
+      {isMobileMenuOpen && (
+        <div className="sidebar-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#047857', color: 'white', position: 'sticky', top: 0, width: 248, flexShrink: 0 }}>
+      <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'open' : ''}`} style={{ background: '#047857' }}>
+        {/* Mobile close button */}
+        <button 
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="mobile-menu-close"
+          style={{
+            position: 'absolute', top: '1rem', right: '1rem',
+            background: 'none', border: 'none', color: 'white',
+            cursor: 'pointer', display: 'none'
+          }}
+        >
+          <X size={22} />
+        </button>
+
         <div style={{ padding: '1.25rem 1.5rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
           <img 
             src="/newlogo.png" 
@@ -84,11 +109,20 @@ export default function MarketplaceLayout() {
       </aside>
 
       {/* Main Content */}
-      <main className="dashboard-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--color-background)' }}>
+      <main className="dashboard-main">
         <header style={{ height: '68px', background: 'white', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', flexShrink: 0 }}>
-          <div>
-            <h1 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Marketplace</h1>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Discover premium fish, meat, and vegetables</div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button 
+              className="mobile-menu-toggle" 
+              onClick={() => setIsMobileMenuOpen(true)}
+              style={{ display: 'none', marginRight: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              <Menu size={22} />
+            </button>
+            <div>
+              <h1 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Marketplace</h1>
+              <div className="header-subtitle" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Discover premium fish, meat, and vegetables</div>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
