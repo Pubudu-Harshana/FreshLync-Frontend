@@ -49,10 +49,10 @@ export default function Checkout() {
   const [isUploading, setIsUploading] = useState(false);
 
   const handlePaymentMethodSelect = (methodId) => {
-    if (methodId !== 'bank') {
-      showToast("Currently, only Bank Transfer payments are available. Additional payment methods will be supported in future updates.", "info");
-      setPayMethod('bank');
+    if (methodId === 'bank' || methodId === 'net30') {
+      setPayMethod(methodId);
     } else {
+      showToast("Credit / Debit Card payments are currently unavailable. Please choose Bank Transfer or Net 30 Invoice.", "info");
       setPayMethod('bank');
     }
   };
@@ -319,6 +319,18 @@ export default function Checkout() {
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {payMethod === 'net30' && (
+                <div style={{ marginTop: '1.5rem', background: '#F0FDF4', borderRadius: 10, padding: '1.25rem', border: '1px solid #bbf7d0', marginBottom: '1.5rem' }}>
+                  <h4 style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '0.5rem', color: '#166534', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Truck size={18} /> B2B Net 30 Credit Term
+                  </h4>
+                  <p style={{ fontSize: '0.82rem', color: '#14532d', lineHeight: 1.5, margin: 0 }}>
+                    This order will be processed under your B2B wholesale credit line. No immediate payment is required. 
+                    An invoice will be automatically generated and added to your Billing Dashboard, with payment due 30 days from now.
+                  </p>
                 </div>
               )}
 

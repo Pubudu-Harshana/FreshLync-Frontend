@@ -4,6 +4,8 @@ import {
   ArrowRight, BarChart3, CheckCircle2, Clock3, MapPinned,
   Package2, ShieldCheck, Users, ShoppingBag, Star, Leaf,
   Fish, Beef, Wheat, Milk, Box, Lock, ChevronRight, Sparkles,
+  Facebook, Linkedin, Mail, Phone, MapPin, Truck, Zap, Headphones,
+  User, Sun, Moon
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,7 +39,8 @@ const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains'];
 const featureItems = [
   { icon: Package2,   title: 'Live inventory control',   description: 'Track stock, batches, and order readiness in one clean workspace.' },
   { icon: ShieldCheck, title: 'Cold-chain confidence',   description: 'Keep quality visible from dispatch to doorstep with monitored handoffs.' },
-  { icon: BarChart3,  title: 'Smarter decisions',        description: 'Turn daily movement data into forecasting, planning, and better margins.' },
+  { icon: Leaf,        title: 'Sri Lankan Fresh Imports', description: 'Direct sourcing of premium Sri Lankan goods—including wild-caught seafood, organic spices, and tropical fruits—delivered in peak condition.' },
+  { icon: Wheat,       title: 'Sustainable Sourcing',     description: 'Support for eco-friendly farming practices and carbon-neutral logistics, reducing food miles and waste.' },
 ];
 
 const processItems = [
@@ -252,6 +255,102 @@ const getAvatarUrl = (avatar) => {
   return `${backendUrl}${normalizedAvatar}`;
 };
 
+// ── CountUp Animation Component ──────────────────────────────────────────────
+const CountUp = ({ end, duration = 1.8 }) => {
+  const [count, setCount] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const domRef = React.useRef(null);
+  const intervalRef = React.useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          // Entering viewport — restart the animation
+          setCount(0);
+          setHasStarted(true);
+        } else {
+          // Leaving viewport — clear any running animation and reset
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          setCount(0);
+          setHasStarted(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentEl = domRef.current;
+    if (currentEl) observer.observe(currentEl);
+
+    return () => {
+      if (currentEl) observer.unobserve(currentEl);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+
+    const endStr = end.toString();
+    const numericTarget = parseFloat(endStr.replace(/[^\d.]/g, ''));
+
+    if (isNaN(numericTarget)) {
+      setCount(numericTarget);
+      return;
+    }
+
+    const totalFrames = Math.round(duration * 60);
+    let frame = 0;
+
+    intervalRef.current = setInterval(() => {
+      frame++;
+      const progress = frame / totalFrames;
+      const easeProgress = progress * (2 - progress); // easeOutQuad
+      const current = Math.round(easeProgress * numericTarget);
+
+      if (frame >= totalFrames) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        setCount(numericTarget);
+      } else {
+        setCount(current);
+      }
+    }, 1000 / 60);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [end, duration, hasStarted]);
+
+  const endStr = end.toString();
+  const isK = endStr.includes('K');
+  const isPercent = endStr.includes('%');
+  const hasPlus = endStr.includes('+');
+
+  let displayValue = count.toLocaleString();
+  if (isK) displayValue += 'K';
+  if (isPercent) displayValue += '%';
+  if (hasPlus) displayValue += '+';
+
+  return (
+    <span
+      ref={domRef}
+      style={{
+        fontSize: 'inherit',
+        color: 'inherit',
+        fontWeight: 'inherit',
+        lineHeight: 'inherit',
+      }}
+    >
+      {displayValue}
+    </span>
+  );
+};
+
+
 // ── Main Landing Page ─────────────────────────────────────────────────────────
 export default function Landing() {
   const navigate = useNavigate();
@@ -314,7 +413,7 @@ export default function Landing() {
             <img src="/newlogo.png" alt="FreshLync" className="brand-logo" />
           </a>
           <div className="landing-nav-links">
-            <a href="#top"        onClick={handleJumpTo('top')}>Home</a>
+            <a href="#top"        onClick={handleJumpTo('top')} className="active">Home</a>
             {!(user?.role === 'supplier') && <a href="#marketplace" onClick={handleJumpTo('marketplace')}>Marketplace</a>}
             <a href="#about"      onClick={handleJumpTo('about')}>About</a>
             <a href="#contact"    onClick={handleJumpTo('contact')}>Contact</a>
@@ -328,9 +427,9 @@ export default function Landing() {
                   else if (user?.role === 'supplier') navigate('/dashboard');
                   else navigate('/marketplace');
                 }}
-                style={{ background: '#047857', color: 'white' }}
+                style={{ background: '#047857', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
               >
-                {user?.role === 'admin' ? 'Admin Portal' : user?.role === 'supplier' ? 'Supplier Portal' : 'Marketplace'}
+                <User size={16} /> {user?.role === 'admin' ? 'Admin Portal' : user?.role === 'supplier' ? 'Supplier Portal' : 'Marketplace'}
               </button>
               <div 
                 style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
@@ -361,9 +460,11 @@ export default function Landing() {
               </button>
             </div>
           ) : (
-            <button className="nav-login-button" onClick={() => navigate('/login')}>
-              Login
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button className="nav-login-button" onClick={() => navigate('/login')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <User size={16} /> Login
+              </button>
+            </div>
           )}
         </nav>
       </header>
@@ -381,10 +482,10 @@ export default function Landing() {
               <span className="hero-eyebrow-dot" />
               Smart distribution. Fresh connection.
             </div>
-            <h1 style={{ fontSize: '3rem', lineHeight: '1.1', marginBottom: '5rem' }}>
+            <h1>
               Move fresh goods <br/>
-              with a brand that feels <br/>
-              fast, clean, and dependable.
+              with a brand <br/>
+              that <span style={{ color: 'var(--color-primary)' }}>delivers.</span>
             </h1>
             <p className="hero-description">
               FreshLync connects verified suppliers with buyers through a modern
@@ -397,22 +498,47 @@ export default function Landing() {
                 Get started <ArrowRight size={18} />
               </button>
               <a className="secondary-action" href="#marketplace" onClick={handleJumpTo('marketplace')}>
-                Browse products
+                <ShoppingBag size={18} /> Browse products
               </a>
             </div>
 
-            <div className="trust-row" aria-label="Platform highlights" style={{ marginTop: '30vh' }}>
-              {trustPoints.map((item) => (
-                <span key={item} className="trust-pill">
-                  <CheckCircle2 size={14} />{item}
-                </span>
-              ))}
-            </div>
-
-            <div className="hero-stats">
-              <article><strong>Live</strong><span>dispatch visibility</span></article>
-              <article><strong>24/7</strong><span>shipment tracking</span></article>
-              <article><strong>Faster</strong><span>route coordination</span></article>
+            <div className="benefits-row">
+              <div className="benefit-item">
+                <div className="benefit-icon-wrapper">
+                  <ShieldCheck size={20} />
+                </div>
+                <div className="benefit-text">
+                  <h3>Verified & trusted</h3>
+                  <p>Quality suppliers you can rely on</p>
+                </div>
+              </div>
+              <div className="benefit-item">
+                <div className="benefit-icon-wrapper">
+                  <Truck size={20} />
+                </div>
+                <div className="benefit-text">
+                  <h3>Live tracking</h3>
+                  <p>Real-time updates every step</p>
+                </div>
+              </div>
+              <div className="benefit-item">
+                <div className="benefit-icon-wrapper">
+                  <Zap size={20} />
+                </div>
+                <div className="benefit-text">
+                  <h3>Faster delivery</h3>
+                  <p>Optimized routes on every order</p>
+                </div>
+              </div>
+              <div className="benefit-item">
+                <div className="benefit-icon-wrapper">
+                  <Headphones size={20} />
+                </div>
+                <div className="benefit-text">
+                  <h3>Dedicated support</h3>
+                  <p>We're here to help you succeed</p>
+                </div>
+              </div>
             </div>
           </motion.div>
 
@@ -423,42 +549,103 @@ export default function Landing() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="brand-panel">
-              <div className="brand-panel-top">
-                <img src="/newlogo.png" alt="FreshLync logo" />
+            <div className="hero-visual-container">
+              <div className="hero-visual-bg" />
+              
+              {/* Floating map path pins */}
+              <div className="map-path-overlay">
+                <svg viewBox="0 0 500 200" className="route-svg" fill="none" stroke="rgba(34, 197, 94, 0.28)" strokeWidth="6" strokeDasharray="8 6">
+                  <path d="M 50 150 Q 150 180 220 120 T 380 90 T 480 50" />
+                </svg>
+                <div className="map-pin pin-1" style={{ left: '44%', top: '60%', position: 'absolute' }}><MapPin size={18} color="#f25c54" fill="#f25c54" /></div>
+                <div className="map-pin pin-2" style={{ left: '10%', top: '75%', position: 'absolute' }}><MapPin size={18} color="#15803d" fill="#15803d" /></div>
               </div>
-              <div className="lorry-scene">
-                <div className="lorry-cloud lorry-cloud-one" />
-                <div className="lorry-cloud lorry-cloud-two" />
-                <div className="lorry-road" />
-                <div className="lorry-track-line lorry-track-line-one" />
-                <div className="lorry-track-line lorry-track-line-two" />
-                <div className="lorry-track-line lorry-track-line-three" />
-                <div className="lorry-wrap">
-                  <div className="lorry-motion-lines"><span /><span /><span /></div>
-                  <div className="lorry-body">
-                    <div className="lorry-cargo">
-                      <span className="cargo-badge cargo-badge-green"><Package2 size={14} /></span>
-                      <span className="cargo-badge cargo-badge-slate"><Users size={14} /></span>
-                      <span className="cargo-badge cargo-badge-coral"><ShieldCheck size={14} /></span>
-                    </div>
-                    <div className="lorry-cab">
-                      <div className="lorry-window" />
-                      <div className="lorry-door-line" />
-                      <div className="lorry-headlight" />
-                    </div>
-                    <div className="lorry-hitch" />
-                    <div className="lorry-wheels">
-                      <span className="wheel wheel-left" />
-                      <span className="wheel wheel-right" />
-                    </div>
-                  </div>
-                  <div className="lorry-route-card lorry-route-card-top"><Clock3 size={16} /><span>Live ETA sync</span></div>
-                  <div className="lorry-route-card lorry-route-card-bottom"><MapPinned size={16} /><span>Fresh route updates</span></div>
+
+              <img src="/hero-truck.png" alt="FreshLync Delivery" className="hero-truck-image" />
+              
+              {/* Floating Card 1: Live ETA */}
+              <div className="floating-card eta-card">
+                <span className="card-label">Live ETA</span>
+                <span className="eta-time">28 min</span>
+                <span className="eta-dest">To Downtown Market</span>
+                <div className="eta-chart">
+                  <svg viewBox="0 0 100 30" width="100%" height="30" fill="none" stroke="#22C55E" strokeWidth="2">
+                    <path d="M0,25 C20,25 30,5 50,15 C70,25 80,10 100,2" />
+                    <circle cx="100" cy="2" r="3" fill="#22C55E" />
+                  </svg>
                 </div>
+                <span className="eta-status"><span className="status-dot"></span>On time</span>
+              </div>
+
+              {/* Floating Card 2: Route Progress */}
+              <div className="floating-card progress-card">
+                <h3>Route Progress</h3>
+                <ul className="progress-steps">
+                  <li className="step completed">
+                    <span className="step-check">✓</span> 
+                    <div className="step-info"><strong>Pickup</strong><span>09:10 AM</span></div>
+                  </li>
+                  <li className="step completed">
+                    <span className="step-check">✓</span> 
+                    <div className="step-info"><strong>In Transit</strong><span>09:35 AM</span></div>
+                  </li>
+                  <li className="step active">
+                    <span className="step-dot"></span> 
+                    <div className="step-info"><strong>Out for Delivery</strong><span>09:50 AM</span></div>
+                  </li>
+                  <li className="step pending">
+                    <span className="step-circle"></span> 
+                    <div className="step-info"><strong>Delivered</strong><span>--:--</span></div>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Floating Card 3: Small Product Card */}
+              <div className="floating-card product-card-float">
+                <div className="prod-header">
+                  <img src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=100&q=80" alt="Vegetables" className="prod-img" />
+                  <div className="prod-meta">
+                    <strong>Fresh Vegetables</strong>
+                    <span>24 kg</span>
+                    <span className="stock-badge">In Stock</span>
+                  </div>
+                </div>
+                <button className="order-now-btn" onClick={(e) => { handleJumpTo('marketplace')(e); }}><ShoppingBag size={13} /> Order now</button>
               </div>
             </div>
           </motion.div>
+        </section>
+
+        {/* Stats Bar */}
+        <section className="stats-bar-section">
+          <div className="stats-bar-container">
+            <div className="stats-col trust-col">
+              <span>Trusted by businesses across the region</span>
+              <div className="avatar-group">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&q=80" alt="User" />
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80" alt="User" />
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80" alt="User" />
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&q=80" alt="User" />
+                <span className="avatar-badge">+<CountUp end="1,250" /></span>
+              </div>
+            </div>
+            <div className="stats-col">
+              <strong><CountUp end="1,250+" /></strong>
+              <span>Verified Suppliers</span>
+            </div>
+            <div className="stats-col">
+              <strong><CountUp end="8,500+" /></strong>
+              <span>Happy Buyers</span>
+            </div>
+            <div className="stats-col">
+              <strong><CountUp end="25K+" /></strong>
+              <span>Orders Delivered</span>
+            </div>
+            <div className="stats-col">
+              <strong><CountUp end="98%" /></strong>
+              <span>On-time Delivery</span>
+            </div>
+          </div>
         </section>
 
         {/* ── Marketplace Preview ── */}
@@ -616,11 +803,11 @@ export default function Landing() {
         {/* ── Features ── */}
         <section className="landing-section landing-section-muted" id="about">
           <div className="section-heading">
-            <span className="section-kicker">Why it works</span>
-            <h2>Designed for a distribution business that needs clarity, speed, and trust.</h2>
+            <span className="section-kicker">Global & Sustainable</span>
+            <h2>Connecting global supply chains with a focus on fresh Sri Lankan produce and sustainability.</h2>
             <p>
-              The platform uses live data to create a clean distribution experience
-              that feels modern without becoming busy.
+              We specialize in connecting premium suppliers, including direct imports of fresh Sri Lankan foods, 
+              to local markets through an eco-conscious, temperature-controlled distribution network.
             </p>
           </div>
           <div className="feature-grid">
@@ -681,22 +868,74 @@ export default function Landing() {
 
         {/* ── Footer ── */}
         <footer className="landing-footer" id="contact">
-          <div className="landing-footer-brand">
-            <img src="/newlogo.png" alt="FreshLync" className="footer-logo" />
-            <p>
-              Smart distribution. Fresh connection. Built for teams that want clearer delivery
-              flow, stronger visibility, and a cleaner brand presence.
-            </p>
-          </div>
-          <div className="landing-footer-links" aria-label="Footer navigation">
-            <a href="#top"          onClick={handleJumpTo('top')}>Home</a>
-            {!(user?.role === 'supplier') && <a href="#marketplace"  onClick={handleJumpTo('marketplace')}>Marketplace</a>}
-            <a href="#about"        onClick={handleJumpTo('about')}>About</a>
-            <button type="button"   onClick={() => navigate('/login')}>Login</button>
-          </div>
-          <div className="landing-footer-meta">
-            <span>FreshLync</span>
-            <span>Smart distribution for fresh supply chains</span>
+          <div className="footer-container">
+            <div className="footer-grid-layout">
+              {/* Brand Column */}
+              <div className="footer-col brand-col">
+                <img src="/footerlogo.png" alt="FreshLync" className="footer-logo" />
+                <p className="footer-brand-desc">
+                  Smart distribution. Fresh connection. Connecting verified suppliers with buyers through real-time tracking, live logistics, and a seamless supply chain.
+                </p>
+                <div className="footer-socials">
+                  <a href="#" className="social-link" aria-label="Facebook">
+                    <Facebook size={18} />
+                  </a>
+                  <a href="#" className="social-link" aria-label="LinkedIn">
+                    <Linkedin size={18} />
+                  </a>
+                  <a href="#" className="social-link" aria-label="WhatsApp">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.058 5.286 5.343 0 11.839 0c3.146.001 6.105 1.225 8.33 3.452a11.666 11.666 0 0 1 3.45 8.328c-.002 6.552-5.286 11.837-11.786 11.837-2.002-.001-3.973-.515-5.727-1.498L0 24zm6.59-4.846c1.6.95 3.488 1.459 5.407 1.46h.007c5.68 0 10.3-4.607 10.302-10.29A10.119 10.119 0 0 0 19.33 3.23a10.147 10.147 0 0 0-7.49-3.109c-5.686 0-10.307 4.61-10.309 10.29a10.21 10.21 0 0 0 1.565 5.358l-.99 3.616 3.702-.971zm11.233-7.558c-.309-.154-1.829-.902-2.112-1.004-.283-.104-.49-.154-.695.154-.206.309-.798 1.004-.978 1.207-.18.204-.36.23-.669.077-1.127-.565-1.933-.974-2.695-2.28-.19-.325.19-.302.544-1.007.093-.188.046-.353-.023-.507-.069-.154-.695-1.674-.952-2.293-.25-.601-.504-.519-.695-.529-.18-.01-.386-.01-.592-.01-.206 0-.54.077-.824.386-.283.309-1.082 1.057-1.082 2.578 0 1.52 1.107 2.99 1.262 3.2 0 .02 2.132 3.256 5.166 4.568 2.527 1.093 3.042.875 3.593.824.55-.05 1.829-.748 2.086-1.468.257-.72.257-1.338.18-1.468-.077-.13-.283-.206-.592-.36z"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+
+              {/* Navigation Column */}
+              <div className="footer-col">
+                <h4 className="footer-col-title">Navigation</h4>
+                <ul className="footer-col-links">
+                  <li><a href="#top" onClick={handleJumpTo('top')}>Home</a></li>
+                  {!(user?.role === 'supplier') && (
+                    <li><a href="#marketplace" onClick={handleJumpTo('marketplace')}>Marketplace</a></li>
+                  )}
+                  <li><a href="#about" onClick={handleJumpTo('about')}>About Us</a></li>
+                  <li><a href="#contact" onClick={handleJumpTo('contact')}>Contact</a></li>
+                </ul>
+              </div>
+
+              {/* Portals Column */}
+              <div className="footer-col">
+                <h4 className="footer-col-title">Portals</h4>
+                <ul className="footer-col-links">
+                  <li><button type="button" onClick={() => navigate('/login')}>Login</button></li>
+                  <li><button type="button" onClick={() => navigate('/register')}>Register</button></li>
+                  <li><button type="button" onClick={() => navigate(user?.role === 'supplier' ? '/dashboard' : '/marketplace')}>Dashboard</button></li>
+                </ul>
+              </div>
+
+              {/* Newsletter Column */}
+              <div className="footer-col newsletter-col">
+                <h4 className="footer-col-title">Stay Updated</h4>
+                <p className="newsletter-desc">Subscribe to our newsletter for the latest supply chain insights and product updates.</p>
+                <form className="footer-newsletter-form" onSubmit={(e) => e.preventDefault()}>
+                  <input type="email" placeholder="Enter your email" required className="newsletter-input" />
+                  <button type="submit" className="newsletter-btn" aria-label="Subscribe">
+                    <ArrowRight size={16} />
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Bottom bar */}
+            <div className="landing-footer-meta">
+              <span className="copyright-text">© {new Date().getFullYear()} FreshLync. All rights reserved.</span>
+              <div className="footer-meta-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <span className="footer-slogan">Smart distribution for fresh supply chains</span>
+              </div>
+            </div>
           </div>
         </footer>
       </main>

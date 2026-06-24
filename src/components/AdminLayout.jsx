@@ -101,14 +101,14 @@ export default function AdminLayout() {
     fontWeight: 500,
     textDecoration: 'none',
     background: isActive ? 'rgba(255,255,255,0.9)' : 'transparent',
-    color: isActive ? 'var(--color-text-main)' : 'rgba(255,255,255,0.8)',
+    color: isActive ? 'var(--color-primary)' : 'rgba(255,255,255,0.8)',
     transition: 'all 0.2s ease'
   });
 
   return (
     <div className="dashboard-layout" style={{ fontFamily: 'var(--font-sans)' }}>
       {/* Sidebar */}
-      <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#312E81', color: 'white', position: 'sticky', top: 0 }}>
+      <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#064E3B', color: 'white', position: 'sticky', top: 0 }}>
         <div style={{ padding: '2rem 1.5rem 1rem', display: 'flex', justifyContent: 'center' }}>
           <img 
             src="/newlogo.png" 
