@@ -7,11 +7,7 @@ import { orderService } from '../../services/orderService';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
 
-const MOCK_HISTORY_ITEMS = [
-  { id: 'prod-1', name: 'Atlantic Salmon', price: 24.99, unit: 'kg', supplierName: 'Atlantic Blue Fisheries', category: 'Fish', lastPurchased: '18 Jun 2026', image: null },
-  { id: 'prod-2', name: 'Angus Beef (Prime)', price: 32.00, unit: 'kg', supplierName: 'Valley Prime Meats', category: 'Meat', lastPurchased: '12 Jun 2026', image: null },
-  { id: 'prod-3', name: 'Organic Curly Kale', price: 2.45, unit: 'lb', supplierName: 'GreenEarth Organics', category: 'Vegetables', lastPurchased: '08 Jun 2026', image: null },
-];
+
 
 export default function MarketplaceInventory() {
   const { addToCart } = useCart();
@@ -73,16 +69,6 @@ export default function MarketplaceInventory() {
           };
         }
       });
-    });
-
-    // Add mock seeds if they don't overlap, to ensure rich first-time experiences
-    MOCK_HISTORY_ITEMS.forEach(mock => {
-      if (!itemsMap[mock.id]) {
-        itemsMap[mock.id] = {
-          ...mock,
-          supplierName: user?.role === 'buyer' ? 'FreshLync' : mock.supplierName
-        };
-      }
     });
 
     return Object.values(itemsMap);
@@ -223,7 +209,15 @@ export default function MarketplaceInventory() {
             {filteredItems.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                  No purchased products found matching your search.
+                  {orders.length === 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                      <Package size={36} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
+                      <div style={{ fontWeight: 600, color: 'var(--color-text-main)', fontSize: '1rem' }}>No purchase history yet</div>
+                      <div style={{ fontSize: '0.875rem' }}>Your orders will appear here after your first purchase.</div>
+                    </div>
+                  ) : (
+                    'No products match your current search or filter.'
+                  )}
                 </td>
               </tr>
             ) : (

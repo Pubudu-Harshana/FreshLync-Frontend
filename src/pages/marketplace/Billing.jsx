@@ -1,47 +1,90 @@
-import React, { useState } from 'react';
-import { CreditCard, ArrowUpRight, CheckCircle, Clock, AlertTriangle, TrendingUp, DollarSign, Calendar, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CreditCard, ArrowUpRight, CheckCircle, Clock, AlertTriangle, TrendingUp, DollarSign, Calendar, Loader } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { useNotification } from '../../context/NotificationContext';
-
-const INITIAL_INVOICES = [
-  { id: 'INV-2026-001', date: '2026-06-10', amount: 8450.00, status: 'Unpaid', dueDate: '2026-07-10' },
-  { id: 'INV-2026-002', date: '2026-06-05', amount: 12100.00, status: 'Paid', dueDate: '2026-07-05' },
-  { id: 'INV-2026-003', date: '2026-05-18', amount: 7000.00, status: 'Overdue', dueDate: '2026-06-15' },
-  { id: 'INV-2026-004', date: '2026-05-01', amount: 5900.00, status: 'Paid', dueDate: '2026-06-01' },
-];
+import { billingService } from '../../services/billingService';
 
 export default function Billing() {
   const { showToast } = useNotification();
-  const [invoices, setInvoices] = useState(INITIAL_INVOICES);
+  
+  // State from backend
+  const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState([]);
   const [creditLimit, setCreditLimit] = useState(100000);
-  const [outstanding, setOutstanding] = useState(15450.00); // 8450 (Unpaid) + 7000 (Overdue)
+  const [outstanding, setOutstanding] = useState(0);
+  const [availableCredit, setAvailableCredit] = useState(100000);
+  const [nextPaymentDate, setNextPaymentDate] = useState('July 10, 2026');
+
+  // Modal and form state
   const [requestAmount, setRequestAmount] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [submittingCredit, setSubmittingCredit] = useState(false);
+  const [processingPaymentId, setProcessingPaymentId] = useState(null);
 
-  const availableCredit = creditLimit - outstanding;
-  const nextPaymentDate = 'July 10, 2026';
-
-  const handlePayInvoice = (invoiceId, amount) => {
-    setInvoices(prev => prev.map(inv => inv.id === invoiceId ? { ...inv, status: 'Paid' } : inv));
-    setOutstanding(prev => Math.max(0, prev - amount));
-    showToast(`Invoice ${invoiceId} paid successfully!`, 'success');
+  // Load billing data on mount
+  const loadBillingData = async (showLoadingIndicator = true) => {
+    if (showLoadingIndicator) setLoading(true);
+    try {
+      const res = await billingService.getBillingData();
+      if (res.success) {
+        setInvoices(res.invoices);
+        setCreditLimit(res.creditLimit);
+        setOutstanding(res.outstanding);
+        setAvailableCredit(res.availableCredit);
+        setNextPaymentDate(res.nextPaymentDate);
+      }
+    } catch (err) {
+      console.error('Failed to load billing data:', err);
+      showToast(err.response?.data?.message || 'Failed to load B2B credit details.', 'error');
+    } finally {
+      if (showLoadingIndicator) setLoading(false);
+    }
   };
 
-  const handleRequestCredit = (e) => {
+  useEffect(() => {
+    loadBillingData();
+  }, []);
+
+  const handlePayInvoice = async (invoiceId) => {
+    setProcessingPaymentId(invoiceId);
+    try {
+      const res = await billingService.payInvoice(invoiceId);
+      if (res.success) {
+        showToast(res.message, 'success');
+        // Refresh billing data silently (no full page spinner) to update limits
+        await loadBillingData(false);
+      }
+    } catch (err) {
+      console.error('Failed to process invoice payment:', err);
+      showToast(err.response?.data?.message || 'Payment processing failed. Please try again.', 'error');
+    } finally {
+      setProcessingPaymentId(null);
+    }
+  };
+
+  const handleRequestCredit = async (e) => {
     e.preventDefault();
     if (!requestAmount || isNaN(requestAmount) || parseFloat(requestAmount) <= creditLimit) {
       showToast('Please enter an amount higher than your current credit limit.', 'error');
       return;
     }
+    
     setSubmittingCredit(true);
-    setTimeout(() => {
-      setCreditLimit(parseFloat(requestAmount));
+    try {
+      const res = await billingService.requestCreditIncrease(parseFloat(requestAmount));
+      if (res.success) {
+        showToast(res.message, 'success');
+        setShowModal(false);
+        setRequestAmount('');
+        // Refresh billing data
+        await loadBillingData(false);
+      }
+    } catch (err) {
+      console.error('Failed to request credit increase:', err);
+      showToast(err.response?.data?.message || 'Credit increase request failed.', 'error');
+    } finally {
       setSubmittingCredit(false);
-      setShowModal(false);
-      showToast(`Credit limit increase request approved! New limit: £${parseFloat(requestAmount).toLocaleString()}`, 'success');
-      setRequestAmount('');
-    }, 1200);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -56,6 +99,19 @@ export default function Billing() {
         return null;
     }
   };
+
+  if (loading) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem', fontFamily: 'var(--font-sans)' }}>
+        <Loader size={40} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)', marginBottom: '1rem' }} />
+        <div style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>Loading credit line and invoice details...</div>
+      </div>
+    );
+  }
+
+  const creditUsedPercent = creditLimit > 0 ? (outstanding / creditLimit) * 100 : 0;
+  const availableCreditPercent = creditLimit > 0 ? (availableCredit / creditLimit) * 100 : 0;
+  const isHealthy = creditUsedPercent < 30;
 
   return (
     <main style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
@@ -92,7 +148,7 @@ export default function Billing() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available Credit</span>
               <span style={{ background: '#ECFDF5', color: '#059669', padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700 }}>
-                {((availableCredit / creditLimit) * 100).toFixed(0)}% Left
+                {availableCreditPercent.toFixed(0)}% Left
               </span>
             </div>
             <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary)' }}>£{availableCredit.toLocaleString()}</h2>
@@ -100,7 +156,7 @@ export default function Billing() {
           <div style={{ marginTop: '1rem' }}>
             {/* Simple progress bar */}
             <div style={{ width: '100%', height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${(availableCredit / creditLimit) * 100}%`, height: '100%', background: 'var(--color-primary)' }}></div>
+              <div style={{ width: `${availableCreditPercent}%`, height: '100%', background: 'var(--color-primary)' }}></div>
             </div>
           </div>
         </div>
@@ -128,7 +184,7 @@ export default function Billing() {
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next Payment Due</span>
               <Calendar size={18} style={{ color: 'var(--color-text-muted)' }} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#475569' }}>{nextPaymentDate}</h2>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#475569' }}>{nextPaymentDate}</h2>
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: '0.75rem' }}>
             Auto-draw setup from primary bank account
@@ -143,24 +199,30 @@ export default function Billing() {
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
               <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>Used (Outstanding)</span>
-              <span style={{ fontWeight: 700, color: '#475569' }}>£{outstanding.toLocaleString()} ({((outstanding / creditLimit) * 100).toFixed(1)}%)</span>
+              <span style={{ fontWeight: 700, color: '#475569' }}>£{outstanding.toLocaleString()} ({creditUsedPercent.toFixed(1)}%)</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '1rem' }}>
               <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>Available Credit</span>
-              <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>£{availableCredit.toLocaleString()} ({((availableCredit / creditLimit) * 100).toFixed(1)}%)</span>
+              <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>£{availableCredit.toLocaleString()} ({availableCreditPercent.toFixed(1)}%)</span>
             </div>
             <div style={{ height: 16, background: '#E2E8F0', borderRadius: 8, overflow: 'hidden', display: 'flex' }}>
-              <div style={{ width: `${(outstanding / creditLimit) * 100}%`, background: '#64748b' }}></div>
-              <div style={{ width: `${(availableCredit / creditLimit) * 100}%`, background: 'var(--color-primary)' }}></div>
+              <div style={{ width: `${creditUsedPercent}%`, background: '#64748b' }}></div>
+              <div style={{ width: `${availableCreditPercent}%`, background: 'var(--color-primary)' }}></div>
             </div>
           </div>
           <div style={{ width: '220px', borderLeft: '1px solid var(--color-border)', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Status</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#16A34A', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <CheckCircle size={16} /> Account Healthy
+            <div style={{ 
+              fontSize: '1.1rem', fontWeight: 800, 
+              color: isHealthy ? '#16A34A' : '#D97706', 
+              display: 'flex', alignItems: 'center', gap: '0.4rem' 
+            }}>
+              <CheckCircle size={16} /> {isHealthy ? 'Account Healthy' : 'Attention Required'}
             </div>
             <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
-              Your credit utilisation is in the safe zone (under 30%).
+              {isHealthy 
+                ? 'Your credit utilisation is in the safe zone (under 30%).' 
+                : 'Your credit utilization is high. Consider requesting a credit increase.'}
             </div>
           </div>
         </div>
@@ -169,44 +231,59 @@ export default function Billing() {
       {/* Invoice Table */}
       <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>Recent Invoices</h3>
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <thead style={{ background: 'var(--color-background)', color: 'var(--color-text-muted)' }}>
-            <tr>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>INVOICE ID</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>BILLING DATE</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>DUE DATE</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>AMOUNT</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>STATUS</th>
-              <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600 }}>ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((inv) => (
-              <tr key={inv.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>{inv.id}</td>
-                <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)' }}>
-                  {new Date(inv.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </td>
-                <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)' }}>
-                  {new Date(inv.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </td>
-                <td style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>£{inv.amount.toFixed(2)}</td>
-                <td style={{ padding: '1rem 1.5rem' }}>{getStatusBadge(inv.status)}</td>
-                <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
-                  {inv.status !== 'Paid' ? (
-                    <button className="btn-primary" onClick={() => handlePayInvoice(inv.id, inv.amount)} style={{ padding: '0.35rem 0.875rem', fontSize: '0.8rem', fontWeight: 700 }}>
-                      Pay Invoice
-                    </button>
-                  ) : (
-                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <CheckCircle size={14} color="#10B981" /> Paid Checkout
-                    </span>
-                  )}
-                </td>
+        {invoices.length > 0 ? (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead style={{ background: 'var(--color-background)', color: 'var(--color-text-muted)' }}>
+              <tr>
+                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>INVOICE ID</th>
+                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>BILLING DATE</th>
+                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>DUE DATE</th>
+                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>AMOUNT</th>
+                <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>STATUS</th>
+                <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 600 }}>ACTIONS</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {invoices.map((inv) => (
+                <tr key={inv.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>{inv.invoiceNumber}</td>
+                  <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)' }}>
+                    {new Date(inv.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
+                  <td style={{ padding: '1rem 1.5rem', color: 'var(--color-text-muted)' }}>
+                    {new Date(inv.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </td>
+                  <td style={{ padding: '1rem 1.5rem', fontWeight: 700 }}>£{inv.amount.toFixed(2)}</td>
+                  <td style={{ padding: '1rem 1.5rem' }}>{getStatusBadge(inv.status)}</td>
+                  <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                    {inv.status !== 'Paid' ? (
+                      <button 
+                        className="btn-primary" 
+                        onClick={() => handlePayInvoice(inv.id)} 
+                        disabled={processingPaymentId === inv.id}
+                        style={{ 
+                          padding: '0.35rem 0.875rem', fontSize: '0.8rem', fontWeight: 700,
+                          display: 'inline-flex', alignItems: 'center', gap: '0.4rem'
+                        }}
+                      >
+                        {processingPaymentId === inv.id && <Loader size={12} style={{ animation: 'spin 1s linear infinite' }} />}
+                        Pay Invoice
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <CheckCircle size={14} color="#10B981" /> Paid Checkout
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            No invoices found for your account.
+          </div>
+        )}
       </div>
 
       {/* Credit Limit Request Modal */}

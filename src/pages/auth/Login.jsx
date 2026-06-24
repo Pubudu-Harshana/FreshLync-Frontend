@@ -4,7 +4,6 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import SEO from '../../components/SEO';
 import { useAuth } from '../../context/AuthContext';
 
-
 export default function Login() {
   const navigate   = useNavigate();
   const { login }  = useAuth();
@@ -31,135 +30,130 @@ export default function Login() {
     }
   };
 
-
   return (
-    <div className="split-layout" style={{ fontFamily: 'var(--font-sans)' }}>
+    <div className="auth-page-layout" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)' }}>
       <SEO title="Login" />
-      {/* Left Side - Banner */}
-      <div className="split-left" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)' }}>
-        <div className="split-left-content">
-          <div style={{ marginBottom: '4rem' }}>
-            <img src="/newlogo.png" alt="Freshlync logo" style={{ height: '80px', width: 'auto', display: 'block' }} />
-          </div>
-          <h1>Smart Distribution,<br/><span>Fresh Connection</span></h1>
-          <p style={{ fontSize: '1.125rem', opacity: 0.9, maxWidth: '500px', lineHeight: 1.6 }}>
-            Optimizing the journey from farm to table with real-time data and sustainable logistics management.
+      
+      {/* Left Side - Copy */}
+      <div className="auth-left-content">
+        <Link to="/" style={{ display: 'inline-block' }}>
+          <img src="/footerlogo.png" alt="FreshLync logo" className="auth-logo" style={{ marginBottom: '-0.5rem', width: '340px', height: 'auto', cursor: 'pointer' }} />
+        </Link>
+        
+        <div className="auth-left-text-group">
+          <h1 className="auth-huge-title">BEYOND<br/><span>DISTRIBUTION</span></h1>
+          <p className="auth-sub-desc">
+            Optimizing the journey from farm to table with real-time data, live logistics monitoring, and sustainable supply chain coordination.
           </p>
-          
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '4rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', padding: '1rem', borderRadius: '8px', flex: 1, border: '1px solid rgba(255,255,255,0.2)' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.25rem' }}>98% Efficient</div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>Route Optimization</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', padding: '1rem', borderRadius: '8px', flex: 1, border: '1px solid rgba(255,255,255,0.2)' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.25rem' }}>Cold Chain</div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>End-to-End Tracking</div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Right Side - Form */}
-      <div className="split-right">
-        <div style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
-          <button 
-            type="button"
-            onClick={() => navigate('/')} 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', marginBottom: '2rem', fontWeight: 500, padding: 0 }}
-          >
-            <ArrowLeft size={18} /> Back to Home
-          </button>
+      {/* Right Side - Floating Glass Card */}
+      <div className="auth-glass-card">
+        <button 
+          type="button"
+          onClick={() => navigate('/')} 
+          className="auth-back-btn-glass"
+        >
+          <ArrowLeft size={16} /> Back to Home
+        </button>
 
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Welcome Back</h2>
-            <p style={{ color: 'var(--color-text-muted)' }}>Access your supply chain dashboard</p>
-          </div>
-
-
-
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Account Type</label>
-              <div style={{ display: 'flex', background: 'var(--color-background)', borderRadius: '8px', padding: '0.25rem' }}>
-                {['Customer', 'Supplier'].map(r => (
-                  <button 
-                    key={r}
-                    type="button"
-                    onClick={() => setRole(r)}
-                    style={{
-                      flex: 1,
-                      padding: '0.5rem',
-                      borderRadius: '6px',
-                      fontWeight: 500,
-                      background: role === r ? 'white' : 'transparent',
-                      boxShadow: role === r ? 'var(--shadow-sm)' : 'none',
-                      color: role === r ? 'var(--color-text-main)' : 'var(--color-text-muted)',
-                      border: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
+        <form onSubmit={handleLogin}>
+          {/* Account Type selector */}
+          <div className="auth-input-group">
+            <label className="auth-input-label-white">Account Type</label>
+            <div className="role-segment-control-glass">
+              {['Customer', 'Supplier'].map(r => (
+                <button 
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`role-segment-btn-glass ${role === r ? 'active' : 'inactive'}`}
+                >
+                  {r}
+                </button>
+              ))}
             </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>Email Address</label>
+          </div>
+          
+          {/* Email field */}
+          <div className="auth-input-group">
+            <label className="auth-input-label-white">Email</label>
+            <input 
+              type="email" 
+              className="auth-input-field-white" 
+              placeholder="Enter your email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
+          </div>
+          
+          {/* Password field */}
+          <div className="auth-input-group">
+            <label className="auth-input-label-white">Password</label>
+            <div className="auth-input-wrapper-white">
               <input 
-                type="email" 
-                className="input-field" 
-                placeholder="name@freshlync.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type={showPassword ? 'text' : 'password'} 
+                className="auth-input-field-white" 
+                placeholder="Enter your Password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required 
               />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="auth-password-toggle-dark"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Password</label>
-                <Link to="/forgot-password" style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-primary)', textDecoration: 'none' }}>Forgot password?</Link>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  className="input-field" 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required 
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+            <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
+              <Link to="/forgot-password" className="auth-link" style={{ fontSize: '0.82rem' }}>Forgot password?</Link>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-              <input type="checkbox" id="remember" style={{ accentColor: 'var(--color-primary)' }} />
-              <label htmlFor="remember" style={{ fontSize: '0.875rem' }}>Remember me for 30 days</label>
-            </div>
-
-            {error && (
-              <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '0.75rem 1rem', borderRadius: 8, fontSize: '0.875rem', marginBottom: '1rem' }}>
-                {error}
-              </div>
-            )}
-            <button type="submit" className="btn-primary" style={{ width: '100%', marginBottom: '2rem', opacity: loading ? 0.7 : 1 }} disabled={loading}>
-              {loading ? 'Signing in...' : 'Login to Portal'}
-            </button>
-          </form>
-
-          <div style={{ textAlign: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '1.5rem' }}>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-              New to Freshlync? <Link to="/register" style={{ fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>Request Access</Link>
-            </p>
           </div>
+
+          {error && (
+            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.25)', color: '#F87171', padding: '0.85rem 1.1rem', borderRadius: 10, fontSize: '0.875rem', marginBottom: '1rem' }}>
+              {error}
+            </div>
+          )}
+          
+          {/* Neon Sign in Button */}
+          <button type="submit" className="auth-btn-neon" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        {/* Or Divider */}
+        <div className="auth-divider-container">
+          <div className="auth-divider-line" />
+          <span className="auth-divider-text">or</span>
+          <div className="auth-divider-line" />
+        </div>
+
+        {/* Social Buttons */}
+        <div className="auth-social-row">
+          <button type="button" className="auth-social-btn">
+            <svg className="auth-social-icon" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.465 0-6.277-2.812-6.277-6.277s2.812-6.277 6.277-6.277c1.5 0 2.875.525 3.96 1.437l3.117-3.118C18.995 1.95 15.827 1 12.24 1 6.033 1 12.24 6.033 1 12.24s5.033 11.24 11.24 11.24c5.898 0 10.747-4.256 11.24-10.285h-11.24z"/>
+            </svg>
+            Google
+          </button>
+          <button type="button" className="auth-social-btn">
+            <svg className="auth-social-icon" viewBox="0 0 24 24" fill="#000000">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-.96.04-2.13.64-2.82 1.45-.6.7-1.13 1.84-.99 2.94.98.08 2.16-.52 2.82-1.33z"/>
+            </svg>
+            Apple
+          </button>
+        </div>
+
+        {/* Footer Link */}
+        <div className="auth-footer-prompt-white">
+          <p>
+            Don't have an account? <Link to="/register">Sign Up</Link>
+          </p>
         </div>
       </div>
     </div>

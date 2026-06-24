@@ -12,28 +12,8 @@ export const analyticsService = {
   },
 
   async getEarnings() {
-    // Simulated mock endpoint data for supplier earnings
-    return {
-      revenueSummary: {
-        totalEarned: 18450.50,
-        pendingPayout: 1250.00,
-        availablePayout: 4320.50,
-        completedPayout: 12880.00
-      },
-      payouts: [
-        { id: 'PAY-7821', date: 'Jun 15, 2026', amount: 1540.00, method: 'Direct Deposit', status: 'Completed' },
-        { id: 'PAY-7802', date: 'Jun 01, 2026', amount: 2450.50, method: 'Direct Deposit', status: 'Completed' },
-        { id: 'PAY-7756', date: 'May 15, 2026', amount: 3120.00, method: 'Direct Deposit', status: 'Completed' },
-        { id: 'PAY-7711', date: 'May 01, 2026', amount: 2890.00, method: 'Direct Deposit', status: 'Completed' },
-        { id: 'PAY-7622', date: 'Apr 15, 2026', amount: 2879.50, method: 'Direct Deposit', status: 'Completed' }
-      ],
-      breakdown: [
-        { orderId: 'ORD-9019', date: 'Jun 17, 2026', amount: 350.25, fee: 35.02, net: 315.23, status: 'Pending' },
-        { orderId: 'ORD-9018', date: 'Jun 16, 2026', amount: 890.00, fee: 89.00, net: 801.00, status: 'Pending' },
-        { orderId: 'ORD-9017', date: 'Jun 14, 2026', amount: 1200.00, fee: 120.00, net: 1080.00, status: 'Available' },
-        { orderId: 'ORD-9012', date: 'Jun 12, 2026', amount: 450.00, fee: 45.00, net: 405.00, status: 'Paid' }
-      ]
-    };
+    const res = await api.get('/analytics/earnings');
+    return res.data;
   },
 
   async getNotifications() {
