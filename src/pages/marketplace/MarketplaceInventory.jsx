@@ -6,6 +6,7 @@ import { useNotification } from '../../context/NotificationContext';
 import { orderService } from '../../services/orderService';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../services/api';
 
 
 
@@ -97,7 +98,7 @@ export default function MarketplaceInventory() {
 
   const getCategoryImage = (category, itemImage) => {
     if (itemImage) {
-      return itemImage.startsWith('http') ? itemImage : `http://localhost:5000${itemImage}`;
+      return getImageUrl(itemImage);
     }
     switch (category) {
       case 'Fish':

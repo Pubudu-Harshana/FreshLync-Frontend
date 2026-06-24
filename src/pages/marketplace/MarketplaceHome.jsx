@@ -7,6 +7,7 @@ import EmptyState from '../../components/EmptyState';
 import { productService } from '../../services/productService';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../services/api';
 
 const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains', 'Other'];
 const PRICE_RANGES = [
@@ -108,7 +109,7 @@ export default function MarketplaceHome() {
               <div key={p._id} className="product-card card" style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }} onClick={() => navigate(`/marketplace/product/${p._id}`)}>
                 <div style={{ height: 180, background: '#E2E8F0', overflow: 'hidden', position: 'relative' }}>
                   {p.image ? (
-                    <img src={`http://localhost:5000${p.image}`} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={getImageUrl(p.image)} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #E2E8F0 0%, #CBD5E1 100%)' }}>
                       <span style={{ fontSize: '3rem' }}>{p.category === 'Fish' ? '🐟' : p.category === 'Meat' ? '🥩' : '🥬'}</span>

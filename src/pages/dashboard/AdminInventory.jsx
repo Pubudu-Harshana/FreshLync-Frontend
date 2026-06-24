@@ -4,6 +4,7 @@ import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { productService } from '../../services/productService';
 import { useNotification } from '../../context/NotificationContext';
+import { getImageUrl } from '../../services/api';
 
 const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains', 'Other'];
 
@@ -190,7 +191,7 @@ export default function AdminInventory() {
                     <td style={{ padding: '0.875rem 1.25rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <div style={{ width: 40, height: 40, borderRadius: 8, background: '#F1F5F9', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          {p.image ? <img src={`http://localhost:5000${p.image}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={20} color="#94A3B8" />}
+                          {p.image ? <img src={getImageUrl(p.image)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={20} color="#94A3B8" />}
                         </div>
                         <div>
                           <div style={{ fontWeight: 700 }}>{p.name}</div>
