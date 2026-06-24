@@ -11,6 +11,7 @@ import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingReviews from '../components/LandingReviews';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../services/api';
 
 // ── Static fallback products shown when DB has nothing ───────────────────────
 const FALLBACK_PRODUCTS = [
@@ -83,7 +84,7 @@ function ProductCard({ product, onBuy }) {
       <div style={{ position: 'relative', height: 200, overflow: 'hidden', background: '#F8FAFC' }}>
         {product.image ? (
           <img
-            src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`}
+            src={getImageUrl(product.image)}
             alt={product.name}
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease', transform: hovered ? 'scale(1.06)' : 'scale(1)' }}
             onError={e => { e.target.style.display = 'none'; }}
@@ -369,7 +370,8 @@ export default function Landing() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/products?limit=8&page=1');
+        const backendApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${backendApiUrl}/products?limit=8&page=1`);
         if (!res.ok) throw new Error();
         const data = await res.json();
         const list = Array.isArray(data) ? data : (data.products || []);

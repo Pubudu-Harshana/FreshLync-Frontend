@@ -6,6 +6,7 @@ import { productService } from '../../services/productService';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import SEO from '../../components/SEO';
 import { useAuth } from '../../context/AuthContext';
+import { getImageUrl } from '../../services/api';
 
 const PRODUCTS = [
   { id: '1', name: 'Atlantic Salmon', price: '£24.99/kg', priceNum: 24.99, img: 'https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?auto=format&fit=crop&q=80&w=800', images: ['https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?auto=format&fit=crop&q=80&w=800', 'https://images.unsplash.com/photo-1574781330855-d0db8cc6a79c?auto=format&fit=crop&q=80&w=800'], desc: 'Premium grade, sustainably farm-raised in the North Atlantic. Rich in Omega-3 fatty acids and ideal for restaurants, catering, and wholesale buyers.', stock: 'In Stock', stockQty: 850, category: 'Fish', supplier: 'North Atlantic Co.', rating: 4.8, reviews: 124, sku: 'SALM-091', unit: 'per kg', minOrder: 5 },
@@ -53,9 +54,9 @@ export default function ProductDetails() {
               name: data.name,
               price: `£${Number(data.sellingPrice || data.displayPrice || data.price || 0).toFixed(2)}/${data.unit || 'kg'}`,
               priceNum: data.sellingPrice || data.displayPrice || data.price || 0,
-              img: data.image ? `http://localhost:5000${data.image}` : '',
+              img: getImageUrl(data.image),
               imagePath: data.image || '',
-              images: data.image ? [`http://localhost:5000${data.image}`] : [],
+              images: data.image ? [getImageUrl(data.image)] : [],
               desc: data.description || 'No description available.',
               stock: data.stock === 0 ? 'Out of Stock' : (data.stock < 50 ? 'Low Stock' : 'In Stock'),
               stockQty: data.stock || 0,

@@ -8,6 +8,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { productService } from '../../services/productService';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { getImageUrl } from '../../services/api';
 
 const PAGE_SIZE = 8;
 const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains', 'Other'];
@@ -175,7 +176,7 @@ export default function Inventory() {
                     <td style={{ padding: '0.875rem 1.25rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
                         <div style={{ width: 40, height: 40, borderRadius: 8, background: '#E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
-                          {p.image ? <img src={`http://localhost:5000${p.image}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={20} color="#94A3B8" style={{ margin: '10px' }} />}
+                          {p.image ? <img src={getImageUrl(p.image)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={20} color="#94A3B8" style={{ margin: '10px' }} />}
                         </div>
                         <div>
                           <div style={{ fontWeight: 600 }}>{p.name}</div>
