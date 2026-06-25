@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { Bell, ShoppingCart, LogOut, Info, Store, Users, Wallet, Package, Activity, Settings, LayoutGrid, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
