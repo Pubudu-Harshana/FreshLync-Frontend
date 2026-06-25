@@ -118,6 +118,8 @@ export default function AdminVerification() {
 
   const getBackendUrl = (url) => {
     if (!url) return '';
+    // If already an absolute URL (Cloudinary, http, https), return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
     const backendUrl = import.meta.env.VITE_API_URL 
       ? import.meta.env.VITE_API_URL.replace('/api', '') 
       : `${window.location.protocol}//${window.location.hostname}:5000`;
