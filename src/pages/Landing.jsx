@@ -421,7 +421,7 @@ export default function Landing() {
             <a href="#contact"    onClick={handleJumpTo('contact')}>Contact</a>
           </div>
           {isAuthenticated ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="landing-auth-nav-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <button 
                 className="nav-login-button" 
                 onClick={() => {
