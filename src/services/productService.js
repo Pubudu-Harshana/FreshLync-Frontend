@@ -27,7 +27,10 @@ export const productService = {
   },
 
   async updateProduct(id, data) {
-    const res = await api.put(`/products/${id}`, data);
+    const isFormData = data instanceof FormData;
+    const res = await api.put(`/products/${id}`, data, isFormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    } : {});
     return res.data;
   },
 
