@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import { Bell, ShoppingCart, LogOut, Info, Store, Users, Wallet, Package, Activity, Settings, LayoutGrid, Menu, X } from 'lucide-react';
+import { Bell, ShoppingCart, LogOut, Info, Store, Users, User, Wallet, Package, Activity, Settings, LayoutGrid, Menu, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import ChatbotWidget from './ChatbotWidget';
@@ -21,6 +21,7 @@ export default function MarketplaceLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -143,10 +144,65 @@ export default function MarketplaceLayout() {
               <Bell size={20} />
             </button>
             <button style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><Info size={20} /></button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => navigate('/account/settings')} title="View Profile">
-              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '2px solid #047857' }}>
-                <img src={getAvatarUrl(user?.avatar)} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ position: 'relative' }}>
+              <div 
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} 
+                onClick={() => setShowUserDropdown(!showUserDropdown)} 
+                title="User menu"
+              >
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '2px solid #047857' }}>
+                  <img src={getAvatarUrl(user?.avatar)} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
               </div>
+
+              {showUserDropdown && (
+                <div style={{
+                  position: 'absolute', right: 0, top: '2.5rem',
+                  width: '200px', background: 'white', borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                  border: '1px solid var(--color-border)', zIndex: 1000,
+                  overflow: 'hidden', padding: '0.5rem 0'
+                }}>
+                  {/* User info header */}
+                  <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)', backgroundColor: '#FAFAFA' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {user?.company || user?.name || 'User'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>
+                      {user?.role || 'buyer'}
+                    </div>
+                  </div>
+                  
+                  {/* Menu items */}
+                  <button 
+                    onClick={() => { setShowUserDropdown(false); navigate('/account/settings'); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.6rem 1rem', background: 'none', border: 'none', textAlign: 'left', fontSize: '0.82rem', color: 'var(--color-text-main)', cursor: 'pointer', transition: 'background 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--color-background)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  >
+                    <User size={15} /> My Profile
+                  </button>
+                  <button 
+                    onClick={() => { setShowUserDropdown(false); navigate('/setup/preferences'); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.6rem 1rem', background: 'none', border: 'none', textAlign: 'left', fontSize: '0.82rem', color: 'var(--color-text-main)', cursor: 'pointer', transition: 'background 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--color-background)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  >
+                    <Settings size={15} /> Settings
+                  </button>
+                  
+                  <div style={{ height: '1px', background: 'var(--color-border)', margin: '0.4rem 0' }} />
+                  
+                  <button 
+                    onClick={() => { setShowUserDropdown(false); logout(); navigate('/login'); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.6rem 1rem', background: 'none', border: 'none', textAlign: 'left', fontSize: '0.82rem', color: '#EF4444', cursor: 'pointer', transition: 'background 0.2s', fontWeight: 600 }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#FEE2E2'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  >
+                    <LogOut size={15} /> Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
