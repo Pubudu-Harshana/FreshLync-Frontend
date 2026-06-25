@@ -341,30 +341,39 @@ export default function AdminVerification() {
                 <div style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>No documents uploaded.</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {selectedSupplier.verificationDetails.documents.map((doc, idx) => (
-                    <a
-                      key={idx}
-                      href={getBackendUrl(doc.url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="card"
-                      style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '0.6rem 0.8rem', borderRadius: 8, fontSize: '0.8rem', textDecoration: 'none',
-                        color: 'var(--color-text-main)', border: '1px solid var(--color-border)',
-                        background: '#FAF5FF', cursor: 'pointer', transition: 'background 0.2s',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F3E8FF'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#FAF5FF'}
-                    >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
-                        <FileText size={15} color="#8B5CF6" /> {doc.name}
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: '#8B5CF6', fontSize: '0.72rem', fontWeight: 700 }}>
-                        View <ExternalLink size={12} />
-                      </span>
-                    </a>
-                  ))}
+                  {selectedSupplier.verificationDetails.documents.map((doc, idx) => {
+                    const rawUrl = getBackendUrl(doc.url);
+                    const isPdf = doc.name?.toLowerCase().endsWith('.pdf') || rawUrl?.toLowerCase().includes('.pdf');
+                    // PDFs: open via Google Docs Viewer so they render in-browser instead of downloading
+                    const viewUrl = isPdf
+                      ? `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=false`
+                      : rawUrl;
+                    return (
+                      <a
+                        key={idx}
+                        href={viewUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="card"
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '0.6rem 0.8rem', borderRadius: 8, fontSize: '0.8rem', textDecoration: 'none',
+                          color: 'var(--color-text-main)', border: '1px solid var(--color-border)',
+                          background: '#FAF5FF', cursor: 'pointer', transition: 'background 0.2s',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F3E8FF'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#FAF5FF'}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                          <FileText size={15} color="#8B5CF6" /> {doc.name}
+                          {isPdf && <span style={{ fontSize: '0.68rem', background: '#EDE9FE', color: '#7C3AED', borderRadius: 4, padding: '0.1rem 0.4rem', fontWeight: 700 }}>PDF</span>}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: '#8B5CF6', fontSize: '0.72rem', fontWeight: 700 }}>
+                          View <ExternalLink size={12} />
+                        </span>
+                      </a>
+                    );
+                  })}
                 </div>
               )}
             </div>
