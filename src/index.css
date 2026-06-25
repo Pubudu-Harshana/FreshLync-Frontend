@@ -3460,3 +3460,32 @@ button {
   background: #E2E8F0;
   color: #0F172A;
 }
+
+/* ── Landing Page Auth Nav Group Mobile Alignment ── */
+.landing-auth-nav-group {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0.75rem !important; /* Tighter gap on small screens */
+}
+
+@media (max-width: 768px) {
+  .landing-auth-nav-group {
+    gap: 0.5rem !important; /* Even tighter for very small screens */
+  }
+
+  .landing-auth-nav-group .nav-login-button {
+    width: auto !important;
+    padding: 0.55rem 0.9rem !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+    box-shadow: none !important; /* subtle shadows are fine but let's keep it compact */
+  }
+
+  .landing-auth-nav-group button:last-of-type {
+    font-size: 0.78rem !important;
+    padding: 0.3rem 0.4rem !important;
+    white-space: nowrap !important;
+  }
+}
