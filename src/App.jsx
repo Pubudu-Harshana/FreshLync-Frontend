@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { SetupProvider } from './context/SetupContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { NotificationProvider } from './context/NotificationContext';
 import LoadingSpinner from './components/LoadingSpinner';
 import SplashScreen   from './components/SplashScreen';
@@ -92,10 +93,13 @@ function App() {
     };
   }, []);
 
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "1041695420311-fakeclientid.apps.googleusercontent.com";
+
   return (
     <HelmetProvider>
       {showSplash && <SplashScreen isExiting={isExiting} />}
-      <AuthProvider>
+      <GoogleOAuthProvider clientId={googleClientId}>
+        <AuthProvider>
         <SetupProvider>
           <CartProvider>
             <NotificationProvider>
@@ -176,6 +180,7 @@ function App() {
           </CartProvider>
         </SetupProvider>
       </AuthProvider>
+      </GoogleOAuthProvider>
     </HelmetProvider>
   );
 }

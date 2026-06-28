@@ -77,6 +77,15 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  const loginWithGoogle = async (accessToken, role) => {
+    const data = await authService.googleLogin(accessToken, role);
+    localStorage.setItem('fl_token', data.token);
+    localStorage.setItem('fl_user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  };
+
   const register = async (formData) => {
     const data = await authService.register(formData);
     localStorage.setItem('fl_token', data.token);
@@ -115,6 +124,7 @@ export function AuthProvider({ children }) {
     loading,
     isAuthenticated: !!token && !!user,
     login,
+    loginWithGoogle,
     register,
     logout,
     updateUser,
