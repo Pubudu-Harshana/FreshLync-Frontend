@@ -390,7 +390,13 @@ export default function Landing() {
 
   const handleBuy = (product) => {
     if (product.stock === 0) return;
-    setSelectedProduct(product);
+    if (isAuthenticated) {
+      // Authenticated users go straight to the product in the marketplace
+      navigate(`/marketplace/product/${product._id}`);
+    } else {
+      // Unauthenticated users see the login gate modal
+      setSelectedProduct(product);
+    }
   };
 
   return (
