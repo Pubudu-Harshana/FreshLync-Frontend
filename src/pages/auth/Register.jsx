@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 import SEO from '../../components/SEO';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Register() {
   const navigate    = useNavigate();
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole]       = useState('Customer');
   const [fullName, setFullName] = useState('');
@@ -30,6 +31,26 @@ export default function Register() {
       setLoading(false);
     }
   };
+
+  const handleGoogleSignup = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError('');
+      setLoading(true);
+      try {
+        const user = await loginWithGoogle(tokenResponse.access_token, role === 'Customer' ? 'buyer' : 'supplier');
+        if (user.role === 'buyer') navigate('/marketplace');
+        else if (user.role === 'admin') navigate('/admin');
+        else navigate('/dashboard');
+      } catch (err) {
+        setError(err.response?.data?.message || 'Google Sign-up failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError('Google Sign-up was unsuccessful.');
+    }
+  });
 
   return (
     <div className="auth-page-layout" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)' }}>
@@ -146,9 +167,9 @@ export default function Register() {
 
         {/* Social Buttons */}
         <div className="auth-social-row">
-          <button type="button" className="auth-social-btn">
+          <button type="button" className="auth-social-btn" onClick={() => handleGoogleSignup()}>
             <svg className="auth-social-icon" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.465 0-6.277-2.812-6.277-6.277s2.812-6.277 6.277-6.277c1.5 0 2.875.525 3.96 1.437l3.117-3.118C18.995 1.95 15.827 1 12.24 1 6.033 1 12.24 6.033 1 12.24s5.033 11.24 11.24 11.24c5.898 0 10.747-4.256 11.24-10.285h-11.24z"/>
+              <path fill="#EA4335" d="M12 10.2v3.8h5.3c-.2 1.4-1.7 4.1-5.3 4.1-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.8 0 3 .8 3.7 1.5l2.6-2.5C16.6 3.6 14.5 2.5 12 2.5 6.7 2.5 2.5 6.7 2.5 12S6.7 21.5 12 21.5c6 0 10-4.2 10-10.3 0-.7-.1-1.2-.2-1.7H12z" />
             </svg>
             Google
           </button>
