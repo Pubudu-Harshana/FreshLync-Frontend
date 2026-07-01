@@ -1,63 +1,54 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/reviews`
-  : 'http://localhost:5000/api/reviews';
-
-const getConfig = () => ({
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem('fl_token')}`
-  }
-});
+const REVIEWS_PATH = '/reviews';
 
 export const reviewService = {
   // Public
   getPublicReviews: async (page = 1, limit = 10) => {
-    const res = await axios.get(`${API_URL}/public?page=${page}&limit=${limit}`);
+    const res = await api.get(`${REVIEWS_PATH}/public?page=${page}&limit=${limit}`);
     return res.data;
   },
   
   getReviewStats: async () => {
-    const res = await axios.get(`${API_URL}/stats`);
+    const res = await api.get(`${REVIEWS_PATH}/stats`);
     return res.data;
   },
 
   // Product reviews (Public)
   getProductReviews: async (productId, page = 1, limit = 10) => {
-    const res = await axios.get(`${API_URL}/product/${productId}?page=${page}&limit=${limit}`);
+    const res = await api.get(`${REVIEWS_PATH}/product/${productId}?page=${page}&limit=${limit}`);
     return res.data;
   },
 
   getProductReviewStats: async (productId) => {
-    const res = await axios.get(`${API_URL}/product/${productId}/stats`);
+    const res = await api.get(`${REVIEWS_PATH}/product/${productId}/stats`);
     return res.data;
   },
 
-  // User
+  // User (authenticated)
   createReview: async (reviewData) => {
-    const res = await axios.post(`${API_URL}/create`, reviewData, getConfig());
+    const res = await api.post(`${REVIEWS_PATH}/create`, reviewData);
     return res.data;
   },
 
   // Admin
   getAllReviews: async (page = 1, limit = 20, status = 'all') => {
-    const res = await axios.get(`${API_URL}/admin/all?page=${page}&limit=${limit}&status=${status}`, getConfig());
+    const res = await api.get(`${REVIEWS_PATH}/admin/all?page=${page}&limit=${limit}&status=${status}`);
     return res.data;
   },
 
   getAdminReviewStats: async () => {
-    const res = await axios.get(`${API_URL}/admin/stats`, getConfig());
+    const res = await api.get(`${REVIEWS_PATH}/admin/stats`);
     return res.data;
   },
 
   updateReviewStatus: async (id, updates) => {
-    const res = await axios.put(`${API_URL}/admin/status/${id}`, updates, getConfig());
+    const res = await api.put(`${REVIEWS_PATH}/admin/status/${id}`, updates);
     return res.data;
   },
 
   deleteReview: async (id) => {
-    const res = await axios.delete(`${API_URL}/admin/${id}`, getConfig());
+    const res = await api.delete(`${REVIEWS_PATH}/admin/${id}`);
     return res.data;
   }
 };
-
