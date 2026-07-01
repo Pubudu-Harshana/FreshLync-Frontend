@@ -22,6 +22,17 @@ export const reviewService = {
     return res.data;
   },
 
+  // Product reviews (Public)
+  getProductReviews: async (productId, page = 1, limit = 10) => {
+    const res = await axios.get(`${API_URL}/product/${productId}?page=${page}&limit=${limit}`);
+    return res.data;
+  },
+
+  getProductReviewStats: async (productId) => {
+    const res = await axios.get(`${API_URL}/product/${productId}/stats`);
+    return res.data;
+  },
+
   // User
   createReview: async (reviewData) => {
     const res = await axios.post(`${API_URL}/create`, reviewData, getConfig());
@@ -49,3 +60,4 @@ export const reviewService = {
     return res.data;
   }
 };
+
