@@ -93,7 +93,7 @@ function App() {
     };
   }, []);
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "1041695420311-fakeclientid.apps.googleusercontent.com";
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "128605987972-nqhptdvtjui85l5mi907cji8utjg8nkm.apps.googleusercontent.com";
 
   return (
     <HelmetProvider>
