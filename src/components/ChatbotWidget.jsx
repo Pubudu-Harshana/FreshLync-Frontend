@@ -563,7 +563,16 @@ export default function ChatbotWidget() {
                         border: msg.role === 'ai' ? '1px solid var(--color-border)' : 'none',
                         width: msg.isStructured ? '270px' : 'auto'
                       }}>
-                        {msg.isStructured ? renderChatResponse(msg) : msg.text}
+                        {msg.isStructured ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                            {msg.responseData?.text && (
+                              <div style={{ fontSize: '0.82rem', color: 'var(--color-text-main)', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
+                                {msg.responseData.text}
+                              </div>
+                            )}
+                            {renderChatResponse(msg)}
+                          </div>
+                        ) : msg.text}
                       </div>
                       <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '0.2rem', textAlign: msg.role === 'user' ? 'right' : 'left' }}>{msg.time}</div>
                     </div>
