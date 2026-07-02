@@ -242,7 +242,7 @@ export default function DashboardLayout() {
               </button>
 
               {showNotifications && (
-                <div style={{
+                <div className="notif-dropdown" style={{
                   position: 'absolute', right: 0, top: '2.5rem',
                   width: '320px', background: 'white', borderRadius: '12px',
                   boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
@@ -378,7 +378,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
           <Outlet />
         </div>
       </main>

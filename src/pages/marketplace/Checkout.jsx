@@ -188,7 +188,7 @@ export default function Checkout() {
   const deliveryComplete = delivery.firstName && delivery.lastName && delivery.email && delivery.address && delivery.city && delivery.postcode;
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '2rem' }}>
+    <div className="responsive-page" style={{ maxWidth: 1000, margin: '0 auto', padding: '2rem' }}>
       <SEO title="Checkout" />
       <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem' }}>Checkout</h2>
 
@@ -205,7 +205,7 @@ export default function Checkout() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
+      <div className="responsive-split-aside" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem', alignItems: 'start' }}>
         {/* Left: Steps */}
         <div>
           {step === 1 && (

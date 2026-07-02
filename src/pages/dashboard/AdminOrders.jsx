@@ -185,7 +185,7 @@ export default function AdminOrders() {
                     {isOpen && (
                       <tr style={{ background: '#f8fafc' }}>
                         <td colSpan={7} style={{ padding: '1.25rem' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                          <div className="responsive-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
                             {/* 1. Customer Details */}
                             <div style={{ background: 'white', borderRadius: 8, padding: '1rem', border: '1px solid var(--color-border)' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
@@ -303,7 +303,7 @@ export default function AdminOrders() {
                             </div>
                           </div>
 
-                          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '1rem', alignItems: 'center' }}>
+                          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '1rem', alignItems: 'center' }}>
                             {/* Timeline & Resolution */}
                             <div style={{ background: 'white', borderRadius: 8, padding: '1rem', border: '1px solid var(--color-border)' }}>
                               <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Order Timeline Log</div>

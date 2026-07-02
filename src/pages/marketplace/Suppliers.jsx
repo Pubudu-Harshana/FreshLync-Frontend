@@ -46,7 +46,7 @@ export default function Suppliers() {
   };
 
   return (
-    <main style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
+    <main className="responsive-page" style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
       <SEO title="Supplier Directory" />
       
       {/* Title Header */}
@@ -55,7 +55,7 @@ export default function Suppliers() {
         <p style={{ color: 'var(--color-text-muted)', fontSize: '1.125rem' }}>Discover and connect with verified Freshlync B2B network wholesale suppliers.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '2rem', alignItems: 'start' }}>
         
         {/* Left: Advanced Filters Panel */}
         <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', sticky: 'top', top: '1rem' }}>

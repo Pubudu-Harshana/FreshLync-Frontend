@@ -295,7 +295,7 @@ export default function AdminDashboardOverview() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
           
           {/* KPI grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          <div className="responsive-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
             {kpis.map((k, i) => (
               <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.25rem', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -313,7 +313,7 @@ export default function AdminDashboardOverview() {
           </div>
 
           {/* Charts & Notifications Side-by-Side */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', flexWrap: 'wrap' }}>
             {/* Charts Card */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -322,7 +322,7 @@ export default function AdminDashboardOverview() {
               </div>
               
               {/* Responsive SVG Charts mockup */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 <div>
                   <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>Weekly Orders Trend (Units Flipped)</div>
                   <div style={{ background: '#f8fafc', borderRadius: 8, height: 160, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '1rem' }}>
@@ -508,7 +508,7 @@ export default function AdminDashboardOverview() {
               {/* Financial Revenue Split */}
               <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Financial Split Overview (Platform Cumulative)</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                <div className="responsive-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                   <div style={{ background: '#F8FAFC', padding: '0.875rem 1.25rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Marketplace Revenue (Customer Paid)</div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1E40AF', marginTop: '0.25rem' }}>
@@ -552,7 +552,7 @@ export default function AdminDashboardOverview() {
           </div>
 
           {/* Activity Log Feed & Margin config */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem' }}>
+          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem' }}>
             {/* Activities */}
             <div className="card">
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={18} /> System Activity Feed</h3>
@@ -632,7 +632,7 @@ export default function AdminDashboardOverview() {
           </div>
 
           {/* AI Forecast KPIs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem', flexWrap: 'wrap' }}>
+          <div className="responsive-grid-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem', flexWrap: 'wrap' }}>
             {[
               { label: 'Predicted Demand Index', value: `${predictions?.predictedDemandIndex}%`, trend: 'High Activity', color: '#312E81', bg: '#EEF2F6' },
               { label: 'Forecast Growth Rate', value: `+${predictions?.forecastGrowthRate}%`, trend: 'Next 30 Days', color: '#10B981', bg: '#F0FDF4' },
@@ -650,7 +650,7 @@ export default function AdminDashboardOverview() {
           </div>
 
           {/* Demand Forecast Chart & AI Recommendations */}
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
             
             {/* Chart Card */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -719,7 +719,7 @@ export default function AdminDashboardOverview() {
           </div>
 
           {/* Regional Insights & Inventory Risks */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem' }}>
+          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem' }}>
             
             {/* Regional Insights */}
             <div className="card">
@@ -762,7 +762,7 @@ export default function AdminDashboardOverview() {
           </div>
 
           {/* Trending Products Table & Supplier stability */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem' }}>
+          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem' }}>
             {/* Trending predictions */}
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--color-border)' }}>
@@ -844,7 +844,7 @@ export default function AdminDashboardOverview() {
               Select hypothetical market parameters below to run the trained XGBoost model and forecast quantity sold and recommended price.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flexWrap: 'wrap' }}>
+            <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flexWrap: 'wrap' }}>
               {/* Form */}
               <form onSubmit={handleMLPredict} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -969,7 +969,7 @@ export default function AdminDashboardOverview() {
           {/* AI Roadmap Cards */}
           <div className="card">
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>🤖 Demand Forecast & AI Roadmap</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem' }}>
+            <div className="responsive-grid-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '1rem' }}>
               {[
                 'Demand Forecasting', 'Inventory Prediction', 'Supplier Risk Analysis', 
                 'Dynamic Pricing Intel', 'Seasonal Trend Detection', 'Market Intel Engine'
@@ -986,7 +986,7 @@ export default function AdminDashboardOverview() {
 
       {/* TAB CONTENT: 3. SUPPORT & DISPUTE CENTER */}
       {activeTab === 'support' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem' }}>
+        <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem' }}>
           {/* Tickets List */}
           <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1203,7 +1203,7 @@ export default function AdminDashboardOverview() {
           {/* General Platform Setups */}
           <div className="card">
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Settings size={18} /> General System Config</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+            <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>Platform Name</label>
                 <input className="input-field" value={generalSettings.platformName} onChange={e => setGeneralSettings(prev => ({ ...prev, platformName: e.target.value }))} required />

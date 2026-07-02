@@ -128,7 +128,7 @@ export default function AdminInventory() {
       </div>
 
       {/* Inventory Alerts Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '1.75rem' }}>
+      <div className="responsive-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '1.75rem' }}>
         <div className="card" onClick={() => setStockFilter('all')} style={{ cursor: 'pointer', border: stockFilter === 'all' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)' }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>All Listed SKUs</div>
           <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.25rem', color: '#1E40AF' }}>{products.length}</div>

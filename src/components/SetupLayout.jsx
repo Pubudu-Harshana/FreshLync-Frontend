@@ -1,12 +1,19 @@
-import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Leaf, User, ShieldCheck, Users, Plug, Settings, HelpCircle, Bell, LogOut, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Leaf, User, ShieldCheck, Users, Plug, Settings, HelpCircle, Bell, LogOut, ArrowLeft, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function SetupLayout() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   const navItems = user?.role === 'supplier' ? [
     { path: '/setup/profile', icon: User, label: 'Profile Setup', step: 1 },
     { path: '/setup/verification', icon: ShieldCheck, label: 'Business Verification', step: 2 },
@@ -20,17 +27,25 @@ export default function SetupLayout() {
   return (
     <div className="setup-layout" style={{ fontFamily: 'var(--font-sans)' }}>
       {/* Sidebar */}
-      <aside className="setup-sidebar">
-        <div style={{ padding: '0 2rem', marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <aside className={`setup-sidebar ${isMobileMenuOpen ? 'setup-sidebar-visible' : 'setup-sidebar-hidden'}`}>
+        <div style={{ padding: '0 2rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
             <img 
               src="/newlogo.png" 
               alt="Freshlync logo" 
               style={{ height: '70px', width: 'auto', display: 'block', cursor: 'pointer' }} 
               onClick={() => window.location.href = '/'}
             />
+            <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Setup Progress</div>
           </div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Setup Progress</div>
+          {/* Mobile close button */}
+          <button 
+            className="setup-mobile-toggle"
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{ display: 'none' }}
+          >
+            <X size={22} />
+          </button>
         </div>
 
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -71,7 +86,14 @@ export default function SetupLayout() {
       {/* Main Content */}
       <main className="setup-main">
         <header className="setup-header">
-          <div style={{ display: 'flex', gap: '2rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
+            <button 
+              className="setup-mobile-toggle"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              style={{ display: 'none' }}
+            >
+              <Menu size={22} />
+            </button>
             <button onClick={() => navigate('/marketplace')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'var(--color-text-main)', fontWeight: 500, cursor: 'pointer' }}>
               <ArrowLeft size={16} /> Back to Marketplace
             </button>
@@ -88,3 +110,4 @@ export default function SetupLayout() {
     </div>
   );
 }
+

@@ -127,7 +127,7 @@ export default function MarketplaceShipments() {
   if (loading) return <LoadingSpinner fullPage message="Loading shipments..." />;
 
   return (
-    <main style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
+    <main className="responsive-page" style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
       <SEO title="My Shipments" />
       
       {/* Title Header */}
@@ -313,7 +313,7 @@ export default function MarketplaceShipments() {
                             </div>
                           )}
 
-                          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem' }}>
+                          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem' }}>
                             {/* Products grouped by Supplier */}
                             <div style={{ background: 'white', borderRadius: 10, padding: '1.25rem', border: '1px solid var(--color-border)' }}>
                               <h4 style={{ fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

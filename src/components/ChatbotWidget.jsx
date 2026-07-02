@@ -488,6 +488,7 @@ export default function ChatbotWidget() {
       {/* Floating Button */}
       {!open && (
         <button
+          className="chatbot-fab"
           onClick={() => setOpen(true)}
           style={{
             position: 'fixed', bottom: '1.75rem', right: '1.75rem', zIndex: 9999,
@@ -509,7 +510,7 @@ export default function ChatbotWidget() {
 
       {/* Chat Window */}
       {open && (
-        <div style={{
+        <div className="chatbot-window" style={{
           position: 'fixed', bottom: '1.75rem', right: '1.75rem', zIndex: 9999,
           width: minimized ? 320 : 380,
           borderRadius: 20, overflow: 'hidden',
@@ -547,7 +548,7 @@ export default function ChatbotWidget() {
           {!minimized && (
             <>
               {/* Messages */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.875rem', minHeight: 340, maxHeight: 400, background: '#f8fafc' }}>
+              <div className="chatbot-messages" style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.875rem', minHeight: 340, maxHeight: 400, background: '#f8fafc' }}>
                 {messages.map(msg => (
                   <div key={msg.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', flexDirection: msg.role === 'user' ? 'row-reverse' : 'row' }}>
                     <div style={{ width: 28, height: 28, borderRadius: '50%', background: msg.role === 'ai' ? 'linear-gradient(135deg, #15803d, #1f9d55)' : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

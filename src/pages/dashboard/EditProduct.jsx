@@ -145,12 +145,12 @@ export default function EditProduct() {
 
       {!error && (
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
+          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
             {/* Left Column: Product Details */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div className="card">
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--color-text-main)' }}>Product Details</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
                     <label style={labelStyle}>Product Name *</label>
                     <input style={inputStyle} value={form.name} onChange={e => set('name', e.target.value)} required />
@@ -174,7 +174,7 @@ export default function EditProduct() {
 
               <div className="card">
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--color-text-main)' }}>Pricing & Stock</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}>
+                <div className="responsive-grid-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label style={labelStyle}>Price (£) *</label>
                     <input style={inputStyle} type="number" min="0" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} required />

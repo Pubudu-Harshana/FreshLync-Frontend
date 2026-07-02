@@ -215,7 +215,7 @@ export default function SupplierProfile() {
                   </span>
                 )}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 {user?.role !== 'admin' && (
                   <PF label="Business Name *">
                     <input className="input-field" value={form.businessName} onChange={e => set('businessName', e.target.value)} required />
@@ -256,7 +256,7 @@ export default function SupplierProfile() {
             <div style={{ background: '#FEF3C7', borderRadius: 10, padding: '0.875rem', fontSize: '0.85rem', color: '#92400E', marginBottom: '1.25rem', lineHeight: 1.6 }}>
               ⚠️ Bank details are encrypted and used solely for payment processing. Never share these credentials with anyone.
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <PF label="Bank Name" colSpan={2}>
                 <input className="input-field" value={form.bankName} onChange={e => set('bankName', e.target.value)} placeholder="e.g. Barclays Business" />
               </PF>

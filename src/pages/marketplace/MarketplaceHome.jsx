@@ -61,7 +61,7 @@ export default function MarketplaceHome() {
   };
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'var(--font-sans)' }}>
+    <div className="responsive-page" style={{ padding: '2rem', fontFamily: 'var(--font-sans)' }}>
       <SEO title="Marketplace" />
 
       {/* Header */}

@@ -167,7 +167,7 @@ export default function AdminUsers() {
       <SEO title="User Management" />
 
       {/* Main Grid: list + profile drawer side by side */}
-      <div style={{ display: 'grid', gridTemplateColumns: selectedUser ? '1.2fr 0.8fr' : '1fr', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: selectedUser ? '1.2fr 0.8fr' : '1fr', gap: '1.5rem', alignItems: 'start' }}>
         
         {/* Left Side: Users List */}
         <div>

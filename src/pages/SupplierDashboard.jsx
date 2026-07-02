@@ -80,10 +80,10 @@ export default function SupplierDashboard() {
           </div>
         </header>
 
-        <div style={{ padding: '2rem', flex: 1, overflowY: 'auto' }}>
+        <div className="dashboard-content" style={{ padding: '2rem', flex: 1, overflowY: 'auto' }}>
           
           {/* KPI Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div className="responsive-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
             <div className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#DCFCE7', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

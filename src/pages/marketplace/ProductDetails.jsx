@@ -343,7 +343,7 @@ export default function ProductDetails() {
   const inCart = cart.find(i => i.name === product.name);
 
   return (
-    <div style={{ padding: '2rem 3rem', maxWidth: 1100, margin: '0 auto' }}>
+    <div className="responsive-page" style={{ padding: '2rem 3rem', maxWidth: 1100, margin: '0 auto' }}>
       <SEO title={product.name} />
 
       <button onClick={() => navigate('/marketplace')} style={{
@@ -353,7 +353,7 @@ export default function ProductDetails() {
         <ArrowLeft size={18} /> Back to Marketplace
       </button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
+      <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start' }}>
         {/* Image Gallery */}
         <div>
           <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: 380, background: '#f1f5f9' }}>
@@ -465,7 +465,7 @@ export default function ProductDetails() {
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Customer Reviews</h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '2.5rem', alignItems: 'start' }}>
+          <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '2.5rem', alignItems: 'start' }}>
             {/* ── Rating Summary Card ─────────────────────────────────────────── */}
             <div style={{
               background: 'linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%)',

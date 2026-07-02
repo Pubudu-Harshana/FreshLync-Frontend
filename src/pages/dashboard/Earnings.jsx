@@ -73,7 +73,7 @@ export default function Earnings() {
       </div>
 
       {/* Revenue Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div className="responsive-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
         <div style={cardStyle} className="spotlight-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Total Gross Earned</span>
@@ -136,7 +136,7 @@ export default function Earnings() {
       </div>
 
       {/* Grid: Order Breakdown + Payout History */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem', alignItems: 'start' }}>
         
         {/* Left: Transaction Breakdown */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>

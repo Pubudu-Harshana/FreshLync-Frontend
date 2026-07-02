@@ -124,7 +124,7 @@ export default function DashboardOverview() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div className="responsive-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
         <StatCard icon={TrendingUp}   label="Total Revenue"    value={`£${Number(stats?.totalRevenue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`}  badge="+Sales"    badgeColor="#16A34A" />
         <StatCard icon={ShoppingBag}  label="Total Orders"     value={stats?.totalOrders ?? '—'}    badge={`${(stats?.totalOrders || 0) - (stats?.deliveredOrders || 0)} Pending`} badgeColor="#64748B" />
         <StatCard icon={Package}      label="Low Stock Items"  value={stats?.lowStockCount ?? '—'}  badge="Alert"     badgeColor="#DC2626" />

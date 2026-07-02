@@ -135,7 +135,7 @@ export default function Orders() {
                     {isOpen && (
                       <tr style={{ background: '#f0fdf4' }}>
                         <td colSpan={7} style={{ padding: '0 1.25rem 1.25rem' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', paddingTop: '0.75rem' }}>
+                          <div className="responsive-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', paddingTop: '0.75rem' }}>
                             <div style={{ background: 'white', borderRadius: 10, padding: '1rem', border: '1px solid var(--color-border)' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
                                 <Package size={14} style={{ color: 'var(--color-primary)' }} />

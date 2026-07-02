@@ -148,7 +148,7 @@ export default function AdminVerification() {
       <SEO title="Business Verification Hub" />
 
       {/* Grid Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: selectedSupplier ? '1.1fr 0.9fr' : '1fr', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: selectedSupplier ? '1.1fr 0.9fr' : '1fr', gap: '1.5rem', alignItems: 'start' }}>
         
         {/* Left Side: Requests List */}
         <div>

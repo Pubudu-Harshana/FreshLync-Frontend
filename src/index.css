@@ -3489,3 +3489,247 @@ button {
     white-space: nowrap !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   COMPREHENSIVE RESPONSIVE OVERRIDES
+   These rules ONLY activate on tablets/mobile.
+   Desktop view is completely unaffected.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Tablet: 1024px ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Extend existing grid overrides — catch more patterns */
+  div[style*="grid-template-columns: repeat(4, 1fr)"],
+  div[style*="grid-template-columns: repeat(6, 1fr)"],
+  div[style*="grid-template-columns: 1fr 1fr 1fr 1fr"],
+  div[style*="grid-template-columns: 1.5fr repeat(4, 1fr)"],
+  .responsive-grid-4,
+  .responsive-grid-6 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Two-column splits should stay two-col on tablet but narrow */
+  div[style*="grid-template-columns: 1fr 360px"],
+  div[style*="grid-template-columns: 1fr 340px"],
+  .responsive-split-aside {
+    grid-template-columns: 1fr 280px !important;
+  }
+
+  /* Fixed-width sidebar grids */
+  div[style*="grid-template-columns: 260px 1fr"],
+  div[style*="grid-template-columns: 320px 1fr"] {
+    grid-template-columns: 220px 1fr !important;
+  }
+}
+
+/* ── Small Tablet / Large Mobile: 768px ─────────────────────── */
+@media (max-width: 768px) {
+  /* Stack ALL two-column splits to single column */
+  div[style*="grid-template-columns: 1fr 360px"],
+  div[style*="grid-template-columns: 1fr 340px"],
+  div[style*="grid-template-columns: 260px 1fr"],
+  div[style*="grid-template-columns: 320px 1fr"],
+  div[style*="grid-template-columns: 2fr 1fr"],
+  div[style*="grid-template-columns: 2fr 1.2fr"],
+  div[style*="grid-template-columns: 1.2fr 0.8fr"],
+  div[style*="grid-template-columns: 1.1fr 0.9fr"],
+  div[style*="grid-template-columns: 1fr 1fr"],
+  div[style*="grid-template-columns: 1.5fr 1fr"],
+  .responsive-split,
+  .responsive-split-aside,
+  .responsive-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* 3 and 4 column grids → 2 columns */
+  div[style*="grid-template-columns: repeat(3, 1fr)"],
+  div[style*="grid-template-columns: repeat(4, 1fr)"],
+  .responsive-grid-3,
+  .responsive-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 6-column → 2 columns */
+  div[style*="grid-template-columns: repeat(6, 1fr)"],
+  div[style*="grid-template-columns: 1.5fr repeat(4, 1fr)"],
+  .responsive-grid-6 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Dashboard content area — reduce padding */
+  .dashboard-content {
+    padding: 1.25rem !important;
+  }
+
+  /* Setup layout — collapse sidebar */
+  .setup-layout {
+    flex-direction: column;
+  }
+
+  .setup-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--color-border);
+    position: relative;
+  }
+
+  /* Hide setup sidebar on mobile by default, show when open */
+  .setup-sidebar.setup-sidebar-hidden {
+    display: none;
+  }
+
+  .setup-sidebar.setup-sidebar-visible {
+    display: flex;
+  }
+
+  .setup-content-wrapper {
+    padding: 1.5rem !important;
+  }
+
+  .setup-header {
+    padding: 0 1rem !important;
+  }
+
+  /* Setup mobile toggle */
+  .setup-mobile-toggle {
+    display: flex !important;
+  }
+}
+
+/* ── Mobile: 576px ──────────────────────────────────────────── */
+@media (max-width: 576px) {
+  /* Stack ALL multi-column grids to 1 column */
+  div[style*="grid-template-columns: repeat(4, 1fr)"],
+  div[style*="grid-template-columns: repeat(3, 1fr)"],
+  div[style*="grid-template-columns: repeat(6, 1fr)"],
+  div[style*="grid-template-columns: 1fr 1fr"],
+  div[style*="grid-template-columns: 1.2fr 0.8fr"],
+  div[style*="grid-template-columns: 2fr 1fr"],
+  div[style*="grid-template-columns: 2fr 1.2fr"],
+  div[style*="grid-template-columns: 1.1fr 0.9fr"],
+  div[style*="grid-template-columns: 1fr 1fr 1fr 1fr"],
+  div[style*="grid-template-columns: 1fr 360px"],
+  div[style*="grid-template-columns: 1fr 340px"],
+  div[style*="grid-template-columns: 260px 1fr"],
+  div[style*="grid-template-columns: 320px 1fr"],
+  div[style*="grid-template-columns: 1.5fr 1fr"],
+  div[style*="grid-template-columns: 1.5fr repeat(4, 1fr)"],
+  .responsive-grid-2,
+  .responsive-grid-3,
+  .responsive-grid-4,
+  .responsive-grid-6,
+  .responsive-split,
+  .responsive-split-aside {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Dashboard content area — minimum padding */
+  .dashboard-content {
+    padding: 1rem !important;
+  }
+
+  /* Notification dropdown — fit small screens */
+  .notif-dropdown {
+    width: calc(100vw - 2rem) !important;
+    max-width: 320px !important;
+    right: -0.5rem !important;
+  }
+
+  /* Setup content */
+  .setup-content-wrapper {
+    padding: 1rem !important;
+  }
+}
+
+/* ── Chatbot Widget Responsive ──────────────────────────────── */
+@media (max-width: 480px) {
+  .chatbot-window {
+    width: calc(100vw - 1.5rem) !important;
+    max-width: none !important;
+    right: 0.75rem !important;
+    bottom: 0.75rem !important;
+    border-radius: 16px !important;
+  }
+
+  .chatbot-fab {
+    bottom: 1rem !important;
+    right: 1rem !important;
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  .chatbot-messages {
+    min-height: 280px !important;
+    max-height: 50vh !important;
+  }
+}
+
+/* ── Tables Responsive ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Ensure any table inside dashboards can scroll horizontally */
+  .dashboard-content table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  .dashboard-content table thead,
+  .dashboard-content table tbody,
+  .dashboard-content table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  /* Card-wrapped tables */
+  .dashboard-content .card {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Reduce font sizes in tables on mobile */
+  .dashboard-content table th,
+  .dashboard-content table td {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.625rem;
+  }
+}
+
+/* ── Setup Layout Mobile Toggle (hidden on desktop) ─────────── */
+.setup-mobile-toggle {
+  display: none;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-main);
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+/* ── Responsive utility classes (no-op on desktop) ──────────── */
+.responsive-grid-2,
+.responsive-grid-3,
+.responsive-grid-4,
+.responsive-grid-6,
+.responsive-split,
+.responsive-split-aside,
+.responsive-page {
+  /* These classes have no effect on desktop.
+     Their responsive behavior is defined in media queries above. */
+}
+
+@media (max-width: 768px) {
+  .responsive-page {
+    padding: 1.25rem 1rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .responsive-page {
+    padding: 1rem 0.75rem !important;
+  }
+}

@@ -114,7 +114,7 @@ export default function Billing() {
   const isHealthy = creditUsedPercent < 30;
 
   return (
-    <main style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
+    <main className="responsive-page" style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
       <SEO title="Billing & Credit Dashboard" />
       
       {/* Header */}

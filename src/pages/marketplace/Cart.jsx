@@ -29,7 +29,7 @@ export default function Cart() {
   const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
 
   return (
-    <div style={{ padding: '2rem 3rem', maxWidth: 1000, margin: '0 auto' }}>
+    <div className="responsive-page" style={{ padding: '2rem 3rem', maxWidth: 1000, margin: '0 auto' }}>
       <SEO title="Cart" />
 
       <button onClick={() => navigate('/marketplace')} style={{
@@ -57,7 +57,7 @@ export default function Cart() {
           actionLabel="Browse Products"
         />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'start' }}>
+        <div className="responsive-split-aside" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'start' }}>
           {/* Cart Items */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {cart.map((item, idx) => (

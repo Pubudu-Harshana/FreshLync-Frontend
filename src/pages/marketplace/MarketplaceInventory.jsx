@@ -115,7 +115,7 @@ export default function MarketplaceInventory() {
   if (loading) return <LoadingSpinner fullPage message="Loading purchase history..." />;
 
   return (
-    <main style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
+    <main className="responsive-page" style={{ flex: 1, padding: '2rem 3rem', overflowY: 'auto', fontFamily: 'var(--font-sans)' }}>
       <SEO title="Purchase History & Reorders" />
 
       {/* Title Header */}
