@@ -182,6 +182,7 @@ function ReviewModal({ onClose, user, showToast }) {
   const [review, setReview] = useState('');
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -219,7 +220,8 @@ function ReviewModal({ onClose, user, showToast }) {
         rating,
         title,
         review,
-        orderId: selectedOrder
+        orderId: selectedOrder,
+        productId: selectedProduct || null
       });
       showToast('Review submitted successfully! It is pending admin approval.', 'success');
       onClose();
@@ -290,12 +292,27 @@ function ReviewModal({ onClose, user, showToast }) {
 
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Select Order to Review</label>
-                <select value={selectedOrder} onChange={e => setSelectedOrder(e.target.value)} required style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 12, border: '1px solid #E2E8F0', outline: 'none', background: '#F8FAFC', fontSize: '0.95rem' }}>
+                <select value={selectedOrder} onChange={e => { setSelectedOrder(e.target.value); setSelectedProduct(''); }} required style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 12, border: '1px solid #E2E8F0', outline: 'none', background: '#F8FAFC', fontSize: '0.95rem' }}>
                   {orders.map(o => (
                     <option key={o._id} value={o._id}>Order #{o._id.substring(o._id.length - 6).toUpperCase()} - {new Date(o.createdAt).toLocaleDateString()}</option>
                   ))}
                 </select>
               </div>
+
+              {(() => {
+                const currentOrder = orders.find(o => o._id === selectedOrder);
+                return currentOrder && currentOrder.items && currentOrder.items.length > 0 && (
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>What are you reviewing?</label>
+                    <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 12, border: '1px solid #E2E8F0', outline: 'none', background: '#F8FAFC', fontSize: '0.95rem' }}>
+                      <option value="">Overall Service (Platform)</option>
+                      {currentOrder.items.map(item => (
+                        <option key={item.product || item._id} value={item.product}>{item.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })()}
 
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginBottom: '0.5rem' }}>Review Title</label>
