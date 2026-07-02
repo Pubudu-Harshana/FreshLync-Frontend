@@ -25,7 +25,7 @@ const QUICK_PROMPTS = [
   'How do I track my order?',
 ];
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
 
 async function fetchAIResponse(message) {
   const token = localStorage.getItem('fl_token');
