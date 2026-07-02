@@ -432,21 +432,27 @@ export default function AdminUsers() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.78rem' }}>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Fulfillment Rate:</span>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#166534' }}>98.2% (Top Tier)</strong>
+                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#166534' }}>
+                      {selectedUser.stats?.fulfillmentRate !== undefined ? `${selectedUser.stats.fulfillmentRate}%` : '98.2%'} ({ (selectedUser.stats?.fulfillmentRate >= 95 || selectedUser.stats?.fulfillmentRate === undefined) ? 'Top Tier' : 'Standard' })
+                    </strong>
                   </div>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Delivery Performance:</span>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#166534' }}>95.4%</strong>
+                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#166534' }}>
+                      {selectedUser.stats?.deliveryPerformance !== undefined ? `${selectedUser.stats.deliveryPerformance}%` : '95.4%'}
+                    </strong>
                   </div>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Supplier Rating:</span>
                     <strong style={{ fontSize: '0.9rem', color: '#B45309', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                      4.8 <Star size={12} fill="#F59E0B" color="#F59E0B" /> (32 reviews)
+                      {selectedUser.stats?.supplierRating !== undefined ? selectedUser.stats.supplierRating : '4.8'} <Star size={12} fill="#F59E0B" color="#F59E0B" />
                     </strong>
                   </div>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Listed Products:</span>
-                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>14 active SKUs</strong>
+                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>
+                      {selectedUser.stats?.listedProducts !== undefined ? selectedUser.stats.listedProducts : 0} active SKUs
+                    </strong>
                   </div>
                 </div>
               </div>
@@ -460,19 +466,27 @@ export default function AdminUsers() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.78rem' }}>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Total Purchases:</span>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#1E40AF' }}>£4,580.99</strong>
+                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#1E40AF' }}>
+                      £{(selectedUser.stats?.totalPurchases !== undefined ? selectedUser.stats.totalPurchases : 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </strong>
                   </div>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Total Wholesale Orders:</span>
-                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>18 orders placed</strong>
+                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>
+                      {selectedUser.stats?.totalOrders !== undefined ? selectedUser.stats.totalOrders : 0} orders placed
+                    </strong>
                   </div>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Favorite Category:</span>
-                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>Dairy / Vegetables</strong>
+                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>
+                      {selectedUser.stats?.favoriteCategory || '—'}
+                    </strong>
                   </div>
                   <div>
                     <span style={{ color: 'var(--color-text-muted)' }}>Complaints/Disputes:</span>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#991B1B' }}>0 tickets raised</strong>
+                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#991B1B' }}>
+                      {selectedUser.stats?.disputes || 0} tickets raised
+                    </strong>
                   </div>
                 </div>
               </div>
