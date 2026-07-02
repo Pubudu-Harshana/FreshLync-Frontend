@@ -3733,3 +3733,65 @@ button {
     padding: 1rem 0.75rem !important;
   }
 }
+
+/* ── Landing Page Header Mobile Responsiveness ────────────────── */
+@media (max-width: 900px) {
+  .landing-mobile-menu-toggle {
+    display: block !important;
+  }
+
+  .landing-nav-links {
+    display: none !important;
+  }
+
+  .landing-nav-links.landing-mobile-open {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(18px);
+    padding: 1.5rem 2rem;
+    gap: 1.25rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    align-items: flex-start;
+  }
+
+  .landing-nav-links.landing-mobile-open a {
+    font-size: 1.05rem;
+    font-weight: 700;
+    width: 100%;
+    padding: 0.5rem 0;
+    color: #1a2332;
+    opacity: 0.85;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+  }
+
+  .landing-nav-links.landing-mobile-open a:last-child {
+    border-bottom: none;
+  }
+
+  .nav-login-button .nav-login-text {
+    display: none !important; /* Hide portal text on mobile screens */
+  }
+  
+  .nav-login-button {
+    padding: 0.6rem !important; /* Make it a square icon button */
+    border-radius: 50% !important;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+  }
+
+  .landing-auth-nav-group {
+    gap: 0.75rem !important;
+  }
+
+  .nav-logout-btn {
+    display: none !important; /* Hide logout text button to save navbar space */
+  }
+}

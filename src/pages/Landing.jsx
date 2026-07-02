@@ -5,7 +5,7 @@ import {
   Package2, ShieldCheck, Users, ShoppingBag, Star, Leaf,
   Fish, Beef, Wheat, Milk, Box, Lock, ChevronRight, Sparkles,
   Facebook, Linkedin, Mail, Phone, MapPin, Truck, Zap, Headphones,
-  User, Sun, Moon
+  User, Sun, Moon, Menu, X
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -360,6 +360,7 @@ export default function Landing() {
   const [loadingProds, setLoadingProds] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleJumpTo = (targetId) => (event) => {
     event.preventDefault();
@@ -420,60 +421,70 @@ export default function Landing() {
           <a className="brand-mark" href="#top" onClick={handleJumpTo('top')}>
             <img src="/newlogo.png" alt="FreshLync" className="brand-logo" />
           </a>
-          <div className="landing-nav-links">
-            <a href="#top"        onClick={handleJumpTo('top')} className="active">Home</a>
-            {!(user?.role === 'supplier') && <a href="#marketplace" onClick={handleJumpTo('marketplace')}>Marketplace</a>}
-            <a href="#about"      onClick={handleJumpTo('about')}>About</a>
-            <a href="#contact"    onClick={handleJumpTo('contact')}>Contact</a>
+          <div className={`landing-nav-links ${isMobileMenuOpen ? 'landing-mobile-open' : ''}`}>
+            <a href="#top"        onClick={(e) => { handleJumpTo('top')(e); setIsMobileMenuOpen(false); }} className="active">Home</a>
+            {!(user?.role === 'supplier') && <a href="#marketplace" onClick={(e) => { handleJumpTo('marketplace')(e); setIsMobileMenuOpen(false); }}>Marketplace</a>}
+            <a href="#about"      onClick={(e) => { handleJumpTo('about')(e); setIsMobileMenuOpen(false); }}>About</a>
+            <a href="#contact"    onClick={(e) => { handleJumpTo('contact')(e); setIsMobileMenuOpen(false); }}>Contact</a>
           </div>
-          {isAuthenticated ? (
-            <div className="landing-auth-nav-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <button 
-                className="nav-login-button" 
-                onClick={() => {
-                  if (user?.role === 'admin') navigate('/admin');
-                  else if (user?.role === 'supplier') navigate('/dashboard');
-                  else navigate('/marketplace');
-                }}
-                style={{ background: '#047857', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <User size={16} /> {user?.role === 'admin' ? 'Admin Portal' : user?.role === 'supplier' ? 'Supplier Portal' : 'Marketplace'}
-              </button>
-              <div 
-                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                onClick={() => {
-                  if (user?.role === 'admin') navigate('/admin/profile');
-                  else if (user?.role === 'supplier') navigate('/dashboard/profile');
-                  else navigate('/setup/profile');
-                }}
-                title="View Profile"
-              >
-                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '2px solid #047857' }}>
-                  <img src={getAvatarUrl(user?.avatar)} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+
+          <div className="landing-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {isAuthenticated ? (
+              <div className="landing-auth-nav-group" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button 
+                  className="nav-login-button" 
+                  onClick={() => {
+                    if (user?.role === 'admin') navigate('/admin');
+                    else if (user?.role === 'supplier') navigate('/dashboard');
+                    else navigate('/marketplace');
+                  }}
+                  style={{ background: '#047857', color: 'white', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <User size={16} /><span className="nav-login-text">{user?.role === 'admin' ? 'Admin Portal' : user?.role === 'supplier' ? 'Supplier Portal' : 'Marketplace'}</span>
+                </button>
+                <div 
+                  style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                  onClick={() => {
+                    if (user?.role === 'admin') navigate('/admin/profile');
+                    else if (user?.role === 'supplier') navigate('/dashboard/profile');
+                    else navigate('/setup/profile');
+                  }}
+                  title="View Profile"
+                >
+                  <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#E2E8F0', overflow: 'hidden', border: '2px solid #047857' }}>
+                    <img src={getAvatarUrl(user?.avatar)} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
                 </div>
+                <button 
+                  onClick={logout} 
+                  className="nav-logout-btn"
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: '#64748B', 
+                    fontSize: '0.85rem', 
+                    fontWeight: 600, 
+                    cursor: 'pointer',
+                    padding: '0.4rem 0.6rem'
+                  }}
+                >
+                  Logout
+                </button>
               </div>
-              <button 
-                onClick={logout} 
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  color: '#64748B', 
-                  fontSize: '0.85rem', 
-                  fontWeight: 600, 
-                  cursor: 'pointer',
-                  padding: '0.4rem 0.6rem'
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            ) : (
               <button className="nav-login-button" onClick={() => navigate('/login')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                <User size={16} /> Login
+                <User size={16} /><span className="nav-login-text">Login</span>
               </button>
-            </div>
-          )}
+            )}
+
+            <button 
+              className="landing-mobile-menu-toggle"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              style={{ display: 'none', background: 'none', border: 'none', color: '#1E293B', cursor: 'pointer', padding: '0.25rem' }}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </nav>
       </header>
 
