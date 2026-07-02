@@ -38,9 +38,15 @@ export default function Register() {
       setLoading(true);
       try {
         const user = await loginWithGoogle(tokenResponse.access_token, role === 'Customer' ? 'buyer' : 'supplier');
-        if (user.role === 'buyer') navigate('/marketplace');
-        else if (user.role === 'admin') navigate('/admin');
-        else navigate('/dashboard');
+        if (!user.phone) {
+          navigate('/setup/profile');
+        } else if (user.role === 'buyer') {
+          navigate('/marketplace');
+        } else if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Google Sign-up failed. Please try again.');
       } finally {

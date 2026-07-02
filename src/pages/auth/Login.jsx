@@ -21,9 +21,15 @@ export default function Login() {
       setLoading(true);
       try {
         const user = await loginWithGoogle(tokenResponse.access_token, role === 'Customer' ? 'buyer' : 'supplier');
-        if (user.role === 'buyer') navigate('/marketplace');
-        else if (user.role === 'admin') navigate('/admin');
-        else navigate('/dashboard');
+        if (!user.phone) {
+          navigate('/setup/profile');
+        } else if (user.role === 'buyer') {
+          navigate('/marketplace');
+        } else if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Google Sign-in failed. Please try again.');
       } finally {
@@ -41,9 +47,15 @@ export default function Login() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      if (user.role === 'buyer') navigate('/marketplace');
-      else if (user.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
+      if (!user.phone) {
+        navigate('/setup/profile');
+      } else if (user.role === 'buyer') {
+        navigate('/marketplace');
+      } else if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {

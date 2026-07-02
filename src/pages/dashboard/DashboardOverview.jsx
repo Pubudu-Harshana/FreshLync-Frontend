@@ -88,10 +88,18 @@ export default function DashboardOverview() {
             <AlertTriangle size={24} style={{ flexShrink: 0 }} />
             <div>
               <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.25rem' }}>
-                {user.verificationStatus === 'rejected' ? 'Business Verification Rejected' : user.verificationStatus === 'information_requested' ? 'Additional Information Requested' : 'Business Verification Pending'}
+                {user.verificationStatus === 'unverified' 
+                  ? 'Business Verification Required' 
+                  : user.verificationStatus === 'rejected' 
+                    ? 'Business Verification Rejected' 
+                    : user.verificationStatus === 'information_requested' 
+                      ? 'Additional Information Requested' 
+                      : 'Business Verification Pending'}
               </div>
               <div style={{ fontSize: '0.85rem', lineHeight: 1.4 }}>
-                {user.verificationStatus === 'rejected' ? (
+                {user.verificationStatus === 'unverified' ? (
+                  <>Please submit your business verification documents to verify your account and list products.</>
+                ) : user.verificationStatus === 'rejected' ? (
                   <>Your registration was rejected. Reason: <strong>{notes || 'Please review your uploaded documents.'}</strong>. You must resubmit correct documents.</>
                 ) : user.verificationStatus === 'information_requested' ? (
                   <>The compliance team requested updates: <strong>{notes || 'Please upload the missing details.'}</strong></>
@@ -101,11 +109,11 @@ export default function DashboardOverview() {
               </div>
             </div>
           </div>
-          {(user.verificationStatus === 'rejected' || user.verificationStatus === 'information_requested') && (
+          {(user.verificationStatus === 'unverified' || user.verificationStatus === 'rejected' || user.verificationStatus === 'information_requested') && (
             <button 
               onClick={() => navigate('/setup/verification')} 
               style={{
-                background: user.verificationStatus === 'rejected' ? '#EF4444' : '#3B82F6',
+                background: user.verificationStatus === 'unverified' ? 'var(--color-primary)' : user.verificationStatus === 'rejected' ? '#EF4444' : '#3B82F6',
                 color: 'white',
                 border: 'none',
                 padding: '0.5rem 1rem',

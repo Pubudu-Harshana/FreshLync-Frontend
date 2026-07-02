@@ -83,7 +83,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('fl_user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
-    return data.user;
+    return { ...data.user, isNewUser: data.isNewUser };
   };
 
   const register = async (formData) => {
