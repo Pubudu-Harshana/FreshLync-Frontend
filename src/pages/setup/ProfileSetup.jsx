@@ -17,6 +17,22 @@ const getAvatarUrl = (avatar) => {
   return `${backendUrl}${normalizedAvatar}`;
 };
 
+const COUNTRY_CODES = [
+  { code: '+44', flag: '🇬🇧', name: 'UK' },
+  { code: '+1', flag: '🇺🇸', name: 'US' },
+  { code: '+94', flag: '🇱🇰', name: 'LK' },
+  { code: '+61', flag: '🇦🇺', name: 'AU' },
+  { code: '+91', flag: '🇮🇳', name: 'IN' },
+  { code: '+33', flag: '🇫🇷', name: 'FR' },
+  { code: '+49', flag: '🇩🇪', name: 'DE' },
+  { code: '+81', flag: '🇯🇵', name: 'JP' },
+  { code: '+86', flag: '🇨🇳', name: 'CN' },
+  { code: '+64', flag: '🇳🇿', name: 'NZ' },
+  { code: '+353', flag: '🇮🇪', name: 'IE' },
+  { code: '+31', flag: '🇳🇱', name: 'NL' },
+  { code: '+65', flag: '🇸🇬', name: 'SG' },
+];
+
 export default function ProfileSetup() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
@@ -30,6 +46,9 @@ export default function ProfileSetup() {
     phoneNumber: ''
   });
 
+  const [selectedCountryCode, setSelectedCountryCode] = useState('+44');
+  const [localNumber, setLocalNumber] = useState('');
+
   const [avatarFile, setAvatarFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -42,6 +61,24 @@ export default function ProfileSetup() {
         jobTitle: user.jobTitle || setupState?.profile?.jobTitle || '',
         phoneNumber: user.phone || setupState?.profile?.phoneNumber || ''
       });
+
+      const phoneVal = user.phone || setupState?.profile?.phoneNumber || '';
+      if (phoneVal) {
+        let matched = false;
+        const sortedCodes = [...COUNTRY_CODES].sort((a, b) => b.code.length - a.code.length);
+        for (const item of sortedCodes) {
+          if (phoneVal.startsWith(item.code)) {
+            setSelectedCountryCode(item.code);
+            setLocalNumber(phoneVal.slice(item.code.length).trim());
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          setSelectedCountryCode('+44');
+          setLocalNumber(phoneVal);
+        }
+      }
       if (user.avatar) {
         setPreviewUrl(getAvatarUrl(user.avatar));
       }
@@ -68,11 +105,17 @@ export default function ProfileSetup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate phone number format
-    const phoneVal = formData.phoneNumber.trim();
+    const trimmedLocal = localNumber.trim();
+    if (!trimmedLocal) {
+      showToast('Phone number is required.', 'error');
+      return;
+    }
+
+    // Combine country code and local number
+    const fullPhone = `${selectedCountryCode}${trimmedLocal}`;
     const phoneRegex = /^\+?[0-9\s\-()]+$/;
-    const digitCount = phoneVal.replace(/\D/g, '').length;
-    if (!phoneRegex.test(phoneVal) || digitCount < 7 || digitCount > 15) {
+    const digitCount = fullPhone.replace(/\D/g, '').length;
+    if (!phoneRegex.test(fullPhone) || digitCount < 7 || digitCount > 15) {
       showToast('Please enter a valid phone number (between 7 and 15 digits).', 'error');
       return;
     }
@@ -81,7 +124,7 @@ export default function ProfileSetup() {
     try {
       const payload = new FormData();
       payload.append('name', formData.fullName);
-      payload.append('phone', formData.phoneNumber);
+      payload.append('phone', fullPhone);
       // Backend may expect other fields like jobTitle
       payload.append('jobTitle', formData.jobTitle);
       
@@ -99,7 +142,7 @@ export default function ProfileSetup() {
       updateProfile({
         fullName: formData.fullName,
         jobTitle: formData.jobTitle,
-        phoneNumber: formData.phoneNumber,
+        phoneNumber: fullPhone,
         avatar: updatedUser.avatar
       });
 
@@ -184,16 +227,37 @@ export default function ProfileSetup() {
           <div style={{ marginBottom: '2.5rem' }}>
             <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.5rem' }}>Phone Number</label>
             <div style={{ display: 'flex' }}>
-              <div style={{ border: '1px solid var(--color-border)', borderRight: 'none', padding: '0.7rem 1rem', borderRadius: 'var(--radius-md) 0 0 var(--radius-md)', background: 'var(--color-background)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
-                🇬🇧 +44
-              </div>
+              <select
+                value={selectedCountryCode}
+                onChange={(e) => setSelectedCountryCode(e.target.value)}
+                style={{
+                  border: '1px solid var(--color-border)',
+                  borderRight: 'none',
+                  padding: '0.7rem 0.5rem',
+                  borderRadius: 'var(--radius-md) 0 0 var(--radius-md)',
+                  background: 'var(--color-background)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  fontSize: '0.9rem',
+                  color: 'var(--color-text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  width: '120px'
+                }}
+              >
+                {COUNTRY_CODES.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.flag} {item.code} ({item.name})
+                  </option>
+                ))}
+              </select>
               <input 
                 type="tel" 
                 className="input-field" 
-                style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0' }} 
-                placeholder="(555) 000-0000" 
-                value={formData.phoneNumber}
-                onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', flex: 1 }} 
+                placeholder="7946 0958" 
+                value={localNumber}
+                onChange={(e) => setLocalNumber(e.target.value)}
                 required 
               />
             </div>
