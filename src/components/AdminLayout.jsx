@@ -82,11 +82,11 @@ export default function AdminLayout() {
 
       if (isPaymentRelated) {
         navigate(`/admin/orders`);
-      } else if (titleLower.includes('review') || textLower.includes('review')) {
-        navigate(`/admin/reviews`);
       } else if (n.supplierId || titleLower.includes('verification') || textLower.includes('verification') || titleLower.includes('verify') || textLower.includes('verify')) {
         const supParam = n.supplierId ? `?supplierId=${n.supplierId}` : '';
         navigate(`/admin/verification${supParam}`);
+      } else if (titleLower.includes('review') || textLower.includes('review')) {
+        navigate(`/admin/reviews`);
       } else if (titleLower.includes('appeal') || titleLower.includes('product') || titleLower.includes('listing') || titleLower.includes('inventory') || textLower.includes('appeal') || textLower.includes('product') || textLower.includes('listing') || textLower.includes('inventory')) {
         navigate(`/admin/inventory`);
       } else if (titleLower.includes('order') || textLower.includes('order')) {

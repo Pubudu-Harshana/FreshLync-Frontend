@@ -89,6 +89,11 @@ export default function DashboardLayout() {
                                    textLower.includes('verification') || 
                                    textLower.includes('verify');
 
+      const isReviewRelated = titleLower.includes('review') || 
+                              titleLower.includes('rating') || 
+                              textLower.includes('review') || 
+                              textLower.includes('rating');
+
       const isProductRelated = titleLower.includes('product') || 
                                titleLower.includes('stock') || 
                                titleLower.includes('inventory');
@@ -99,6 +104,8 @@ export default function DashboardLayout() {
 
       if (isVerificationRelated) {
         navigate('/dashboard/profile');
+      } else if (isReviewRelated) {
+        navigate('/dashboard/notifications');
       } else if (isProductRelated) {
         if (n.productId) {
           navigate(`/dashboard/edit-product/${n.productId}`);

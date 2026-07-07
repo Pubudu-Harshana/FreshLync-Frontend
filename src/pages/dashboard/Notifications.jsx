@@ -45,6 +45,10 @@ export default function Notifications() {
       if (isAdmin) navigate('/admin/orders');
       else if (isBuyer) navigate('/marketplace/shipments');
       else navigate('/dashboard/orders');
+    } else if (titleLower.includes('verification') || titleLower.includes('verify') || messageLower.includes('verification') || messageLower.includes('verify')) {
+      if (isAdmin) navigate('/admin/profile');
+      else if (isBuyer) navigate('/setup/profile');
+      else navigate('/dashboard/profile');
     } else if (isReviewRelated) {
       if (isAdmin) navigate('/admin/reviews');
       else if (isBuyer) navigate('/marketplace');
@@ -61,10 +65,6 @@ export default function Notifications() {
       if (isAdmin) navigate('/admin');
       else if (isBuyer) navigate('/marketplace');
       else navigate('/dashboard/earnings');
-    } else if (titleLower.includes('verification') || titleLower.includes('verify') || messageLower.includes('verification') || messageLower.includes('verify')) {
-      if (isAdmin) navigate('/admin/profile');
-      else if (isBuyer) navigate('/setup/profile');
-      else navigate('/dashboard/profile');
     } else {
       if (isAdmin) navigate('/admin');
       else if (isBuyer) navigate('/marketplace');
