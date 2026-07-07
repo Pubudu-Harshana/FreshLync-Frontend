@@ -208,8 +208,8 @@ export default function AdminVerification() {
           </div>
 
           {/* Requests Table */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          <div className="card" style={{ padding: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+            <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ background: '#F8FAFC', borderBottom: '1px solid var(--color-border)' }}>
                   <th style={{ padding: '0.875rem 1.25rem', textAlign: 'left', fontWeight: 700, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Supplier / Company</th>
@@ -470,8 +470,8 @@ export default function AdminVerification() {
             No verification actions have been logged yet.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', minWidth: '750px', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
                   <th style={{ padding: '0.5rem 1rem', fontWeight: 700 }}>Timestamp</th>

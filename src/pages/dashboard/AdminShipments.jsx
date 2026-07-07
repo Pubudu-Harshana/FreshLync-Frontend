@@ -60,8 +60,8 @@ export default function AdminShipments() {
         <button style={{ padding: '0.5rem 1rem', background: 'white', color: 'var(--color-text-main)', borderRadius: '999px', fontWeight: 500, border: '1px solid var(--color-border)' }}>Delayed Alerts (12)</button>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+      <div className="card" style={{ padding: '0', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
           <thead style={{ background: 'var(--color-background)', color: 'var(--color-text-muted)' }}>
             <tr>
               <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontWeight: 600 }}>TRACKING ID</th>

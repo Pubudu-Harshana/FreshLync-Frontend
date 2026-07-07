@@ -136,8 +136,8 @@ export default function AdminOrders() {
       {filtered.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>No platform orders found.</div>
       ) : (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+        <div className="card" style={{ padding: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
             <thead style={{ background: 'var(--color-background)' }}>
               <tr>
                 {['Order ID', 'Date', 'Customer', 'Suppliers Involved', 'Total', 'Overall Status', ''].map((h, i) => (

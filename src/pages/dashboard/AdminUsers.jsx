@@ -228,8 +228,8 @@ export default function AdminUsers() {
           </div>
 
           {/* Table */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          <div className="card" style={{ padding: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+            <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ background: '#F8FAFC', borderBottom: '1px solid var(--color-border)' }}>
                   <th style={{ padding: '0.875rem 1.25rem', textAlign: 'left', fontWeight: 700, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>User</th>

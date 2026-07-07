@@ -163,8 +163,8 @@ export default function AdminInventory() {
       </div>
 
       {/* Inventory Table */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+      <div className="card" style={{ padding: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
           <thead style={{ background: 'var(--color-background)', color: 'var(--color-text-muted)' }}>
             <tr>
               <th style={{ padding: '0.875rem 1.25rem', textAlign: 'left', fontWeight: 700 }}>PRODUCT (SKU)</th>
