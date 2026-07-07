@@ -39,11 +39,16 @@ export default function Notifications() {
     const isAdmin = user?.role === 'admin';
 
     const isPaymentRelated = titleLower.includes('payment') || messageLower.includes('payment') || titleLower.includes('slip') || messageLower.includes('slip');
+    const isReviewRelated = titleLower.includes('review') || messageLower.includes('review') || titleLower.includes('rating') || messageLower.includes('rating') || type === 'review';
 
     if (isPaymentRelated) {
       if (isAdmin) navigate('/admin/orders');
       else if (isBuyer) navigate('/marketplace/shipments');
       else navigate('/dashboard/orders');
+    } else if (isReviewRelated) {
+      if (isAdmin) navigate('/admin/reviews');
+      else if (isBuyer) navigate('/marketplace');
+      else navigate('/dashboard');
     } else if (type === 'stock' || titleLower.includes('product') || titleLower.includes('listing') || messageLower.includes('product') || messageLower.includes('listing')) {
       if (isAdmin) navigate('/admin/inventory');
       else if (isBuyer) navigate('/marketplace/inventory');
