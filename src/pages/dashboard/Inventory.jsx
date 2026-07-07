@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Plus, Search, Edit2, Trash2, ChevronLeft, ChevronRight, X, RefreshCw } from 'lucide-react';
+import { Package, Plus, Search, Edit2, Trash2, ChevronLeft, ChevronRight, X, RefreshCw, Upload } from 'lucide-react';
 import SEO from '../../components/SEO';
 import ConfirmModal from '../../components/ConfirmModal';
 import EmptyState from '../../components/EmptyState';
@@ -34,6 +34,177 @@ export default function Inventory() {
   const [appealTarget, setAppealTarget] = useState(null);
   const [appealReason, setAppealReason] = useState('');
   const [appealSubmitting, setAppealSubmitting] = useState(false);
+
+  const csvInputRef = useRef(null);
+  const [csvProducts, setCsvProducts] = useState([]);
+  const [showCsvModal, setShowCsvModal] = useState(false);
+  const [csvUploading, setCsvUploading] = useState(false);
+  const [csvProgress, setCsvProgress] = useState(0);
+  const [csvLogs, setCsvLogs] = useState([]);
+
+  // Client-side CSV line parser supporting quotes, commas, and escapes
+  const parseCSV = (text) => {
+    const lines = [];
+    let row = [""];
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      const next = text[i + 1];
+      if (c === '"') {
+        if (inQuotes && next === '"') {
+          row[row.length - 1] += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (c === ',' && !inQuotes) {
+        row.push('');
+      } else if ((c === '\r' || c === '\n') && !inQuotes) {
+        if (c === '\r' && next === '\n') {
+          i++;
+        }
+        lines.push(row);
+        row = [''];
+      } else {
+        row[row.length - 1] += c;
+      }
+    }
+    if (row.length > 1 || row[0] !== '') {
+      lines.push(row);
+    }
+    return lines;
+  };
+
+  const handleCSVSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target.result;
+        const rows = parseCSV(text);
+        if (rows.length < 2) {
+          showToast('CSV file is empty or missing data rows.', 'error');
+          return;
+        }
+
+        const headers = rows[0].map(h => h.trim().toLowerCase());
+        const nameIdx = headers.indexOf('name');
+        const catIdx = headers.indexOf('category');
+        const priceIdx = headers.indexOf('price');
+        const unitIdx = headers.indexOf('unit');
+        const stockIdx = headers.indexOf('stock');
+        const minOrderIdx = headers.indexOf('minorder');
+        const skuIdx = headers.indexOf('sku');
+        const descIdx = headers.indexOf('description');
+
+        if (nameIdx === -1 || catIdx === -1 || priceIdx === -1 || stockIdx === -1) {
+          showToast('CSV must contain Name, Category, Price, and Stock columns.', 'error');
+          return;
+        }
+
+        const parsedProducts = [];
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.length < 4 || row.every(val => val.trim() === '')) continue;
+
+          const name = row[nameIdx]?.trim() || '';
+          const category = row[catIdx]?.trim() || 'Other';
+          const price = row[priceIdx]?.trim() || '';
+          const unit = unitIdx !== -1 ? (row[unitIdx]?.trim() || 'kg') : 'kg';
+          const stock = row[stockIdx]?.trim() || '';
+          const minOrder = minOrderIdx !== -1 ? (row[minOrderIdx]?.trim() || '1') : '1';
+          const sku = skuIdx !== -1 ? (row[skuIdx]?.trim() || '') : '';
+          const description = descIdx !== -1 ? (row[descIdx]?.trim() || '') : '';
+
+          parsedProducts.push({
+            name,
+            category,
+            price,
+            unit,
+            stock,
+            minOrder,
+            sku,
+            description,
+            lineNum: i + 1
+          });
+        }
+
+        if (parsedProducts.length === 0) {
+          showToast('No valid product rows found in CSV.', 'error');
+          return;
+        }
+
+        setCsvProducts(parsedProducts);
+        setCsvLogs([]);
+        setCsvProgress(0);
+        setShowCsvModal(true);
+      } catch (err) {
+        showToast('Failed to parse CSV file.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset file input
+  };
+
+  const handleCSVUpload = async () => {
+    setCsvUploading(true);
+    setCsvLogs([]);
+    let successCount = 0;
+    let failCount = 0;
+    const logs = [];
+
+    for (let i = 0; i < csvProducts.length; i++) {
+      const p = csvProducts[i];
+      const lineMsg = `Line ${p.lineNum} ("${p.name}"):`;
+      
+      let sku = p.sku;
+      if (!sku) {
+        const existingList = [...products];
+        let prefix = p.name.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
+        if (!prefix) prefix = 'PROD';
+        const matching = existingList
+          .map(ep => (ep.sku || '').toUpperCase())
+          .filter(esku => esku.startsWith(prefix + '-'));
+        let maxNum = 0;
+        matching.forEach(esku => {
+          const parts = esku.split('-');
+          const numPart = parseInt(parts[1], 10);
+          if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+        });
+        sku = `${prefix}-${String(maxNum + 1).padStart(3, '0')}`;
+      }
+
+      const fd = new FormData();
+      fd.append('name', p.name);
+      fd.append('category', p.category);
+      fd.append('price', p.price);
+      fd.append('unit', p.unit);
+      fd.append('stock', p.stock);
+      fd.append('minOrder', p.minOrder);
+      fd.append('sku', sku);
+      fd.append('description', p.description);
+
+      try {
+        await productService.createProduct(fd);
+        successCount++;
+        logs.push({ type: 'success', text: `${lineMsg} Created successfully.` });
+      } catch (err) {
+        failCount++;
+        const errMsg = err.response?.data?.message || 'Error occurred.';
+        logs.push({ type: 'error', text: `${lineMsg} Failed - ${errMsg}` });
+      }
+
+      setCsvProgress(Math.round(((i + 1) / csvProducts.length) * 100));
+      setCsvLogs([...logs]);
+    }
+
+    setCsvUploading(false);
+    showToast(`Bulk upload finished. ${successCount} succeeded, ${failCount} failed.`, successCount > 0 ? 'success' : 'error');
+    fetchProducts();
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -125,9 +296,19 @@ export default function Inventory() {
           <button className="btn-secondary" onClick={fetchProducts} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem' }}>
             <RefreshCw size={15} /> Refresh
           </button>
+          <button className="btn-secondary" onClick={() => csvInputRef.current?.click()} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem' }}>
+            <Upload size={15} /> Import CSV
+          </button>
           <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => navigate('/dashboard/add-product')}>
             <Plus size={18} /> Add Product
           </button>
+          <input 
+            type="file" 
+            ref={csvInputRef} 
+            accept=".csv" 
+            style={{ display: 'none' }} 
+            onChange={handleCSVSelect} 
+          />
         </div>
       </div>
 
@@ -283,6 +464,74 @@ export default function Inventory() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* CSV Preview and Progress Modal */}
+      {showCsvModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="card" style={{ width: '100%', maxWidth: '640px', padding: '1.75rem', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: 'var(--shadow-xl)', border: '1px solid var(--color-border)', borderRadius: '12px', background: 'white' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Bulk Import Products</h3>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+              Verify product list parsed from CSV file before proceeding with the upload.
+            </p>
+
+            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '1.25rem', border: '1px solid var(--color-border)', borderRadius: 8, padding: '0.5rem', minHeight: '200px' }}>
+              {csvUploading || csvProgress > 0 ? (
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Uploading Progress: {csvProgress}%</div>
+                  <div style={{ width: '100%', height: 10, background: 'var(--color-border)', borderRadius: 5, overflow: 'hidden', marginBottom: '1rem' }}>
+                    <div style={{ width: `${csvProgress}%`, height: '100%', background: 'var(--color-primary)', transition: 'width 0.2s' }}></div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: '200px', overflowY: 'auto', fontSize: '0.8rem' }}>
+                    {csvLogs.map((log, idx) => (
+                      <div key={idx} style={{ color: log.type === 'success' ? '#166534' : '#991B1B', background: log.type === 'success' ? '#DCFCE7' : '#FEE2E2', padding: '0.4rem 0.6rem', borderRadius: 4 }}>
+                        {log.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                  <thead>
+                    <tr style={{ background: 'var(--color-background)', textAlign: 'left' }}>
+                      <th style={{ padding: '0.5rem' }}>Name</th>
+                      <th style={{ padding: '0.5rem' }}>Category</th>
+                      <th style={{ padding: '0.5rem' }}>Price</th>
+                      <th style={{ padding: '0.5rem' }}>Stock</th>
+                      <th style={{ padding: '0.5rem' }}>Unit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {csvProducts.map((p, idx) => (
+                      <tr key={idx} style={{ borderTop: '1px solid var(--color-border)' }}>
+                        <td style={{ padding: '0.5rem', fontWeight: 600 }}>{p.name}</td>
+                        <td style={{ padding: '0.5rem' }}>{p.category}</td>
+                        <td style={{ padding: '0.5rem' }}>£{p.price}</td>
+                        <td style={{ padding: '0.5rem' }}>{p.stock}</td>
+                        <td style={{ padding: '0.5rem' }}>{p.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button type="button" className="btn-secondary" onClick={() => setShowCsvModal(false)} disabled={csvUploading}>
+                {csvProgress === 100 ? 'Close' : 'Cancel'}
+              </button>
+              {csvProgress < 100 && (
+                <button type="button" className="btn-primary" onClick={handleCSVUpload} disabled={csvUploading}>
+                  {csvUploading ? 'Uploading...' : `Upload ${csvProducts.length} Products`}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

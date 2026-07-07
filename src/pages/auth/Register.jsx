@@ -5,6 +5,27 @@ import { useGoogleLogin } from '@react-oauth/google';
 import SEO from '../../components/SEO';
 import { useAuth } from '../../context/AuthContext';
 
+const getPasswordStrength = (pwd) => {
+  if (!pwd) return { score: 0, label: 'None', color: '#CBD5E1' };
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[a-z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  
+  score = Math.min(score, 4);
+
+  const levels = [
+    { label: 'Very Weak', color: '#EF4444' },
+    { label: 'Weak', color: '#F97316' },
+    { label: 'Fair', color: '#EAB308' },
+    { label: 'Good', color: '#22C55E' },
+    { label: 'Strong', color: '#16A34A' }
+  ];
+  return { score, ...levels[score] };
+};
+
 export default function Register() {
   const navigate    = useNavigate();
   const { register, loginWithGoogle } = useAuth();
@@ -150,6 +171,36 @@ export default function Register() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            
+            {/* Password Strength Meter */}
+            {password && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: '#E2E8F0', marginBottom: '0.25rem' }}>
+                  <span>Password Strength:</span>
+                  <span style={{ fontWeight: 700, color: getPasswordStrength(password).color }}>
+                    {getPasswordStrength(password).label}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.25rem', height: '4px' }}>
+                  {[0, 1, 2, 3].map((index) => {
+                    const strength = getPasswordStrength(password);
+                    const isActive = index < strength.score;
+                    return (
+                      <div 
+                        key={index} 
+                        style={{ 
+                          flex: 1, 
+                          height: '100%', 
+                          background: isActive ? strength.color : 'rgba(255, 255, 255, 0.2)', 
+                          borderRadius: '2px',
+                          transition: 'background 0.3s'
+                        }} 
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {error && (
