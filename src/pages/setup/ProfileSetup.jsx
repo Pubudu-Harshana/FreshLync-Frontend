@@ -67,6 +67,16 @@ export default function ProfileSetup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate phone number format
+    const phoneVal = formData.phoneNumber.trim();
+    const phoneRegex = /^\+?[0-9\s\-()]+$/;
+    const digitCount = phoneVal.replace(/\D/g, '').length;
+    if (!phoneRegex.test(phoneVal) || digitCount < 7 || digitCount > 15) {
+      showToast('Please enter a valid phone number (between 7 and 15 digits).', 'error');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload = new FormData();

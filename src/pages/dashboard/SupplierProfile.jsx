@@ -97,6 +97,16 @@ export default function SupplierProfile() {
     setLoading(true);
     try {
       if (tab === 'business') {
+        if (form.phone && form.phone.trim()) {
+          const phoneVal = form.phone.trim();
+          const phoneRegex = /^\+?[0-9\s\-()]+$/;
+          const digitCount = phoneVal.replace(/\D/g, '').length;
+          if (!phoneRegex.test(phoneVal) || digitCount < 7 || digitCount > 15) {
+            showToast('Please enter a valid phone number (between 7 and 15 digits).', 'error');
+            setLoading(false);
+            return;
+          }
+        }
         const fd = new FormData();
         if (user?.role !== 'admin') {
           fd.append('company', form.businessName);

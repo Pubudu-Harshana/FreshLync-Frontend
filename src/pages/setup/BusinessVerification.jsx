@@ -96,6 +96,23 @@ export default function BusinessVerification() {
       return;
     }
 
+    // Validate phone number formats
+    const phoneRegex = /^\+?[0-9\s\-()]+$/;
+
+    const busPhoneVal = formData.businessPhone.trim();
+    const busDigitCount = busPhoneVal.replace(/\D/g, '').length;
+    if (!phoneRegex.test(busPhoneVal) || busDigitCount < 7 || busDigitCount > 15) {
+      showToast('Please enter a valid business phone number (between 7 and 15 digits).', 'error');
+      return;
+    }
+
+    const conPhoneVal = formData.contactPhone.trim();
+    const conDigitCount = conPhoneVal.replace(/\D/g, '').length;
+    if (!phoneRegex.test(conPhoneVal) || conDigitCount < 7 || conDigitCount > 15) {
+      showToast('Please enter a valid representative phone number (between 7 and 15 digits).', 'error');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const fd = new FormData();
