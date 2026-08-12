@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, RefreshCw, Layers, ExternalLink } from 'lucide-react';
+import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, RefreshCw, Layers, ExternalLink, Barcode as BarcodeIcon } from 'lucide-react';
+
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { orderService } from '../../services/orderService';
 import { useNotification } from '../../context/NotificationContext';
+import BarcodeDisplay from '../../components/BarcodeDisplay';
+import BarcodeScannerModal from '../../components/BarcodeScannerModal';
+
 
 const getProductImageUrl = (item) => {
   const imgPath = item.image || item.img || item.imagePath;
@@ -34,6 +38,7 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [expandedId, setExpandedId]     = useState(null);
   const [savingStatus, setSavingStatus] = useState({});
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -110,10 +115,14 @@ export default function AdminOrders() {
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Monitor and update status for all client orders across the platform.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn-primary" onClick={() => setIsScannerOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem' }}>
+            <BarcodeIcon size={18} /> 📷 Scan Order Barcode
+          </button>
           <button className="btn-secondary" onClick={fetchOrders} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem' }}><RefreshCw size={15} /> Refresh</button>
           <button className="btn-secondary" onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Download size={16} /> Export CSV</button>
         </div>
       </div>
+
 
       {/* Status Filter Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
@@ -306,13 +315,15 @@ export default function AdminOrders() {
                           <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '1rem', alignItems: 'center' }}>
                             {/* Timeline & Resolution */}
                             <div style={{ background: 'white', borderRadius: 8, padding: '1rem', border: '1px solid var(--color-border)' }}>
-                              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Order Timeline Log</div>
-                              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Order Timeline & Barcode Tracking</div>
+                              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
                                 <span style={{ color: '#047857', fontWeight: 700 }}>✓ Placed</span>
                                 <span style={{ color: o.status !== 'Pending' ? '#047857' : 'inherit', fontWeight: o.status !== 'Pending' ? 700 : 'inherit' }}>→ Paid</span>
-                                <span style={{ color: o.status === 'In Transit' || o.status === 'Delivered' ? '#047857' : 'inherit', fontWeight: o.status === 'In Transit' || o.status === 'Delivered' ? 700 : 'inherit' }}>→ Out for Delivery</span>
-                                <span style={{ color: o.status === 'Delivered' ? '#047857' : 'inherit', fontWeight: o.status === 'Delivered' ? 700 : 'inherit' }}>→ Delivered</span>
+                                <span style={{ color: o.status === 'In Transit' || o.status === 'Delivered' ? '#047857' : 'inherit', fontWeight: o.status === 'In Transit' || o.status === 'Delivered' ? 700 : 'inherit' }}>→ Out for Delivery (Barcode Scan 1)</span>
+                                <span style={{ color: o.status === 'Delivered' ? '#047857' : 'inherit', fontWeight: o.status === 'Delivered' ? 700 : 'inherit' }}>→ Delivered (Barcode Scan 2)</span>
                               </div>
+
+                              <BarcodeDisplay value={o.trackingBarcode} orderId={orderId} status={o.status} />
                             </div>
 
                             {/* Controls */}
@@ -365,6 +376,15 @@ export default function AdminOrders() {
           </table>
         </div>
       )}
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={fetchOrders}
+        availableOrders={orders}
+      />
     </div>
   );
 }
+

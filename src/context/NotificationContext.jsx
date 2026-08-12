@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import Toast from '../components/common/Toast';
 import Modal from '../components/common/Modal';
+import { socket } from '../services/socket';
 import '../components/common/Notification.css';
 
 const NotificationContext = createContext(null);
@@ -14,9 +15,25 @@ export function NotificationProvider({ children }) {
     setToasts((prev) => [...prev, { id, message, type, duration }]);
   }, []);
 
+  // WebSockets Real-Time Push Alerts Listener
+  useEffect(() => {
+    const handleStatusUpdate = (data) => {
+      if (data && data.message) {
+        showToast(`⚡ REAL-TIME ALERT: ${data.message}`, 'success', 6000);
+      }
+    };
+
+    socket.on('order_status_updated', handleStatusUpdate);
+
+    return () => {
+      socket.off('order_status_updated', handleStatusUpdate);
+    };
+  }, [showToast]);
+
   const dismissToast = useCallback((id) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
+
 
   const showConfirm = useCallback(({
     title = 'Are you sure?',

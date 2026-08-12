@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, RefreshCw } from 'lucide-react';
+import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, RefreshCw, Barcode as BarcodeIcon } from 'lucide-react';
+
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { orderService } from '../../services/orderService';
 import { useNotification } from '../../context/NotificationContext';
+import BarcodeDisplay from '../../components/BarcodeDisplay';
+import BarcodeScannerModal from '../../components/BarcodeScannerModal';
 
 const STATUS_TABS = ['All', 'Pending', 'In Transit', 'Delivered', 'Cancelled'];
 const STATUS_STYLE = {
@@ -20,6 +23,8 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [expandedId, setExpandedId]     = useState(null);
   const [savingStatus, setSavingStatus] = useState({});
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -72,10 +77,14 @@ export default function Orders() {
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Track and manage incoming marketplace orders.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn-primary" onClick={() => setIsScannerOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem' }}>
+            <BarcodeIcon size={18} /> 📷 Scan Order Barcode
+          </button>
           <button className="btn-secondary" onClick={fetchOrders} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem' }}><RefreshCw size={15} /> Refresh</button>
           <button className="btn-secondary" onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Download size={16} /> Export CSV</button>
         </div>
       </div>
+
 
       {/* Status Filter Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
@@ -179,15 +188,19 @@ export default function Orders() {
                             </div>
                           </div>
 
-                          {/* Update Status */}
-                          <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Update status:</span>
-                            {['Pending', 'In Transit', 'Delivered'].map(s => (
-                              <button key={s} onClick={(e) => { e.stopPropagation(); handleStatusChange(o._id, s); }} disabled={savingStatus[o._id] || o.status === s}
-                                style={{ padding: '0.3rem 0.875rem', borderRadius: 999, border: `1px solid ${STATUS_STYLE[s].text}`, background: o.status === s ? STATUS_STYLE[s].bg : 'white', color: STATUS_STYLE[s].text, fontSize: '0.8rem', fontWeight: 600, cursor: o.status === s ? 'default' : 'pointer', opacity: savingStatus[o._id] ? 0.6 : 1 }}>
-                                {savingStatus[o._id] ? '...' : s}
-                              </button>
-                            ))}
+                          <div style={{ marginTop: '1rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <BarcodeDisplay value={o.trackingBarcode} orderId={orderId} status={o.status} />
+
+                            {/* Update Status */}
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Manual status update:</span>
+                              {['Pending', 'In Transit', 'Delivered'].map(s => (
+                                <button key={s} onClick={(e) => { e.stopPropagation(); handleStatusChange(o._id, s); }} disabled={savingStatus[o._id] || o.status === s}
+                                  style={{ padding: '0.3rem 0.875rem', borderRadius: 999, border: `1px solid ${STATUS_STYLE[s].text}`, background: o.status === s ? STATUS_STYLE[s].bg : 'white', color: STATUS_STYLE[s].text, fontSize: '0.8rem', fontWeight: 600, cursor: o.status === s ? 'default' : 'pointer', opacity: savingStatus[o._id] ? 0.6 : 1 }}>
+                                  {savingStatus[o._id] ? '...' : s}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -199,6 +212,15 @@ export default function Orders() {
           </table>
         </div>
       )}
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={fetchOrders}
+        availableOrders={orders}
+      />
     </div>
   );
 }
+

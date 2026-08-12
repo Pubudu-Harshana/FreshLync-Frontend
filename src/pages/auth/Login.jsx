@@ -49,6 +49,8 @@ export default function Login() {
       const user = await login(email, password);
       if (!user.phone) {
         navigate('/setup/profile');
+      } else if (user.role === 'driver') {
+        navigate('/driver');
       } else if (user.role === 'buyer') {
         navigate('/marketplace');
       } else if (user.role === 'admin') {
@@ -56,6 +58,7 @@ export default function Login() {
       } else {
         navigate('/dashboard');
       }
+
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {

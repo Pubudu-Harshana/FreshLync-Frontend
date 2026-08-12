@@ -43,9 +43,9 @@ export default function Register() {
     setLoading(true);
     try {
       // Map UI role labels to backend enum values
-      const roleMap = { Customer: 'buyer', Supplier: 'supplier' };
+      const roleMap = { Customer: 'buyer', Supplier: 'supplier', Driver: 'driver' };
       const user = await register({ name: fullName, email, password, role: roleMap[role] || 'buyer' });
-      navigate('/setup/profile');
+      navigate(roleMap[role] === 'driver' ? '/driver' : '/setup/profile');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -58,31 +58,26 @@ export default function Register() {
       setError('');
       setLoading(true);
       try {
-        const user = await loginWithGoogle(tokenResponse.access_token, role === 'Customer' ? 'buyer' : 'supplier');
-        if (!user.phone) {
-          navigate('/setup/profile');
-        } else if (user.role === 'buyer') {
-          navigate('/marketplace');
-        } else if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
+        await loginWithGoogle(tokenResponse.access_token);
+        navigate('/setup/profile');
       } catch (err) {
-        setError(err.response?.data?.message || 'Google Sign-up failed. Please try again.');
+        setError(err.response?.data?.message || 'Google registration failed.');
       } finally {
         setLoading(false);
       }
     },
-    onError: () => {
-      setError('Google Sign-up was unsuccessful.');
-    }
+    onError: () => setError('Google Registration Was Cancelled.')
   });
 
   return (
     <div className="auth-page-layout" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000)' }}>
-      <SEO title="Request Access" />
+      <SEO title="Create Account — FreshLync" />
+
       
+      {/* Background Graphic elements */}
+      <div className="auth-bg-ambient-blob blob-top-left" />
+      <div className="auth-bg-ambient-blob blob-bottom-right" />
+
       {/* Left Side - Copy */}
       <div className="auth-left-content">
         <Link to="/" style={{ display: 'inline-block' }}>
@@ -112,7 +107,7 @@ export default function Register() {
           <div className="auth-input-group">
             <label className="auth-input-label-white">Account Type</label>
             <div className="role-segment-control-glass">
-              {['Customer', 'Supplier'].map(r => (
+              {['Customer', 'Supplier', 'Driver'].map(r => (
                 <button 
                   key={r}
                   type="button"

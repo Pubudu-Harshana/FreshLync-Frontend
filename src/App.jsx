@@ -56,6 +56,8 @@ const Support           = lazy(() => import('./pages/dashboard/Support'));
 const AddProduct        = lazy(() => import('./pages/dashboard/AddProduct'));
 const EditProduct       = lazy(() => import('./pages/dashboard/EditProduct'));
 const SupplierProfile   = lazy(() => import('./pages/dashboard/SupplierProfile'));
+const DriverDashboard   = lazy(() => import('./pages/dashboard/DriverDashboard'));
+
 
 // Marketplace (Customer)
 const MarketplaceHome      = lazy(() => import('./pages/marketplace/MarketplaceHome'));
@@ -164,7 +166,11 @@ function App() {
                       <Route path="analytics"        element={<MarketplaceAnalytics />} />
                     </Route>
 
+                    {/* Driver Dashboard */}
+                    <Route path="/driver" element={<ProtectedRoute><DriverDashboard /></ProtectedRoute>} />
+
                     {/* Redirects */}
+
                     <Route path="/account/settings" element={<Navigate to="/setup/profile" replace />} />
                     <Route path="/orders/track"     element={<Navigate to="/marketplace/shipments" replace />} />
 

@@ -54,4 +54,10 @@ export const orderService = {
     const res = await api.put(`/orders/${id}/reupload-slip`, { paymentSlip });
     return res.data;
   },
+
+  async scanOrderBarcode(barcode) {
+    const res = await api.post('/orders/scan-barcode', { barcode });
+    return res.data;
+  },
 };
+
