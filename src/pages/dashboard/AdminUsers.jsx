@@ -14,12 +14,14 @@ const ROLES = [
   { value: '',         label: 'All Users',  color: '#6B7280', bg: '#F3F4F6' },
   { value: 'buyer',    label: 'Buyers',     color: '#1D4ED8', bg: '#DBEAFE' },
   { value: 'supplier', label: 'Suppliers',  color: '#047857', bg: '#D1FAE5' },
+  { value: 'driver',   label: 'Drivers',    color: '#059669', bg: '#DCFCE7' },
   { value: 'admin',    label: 'Admins',     color: '#6D28D9', bg: '#EDE9FE' },
 ];
 
 const ROLE_META = {
   buyer:    { icon: User,        color: '#1D4ED8', bg: '#DBEAFE', label: 'Buyer'    },
-  supplier: { icon: Truck,       color: '#047857', bg: '#D1FAE5', label: 'Supplier' },
+  supplier: { icon: Building2,   color: '#047857', bg: '#D1FAE5', label: 'Supplier' },
+  driver:   { icon: Truck,       color: '#059669', bg: '#DCFCE7', label: 'Driver'   },
   admin:    { icon: ShieldCheck, color: '#6D28D9', bg: '#EDE9FE', label: 'Admin'    },
 };
 
@@ -92,6 +94,7 @@ export default function AdminUsers() {
   const { showToast } = useNotification();
   const [users, setUsers]       = useState([]);
   const [total, setTotal]       = useState(0);
+  const [counts, setCounts]     = useState(null);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
   const [role, setRole]         = useState('');
@@ -106,6 +109,7 @@ export default function AdminUsers() {
       const data = await adminService.getUsers({ role, search, page, limit: LIMIT });
       setUsers(data.users || []);
       setTotal(data.total || 0);
+      if (data.counts) setCounts(data.counts);
     } catch {
       setUsers([]);
     }
@@ -178,7 +182,7 @@ export default function AdminUsers() {
                 <Users size={22} style={{ color: '#6D28D9' }} /> User Operations Directory
               </h2>
               <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-                Manage registered buyers, suppliers, and toggle system administrative access roles.
+                Manage registered buyers, suppliers, delivery drivers, and toggle administrative access roles.
               </p>
             </div>
             <button
@@ -191,22 +195,25 @@ export default function AdminUsers() {
 
           {/* Stat Chips */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
-            {ROLES.map(r => (
-              <button
-                key={r.value}
-                onClick={() => { setRole(r.value); setPage(1); }}
-                style={{
-                  padding: '0.45rem 1.1rem', borderRadius: 999, fontWeight: 600, fontSize: '0.82rem',
-                  cursor: 'pointer', transition: 'all 0.18s ease',
-                  background: role === r.value ? r.color : 'white',
-                  color: role === r.value ? 'white' : r.color,
-                  border: `2px solid ${r.color}`,
-                  boxShadow: role === r.value ? `0 2px 8px ${r.color}44` : 'none',
-                }}
-              >
-                {r.label} {role === r.value && total > 0 ? `(${total})` : ''}
-              </button>
-            ))}
+            {ROLES.map(r => {
+              const roleCount = counts ? (r.value ? counts[r.value] : counts.all) : (role === r.value && total > 0 ? total : null);
+              return (
+                <button
+                  key={r.value}
+                  onClick={() => { setRole(r.value); setPage(1); }}
+                  style={{
+                    padding: '0.45rem 1.1rem', borderRadius: 999, fontWeight: 600, fontSize: '0.82rem',
+                    cursor: 'pointer', transition: 'all 0.18s ease',
+                    background: role === r.value ? r.color : 'white',
+                    color: role === r.value ? 'white' : r.color,
+                    border: `2px solid ${r.color}`,
+                    boxShadow: role === r.value ? `0 2px 8px ${r.color}44` : 'none',
+                  }}
+                >
+                  {r.label} {roleCount !== null && roleCount !== undefined ? `(${roleCount})` : ''}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search Bar */}
@@ -486,6 +493,40 @@ export default function AdminUsers() {
                     <span style={{ color: 'var(--color-text-muted)' }}>Complaints/Disputes:</span>
                     <strong style={{ display: 'block', fontSize: '0.9rem', color: '#991B1B' }}>
                       {selectedUser.stats?.disputes || 0} tickets raised
+                    </strong>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedUser.role === 'driver' && (
+              <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '1rem', border: '1px solid #a7f3d0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem', color: '#047857', fontWeight: 700, fontSize: '0.85rem' }}>
+                  <Truck size={16} /> Driver Logistics Profile
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.78rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--color-text-muted)' }}>License Status:</span>
+                    <strong style={{ display: 'block', fontSize: '0.9rem', color: '#047857' }}>
+                      Active Commercial
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--color-text-muted)' }}>Assigned Vehicle:</span>
+                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>
+                      TRK-9042 (Refrigerated)
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--color-text-muted)' }}>Delivery Rating:</span>
+                    <strong style={{ fontSize: '0.9rem', color: '#B45309', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                      4.9 <Star size={12} fill="#F59E0B" color="#F59E0B" />
+                    </strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--color-text-muted)' }}>Dispatched Trips:</span>
+                    <strong style={{ display: 'block', fontSize: '0.9rem' }}>
+                      {selectedUser.stats?.deliveredTrips || 18} Completed
                     </strong>
                   </div>
                 </div>

@@ -20,8 +20,11 @@ export default function Login() {
       setError('');
       setLoading(true);
       try {
-        const user = await loginWithGoogle(tokenResponse.access_token, role === 'Customer' ? 'buyer' : 'supplier');
-        if (!user.phone) {
+        const targetRole = role === 'Customer' ? 'buyer' : role === 'Driver' ? 'driver' : 'supplier';
+        const user = await loginWithGoogle(tokenResponse.access_token, targetRole);
+        if (user.role === 'driver') {
+          navigate('/driver');
+        } else if (!user.phone) {
           navigate('/setup/profile');
         } else if (user.role === 'buyer') {
           navigate('/marketplace');
@@ -47,10 +50,10 @@ export default function Login() {
     setLoading(true);
     try {
       const user = await login(email, password);
-      if (!user.phone) {
-        navigate('/setup/profile');
-      } else if (user.role === 'driver') {
+      if (user.role === 'driver') {
         navigate('/driver');
+      } else if (!user.phone) {
+        navigate('/setup/profile');
       } else if (user.role === 'buyer') {
         navigate('/marketplace');
       } else if (user.role === 'admin') {
@@ -99,7 +102,7 @@ export default function Login() {
           <div className="auth-input-group">
             <label className="auth-input-label-white">Account Type</label>
             <div className="role-segment-control-glass">
-              {['Customer', 'Supplier'].map(r => (
+              {['Customer', 'Supplier', 'Driver'].map(r => (
                 <button
                   key={r}
                   type="button"
