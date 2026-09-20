@@ -529,7 +529,7 @@ export default function Landing() {
           </a>
           <div className={`landing-nav-links ${isMobileMenuOpen ? 'landing-mobile-open' : ''}`}>
             <a href="#top"        onClick={(e) => { handleJumpTo('top')(e); setIsMobileMenuOpen(false); }} className="active">Home</a>
-            {!(user?.role === 'supplier') && <a href="#marketplace" onClick={(e) => { handleJumpTo('marketplace')(e); setIsMobileMenuOpen(false); }}>Marketplace</a>}
+            {!(user?.role === 'supplier' || user?.role === 'admin') && <a href="#marketplace" onClick={(e) => { handleJumpTo('marketplace')(e); setIsMobileMenuOpen(false); }}>Marketplace</a>}
             <a href="#about"      onClick={(e) => { handleJumpTo('about')(e); setIsMobileMenuOpen(false); }}>About</a>
             <a href="#contact"    onClick={(e) => { handleJumpTo('contact')(e); setIsMobileMenuOpen(false); }}>Contact</a>
           </div>

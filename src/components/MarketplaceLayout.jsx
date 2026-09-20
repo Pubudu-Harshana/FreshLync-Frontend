@@ -31,6 +31,9 @@ export default function MarketplaceLayout() {
   if (user && user.role === 'supplier') {
     return <Navigate to="/dashboard" replace />;
   }
+  if (user && user.role === 'admin') {
+    return <Navigate to="/admin/inventory" replace />;
+  }
 
   const navItemStyle = ({ isActive }) => ({
     display: 'flex',
