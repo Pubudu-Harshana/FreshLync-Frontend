@@ -228,7 +228,7 @@ export default function ProductDetails() {
   const [submitMsg, setSubmitMsg] = useState('');
   const [submitError, setSubmitError] = useState('');
 
-  const isRealProduct = id && id.match(/^[0-9a-fA-F]{24}$/);
+  const isRealProduct = Boolean(id && id.match(/^[0-9a-fA-F]{24}$/));
 
   // ── Load product ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -246,7 +246,7 @@ export default function ProductDetails() {
               priceNum: data.sellingPrice || data.displayPrice || data.price || 0,
               img: getImageUrl(data.image),
               imagePath: data.image || '',
-              images: data.image ? [getImageUrl(data.image)] : [],
+              images: (Array.isArray(data.images) && data.images.length > 0) ? data.images.map(img => getImageUrl(img)) : (data.image ? [getImageUrl(data.image)] : []),
               desc: data.description || 'No description available.',
               stock: data.stock === 0 ? 'Out of Stock' : (data.stock < 50 ? 'Low Stock' : 'In Stock'),
               stockQty: data.stock || 0,
