@@ -25,20 +25,12 @@ export default function DashboardLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  if (loading) {
-    return <LoadingSpinner fullPage message="Authenticating session..." />;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
   // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const fetchNotifs = async () => {
+  const fetchNotifs = useCallback(async () => {
     try {
       const raw = await analyticsService.getNotifications();
       const formatted = raw.map(n => ({
@@ -54,14 +46,23 @@ export default function DashboardLayout() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchNotifs();
-    // Poll notifications every 5 seconds for real-time updates
-    const interval = setInterval(fetchNotifs, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    if (user && !loading) {
+      fetchNotifs();
+      const interval = setInterval(fetchNotifs, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user, loading, fetchNotifs]);
+
+  if (loading) {
+    return <LoadingSpinner fullPage message="Authenticating session..." />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   const handleMarkAllRead = async () => {
     try {

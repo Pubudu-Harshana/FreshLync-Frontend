@@ -25,6 +25,32 @@ export default function AdminLayout() {
   const [notifications, setNotifications] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (user && !loading && user.role === 'admin') {
+      const fetchNotifs = async () => {
+        try {
+          const notifs = await adminService.getNotifications();
+          setNotifications(notifs);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      
+      fetchNotifs();
+      
+      // Poll notifications every 5 seconds for real-time updates
+      const interval = setInterval(fetchNotifs, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user, loading]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   if (loading) {
     return <LoadingSpinner fullPage message="Verifying Admin session..." />;
   }
@@ -32,30 +58,6 @@ export default function AdminLayout() {
   if (!user || user.role !== 'admin') {
     return <Navigate to="/login" replace />;
   }
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    const fetchNotifs = async () => {
-      try {
-        const notifs = await adminService.getNotifications();
-        setNotifications(notifs);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    
-    fetchNotifs();
-    
-    // Poll notifications every 5 seconds for real-time updates
-    const interval = setInterval(fetchNotifs, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleMarkAllRead = async () => {
     try {
