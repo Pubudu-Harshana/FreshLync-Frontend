@@ -11,6 +11,7 @@ import {
 import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingReviews from '../components/LandingReviews';
+import ChatbotWidget from '../components/ChatbotWidget';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../services/api';
 
@@ -1150,6 +1151,9 @@ export default function Landing() {
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
+
+      {/* AI Chatbot Widget (accessible without login) */}
+      <ChatbotWidget />
     </div>
   );
 }
