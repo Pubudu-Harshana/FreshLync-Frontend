@@ -232,12 +232,13 @@ export default function ProductDetails() {
 
   // ── Load product ────────────────────────────────────────────────────────────
   useEffect(() => {
+    let isMounted = true;
     const loadProduct = async () => {
       setLoading(true);
       if (isRealProduct) {
         try {
-          const data = await productService.getProduct(id);
-          if (data) {
+          const data = await productService.getProduct(id).catch(() => null);
+          if (data && isMounted) {
             const mapped = {
               id: data._id,
               name: data.name,
@@ -266,39 +267,53 @@ export default function ProductDetails() {
         }
       }
       
-      const mock = PRODUCTS.find(p => p.id === id);
-      if (mock && user?.role === 'buyer') {
-        setProduct({ ...mock, supplier: 'FreshLync' });
-      } else {
-        setProduct(mock || null);
+      if (isMounted) {
+        const mock = PRODUCTS.find(p => p.id === id);
+        if (mock && user?.role === 'buyer') {
+          setProduct({ ...mock, supplier: 'FreshLync' });
+        } else {
+          setProduct(mock || null);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     loadProduct();
-  }, [id, isRealProduct, user]);
+    return () => { isMounted = false; };
+  }, [id, isRealProduct]);
+
+  // Update supplier label if user role updates without re-triggering full loading state
+  useEffect(() => {
+    if (product && user?.role === 'buyer' && product.supplier !== 'FreshLync') {
+      setProduct(prev => prev ? { ...prev, supplier: 'FreshLync' } : prev);
+    }
+  }, [user]);
 
   // ── Load reviews + stats for real products ──────────────────────────────────
   useEffect(() => {
     if (!isRealProduct) return;
 
+    let isMounted = true;
     const loadReviewData = async () => {
       try {
         const [statsData, reviewsData] = await Promise.all([
-          reviewService.getProductReviewStats(id),
-          reviewService.getProductReviews(id, 1, 5),
+          reviewService.getProductReviewStats(id).catch(() => ({ average: 0, total: 0, distribution: {} })),
+          reviewService.getProductReviews(id, 1, 5).catch(() => ({ reviews: [], pages: 1 })),
         ]);
-        setReviewStats(statsData);
-        setReviews(reviewsData.reviews || []);
-        setReviewPages(reviewsData.pages || 1);
-        setReviewPage(1);
+        if (isMounted) {
+          setReviewStats(statsData || { average: 0, total: 0, distribution: {} });
+          setReviews(reviewsData?.reviews || []);
+          setReviewPages(reviewsData?.pages || 1);
+          setReviewPage(1);
+        }
       } catch (err) {
         console.error('Failed to load reviews:', err);
       }
     };
 
     loadReviewData();
-  }, [id]);
+    return () => { isMounted = false; };
+  }, [id, isRealProduct]);
 
   // ── Check if buyer is eligible to review this product ───────────────────────
   useEffect(() => {
