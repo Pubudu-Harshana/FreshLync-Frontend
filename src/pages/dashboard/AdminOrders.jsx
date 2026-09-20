@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Download, ChevronDown, ChevronUp, Package, MapPin, Calendar, User, RefreshCw, Layers, ExternalLink, Barcode as BarcodeIcon } from 'lucide-react';
 
 import SEO from '../../components/SEO';
@@ -33,9 +34,11 @@ const STATUS_STYLE = {
 
 export default function AdminOrders() {
   const { showToast, showConfirm } = useNotification();
+  const [searchParams]              = useSearchParams();
+  const initialStatus               = searchParams.get('status') || 'All';
   const [orders, setOrders]         = useState([]);
   const [loading, setLoading]       = useState(true);
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [expandedId, setExpandedId]     = useState(null);
   const [savingStatus, setSavingStatus] = useState({});
   const [isScannerOpen, setIsScannerOpen] = useState(false);

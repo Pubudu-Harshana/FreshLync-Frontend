@@ -272,18 +272,18 @@ export default function AdminDashboardOverview() {
 
   // Overview Tab KPIs
   const kpis = [
-    { label: 'Total Orders', value: stats?.totalOrders || 0, icon: Truck, bg: '#E0E7FF', color: '#312E81', badge: 'Active' },
-    { label: 'Total Customers', value: stats?.totalCustomers || 0, icon: Users, bg: '#DBEAFE', color: '#1E40AF', badge: 'Active' },
-    { label: 'Total Suppliers', value: stats?.totalSuppliers || 0, icon: Building, bg: '#D1FAE5', color: '#065F46', badge: 'Verified' },
-    { label: 'Platform Profit', value: `£${Number(stats?.platformProfit || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, icon: DollarSign, bg: '#F3E8FF', color: '#6827B0', badge: `${stats?.margin || 15}% Margin` },
-    { label: 'Orders Today', value: stats?.ordersToday || 0, icon: List, bg: '#FFF1F2', color: '#9F1239', badge: 'New' },
-    { label: 'Pending Orders', value: stats?.pendingOrders || 0, icon: Clock, bg: '#FEF3C7', color: '#92400E', badge: 'In Queue' },
-    { label: 'Completed Orders', value: stats?.completedOrders || 0, icon: CheckCircle2, bg: '#DCFCE7', color: '#166534', badge: 'Delivered' },
-    { label: 'Cancelled Orders', value: stats?.cancelledOrders || 0, icon: ShieldAlert, bg: '#FEE2E2', color: '#991B1B', badge: 'Flagged' },
-    { label: 'Total Products Listed', value: stats?.totalProducts || 0, icon: Package, bg: '#E0F2FE', color: '#0369A1', badge: 'Catalog' },
-    { label: 'New Suppliers (Month)', value: stats?.newSuppliersThisMonth || 0, icon: Sparkles, bg: '#F0FDF4', color: '#15803D', badge: 'Growth' },
-    { label: 'Revenue (Total GMV)', value: `£${Number(stats?.revenueOverview || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, icon: DollarSign, bg: '#ECFDF5', color: '#047857', badge: '+12.5%' },
-    { label: 'Platform Growth Rate', value: `${stats?.platformGrowthRate || 0}%`, icon: TrendingUp, bg: '#EFF6FF', color: '#1D4ED8', badge: 'Monthly' },
+    { label: 'Total Orders', value: stats?.totalOrders || 0, icon: Truck, bg: '#E0E7FF', color: '#312E81', badge: 'Active', path: '/admin/orders' },
+    { label: 'Total Customers', value: stats?.totalCustomers || 0, icon: Users, bg: '#DBEAFE', color: '#1E40AF', badge: 'Active', path: '/admin/users?role=buyer' },
+    { label: 'Total Suppliers', value: stats?.totalSuppliers || 0, icon: Building, bg: '#D1FAE5', color: '#065F46', badge: 'Verified', path: '/admin/users?role=supplier' },
+    { label: 'Platform Profit', value: `£${Number(stats?.platformProfit || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, icon: DollarSign, bg: '#F3E8FF', color: '#6827B0', badge: `${stats?.margin || 15}% Margin`, action: () => document.getElementById('platform-charts')?.scrollIntoView({ behavior: 'smooth' }) },
+    { label: 'Orders Today', value: stats?.ordersToday || 0, icon: List, bg: '#FFF1F2', color: '#9F1239', badge: 'New', path: '/admin/orders' },
+    { label: 'Pending Orders', value: stats?.pendingOrders || 0, icon: Clock, bg: '#FEF3C7', color: '#92400E', badge: 'In Queue', path: '/admin/orders?status=Pending' },
+    { label: 'Completed Orders', value: stats?.completedOrders || 0, icon: CheckCircle2, bg: '#DCFCE7', color: '#166534', badge: 'Delivered', path: '/admin/orders?status=Delivered' },
+    { label: 'Cancelled Orders', value: stats?.cancelledOrders || 0, icon: ShieldAlert, bg: '#FEE2E2', color: '#991B1B', badge: 'Flagged', path: '/admin/orders?status=Cancelled' },
+    { label: 'Total Products Listed', value: stats?.totalProducts || 0, icon: Package, bg: '#E0F2FE', color: '#0369A1', badge: 'Catalog', path: '/admin/inventory' },
+    { label: 'New Suppliers (Month)', value: stats?.newSuppliersThisMonth || 0, icon: Sparkles, bg: '#F0FDF4', color: '#15803D', badge: 'Growth', path: '/admin/verification' },
+    { label: 'Revenue (Total GMV)', value: `£${Number(stats?.revenueOverview || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, icon: DollarSign, bg: '#ECFDF5', color: '#047857', badge: '+12.5%', action: () => document.getElementById('platform-charts')?.scrollIntoView({ behavior: 'smooth' }) },
+    { label: 'Platform Growth Rate', value: `${stats?.platformGrowthRate || 0}%`, icon: TrendingUp, bg: '#EFF6FF', color: '#1D4ED8', badge: 'Monthly', action: () => setActiveTab('prediction') },
   ];
 
   return (
@@ -338,15 +338,43 @@ export default function AdminDashboardOverview() {
           {/* KPI grid */}
           <div className="responsive-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
             {kpis.map((k, i) => (
-              <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.25rem', boxShadow: 'var(--shadow-sm)' }}>
+              <div 
+                key={i} 
+                className="card" 
+                onClick={() => k.path ? navigate(k.path) : k.action?.()}
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  justify: 'space-between', 
+                  padding: '1.25rem', 
+                  boxShadow: 'var(--shadow-sm)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+                  userSelect: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-3px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                  e.currentTarget.style.borderColor = k.color;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                  e.currentTarget.style.borderColor = 'var(--color-border)';
+                }}
+                title={`Click to view detailed ${k.label}`}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 8, background: k.bg, display: 'flex', alignItems: 'center', justifySelf: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: k.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <k.icon size={18} style={{ color: k.color }} />
                   </div>
                   <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: 999, background: k.bg, color: k.color }}>{k.badge}</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{k.label}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{k.label}</span>
+                    <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>→</span>
+                  </div>
                   <div style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.5px' }}>{k.value}</div>
                 </div>
               </div>
@@ -356,7 +384,7 @@ export default function AdminDashboardOverview() {
           {/* Charts & Notifications Side-by-Side */}
           <div className="responsive-split" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', flexWrap: 'wrap' }}>
             {/* Charts Card */}
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div id="platform-charts" className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TrendingUp size={18} /> Platform Performance Charts</h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Active Weekly</span>

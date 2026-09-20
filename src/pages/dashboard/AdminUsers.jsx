@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search, Users, CheckCircle, XCircle, RefreshCw,
   ShieldCheck, Truck, User, Crown, Filter, MoreVertical,
@@ -92,12 +93,14 @@ function Avatar({ name, size = 38 }) {
 
 export default function AdminUsers() {
   const { showToast } = useNotification();
+  const [searchParams]          = useSearchParams();
+  const initialRole             = searchParams.get('role') || '';
   const [users, setUsers]       = useState([]);
   const [total, setTotal]       = useState(0);
   const [counts, setCounts]     = useState(null);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
-  const [role, setRole]         = useState('');
+  const [role, setRole]         = useState(initialRole);
   const [page, setPage]         = useState(1);
   const [verifying, setVerifying] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
