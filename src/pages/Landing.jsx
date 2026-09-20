@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Lenis from 'lenis';
 import {
   ArrowRight, BarChart3, CheckCircle2, Clock3, MapPinned,
   Package2, ShieldCheck, Users, ShoppingBag, Star, Leaf,
   Fish, Beef, Wheat, Milk, Box, Lock, ChevronRight, Sparkles,
   Facebook, Linkedin, Mail, Phone, MapPin, Truck, Zap, Headphones,
-  User, Sun, Moon, Menu, X
+  User, Sun, Moon, Menu, X, Store, Network, Snowflake, Globe
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,16 +39,86 @@ const CATEGORY_ICONS = {
 const CATEGORIES = ['All', 'Fish', 'Meat', 'Vegetables', 'Dairy', 'Grains'];
 
 const featureItems = [
-  { icon: Package2,   title: 'Live inventory control',   description: 'Track stock, batches, and order readiness in one clean workspace.' },
-  { icon: ShieldCheck, title: 'Cold-chain confidence',   description: 'Keep quality visible from dispatch to doorstep with monitored handoffs.' },
-  { icon: Leaf,        title: 'Sri Lankan Fresh Imports', description: 'Direct sourcing of premium Sri Lankan goods—including wild-caught seafood, organic spices, and tropical fruits—delivered in peak condition.' },
-  { icon: Wheat,       title: 'Sustainable Sourcing',     description: 'Support for eco-friendly farming practices and carbon-neutral logistics, reducing food miles and waste.' },
+  { 
+    icon: Package2, 
+    title: 'Live inventory control', 
+    description: 'Track stock, batches, and order readiness in one clean workspace.',
+    subIcon: Leaf,
+    badgeBg: '#16a34a',
+    subIconColor: '#16a34a',
+  },
+  { 
+    icon: ShieldCheck, 
+    title: 'Cold-chain confidence', 
+    description: 'Keep quality visible from dispatch to doorstep with monitored handoffs.',
+    subIcon: Snowflake,
+    badgeBg: '#0284c7',
+    subIconColor: '#0284c7',
+  },
+  { 
+    icon: Leaf, 
+    title: 'Sri Lankan Fresh Imports', 
+    description: 'Direct sourcing of premium Sri Lankan goods—including wild-caught seafood, organic spices, and tropical fruits—delivered in peak condition.',
+    subIcon: Leaf,
+    badgeBg: '#16a34a',
+    subIconColor: '#16a34a',
+  },
+  { 
+    icon: Wheat, 
+    title: 'Sustainable Sourcing', 
+    description: 'Support for eco-friendly farming practices and carbon-neutral logistics, reducing food miles and waste.',
+    subIcon: Globe,
+    badgeBg: '#ea580c',
+    subIconColor: '#ea580c',
+  },
 ];
 
 const processItems = [
-  { title: 'Order',    description: 'Suppliers and buyers stay aligned through a simple, transparent order flow.' },
-  { title: 'Dispatch', description: 'Lorries and routes are coordinated with clear timing and live updates.' },
-  { title: 'Deliver',  description: 'Every stop is visible so fresh products arrive on time and in peak condition.' },
+  { 
+    number: '01',
+    title: 'Order', 
+    description: 'Suppliers and buyers stay aligned through a simple, transparent order flow.',
+    icon: Store,
+    pillGradient: 'linear-gradient(90deg, #ffffff 0%, #f0fdf4 100%)',
+    pillBorder: 'rgba(34, 197, 94, 0.35)',
+    pillShadow: '0 8px 24px rgba(34, 197, 94, 0.08)',
+    badgeBg: 'rgba(220, 252, 231, 0.95)',
+    badgeBorder: '#86efac',
+    iconBg: 'linear-gradient(135deg, #16a34a, #22c55e)',
+    numberBg: '#15803d',
+    arrowBorder: '#22c55e',
+    arrowColor: '#16a34a',
+  },
+  { 
+    number: '02',
+    title: 'Dispatch', 
+    description: 'Lorries and routes are coordinated with clear timing and live updates.',
+    icon: Network,
+    pillGradient: 'linear-gradient(90deg, #ffffff 0%, #f0f9ff 100%)',
+    pillBorder: 'rgba(56, 189, 248, 0.35)',
+    pillShadow: '0 8px 24px rgba(56, 189, 248, 0.08)',
+    badgeBg: 'rgba(224, 242, 254, 0.95)',
+    badgeBorder: '#7dd3fc',
+    iconBg: 'linear-gradient(135deg, #0284c7, #38bdf8)',
+    numberBg: '#0369a1',
+    arrowBorder: '#38bdf8',
+    arrowColor: '#0284c7',
+  },
+  { 
+    number: '03',
+    title: 'Deliver', 
+    description: 'Every stop is visible so fresh products arrive on time and in peak condition.',
+    icon: Truck,
+    pillGradient: 'linear-gradient(90deg, #ffffff 0%, #fff7ed 100%)',
+    pillBorder: 'rgba(251, 146, 60, 0.35)',
+    pillShadow: '0 8px 24px rgba(251, 146, 60, 0.08)',
+    badgeBg: 'rgba(255, 237, 213, 0.95)',
+    badgeBorder: '#fdba74',
+    iconBg: 'linear-gradient(135deg, #ea580c, #fb923c)',
+    numberBg: '#c2410c',
+    arrowBorder: '#fb923c',
+    arrowColor: '#ea580c',
+  },
 ];
 
 const trustPoints = ['Fresh produce', 'Meat & seafood', 'Route visibility', 'Team access'];
@@ -361,10 +432,45 @@ export default function Landing() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const lenisRef = useRef(null);
+
+  // Initialize Lenis Smooth Scroll Engine for silk-smooth momentum scrolling
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.4,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1.0,
+      touchMultiplier: 1.8,
+    });
+
+    lenisRef.current = lenis;
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+      lenisRef.current = null;
+    };
+  }, []);
 
   const handleJumpTo = (targetId) => (event) => {
-    event.preventDefault();
-    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    event?.preventDefault();
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(el, { offset: -60, duration: 1.5 });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   // Fetch products from backend (public endpoint)
@@ -819,68 +925,144 @@ export default function Landing() {
         {/* ── Reviews ── */}
         <LandingReviews />
 
-        {/* ── Features ── */}
-        <section className="landing-section landing-section-muted" id="about">
+        {/* ── Features ("Global & Sustainable") ── */}
+        <section className="landing-section global-sustainable-section" id="about">
           <div className="section-heading">
-            <span className="section-kicker">Global & Sustainable</span>
-            <h2>Connecting global supply chains with a focus on fresh Sri Lankan produce and sustainability.</h2>
+            <span className="section-kicker-pill">
+              <Leaf size={14} className="kicker-icon" /> GLOBAL & SUSTAINABLE
+            </span>
+            <h2>
+              Connecting global supply chains with a focus on{' '}
+              <span className="text-highlight-green">fresh Sri Lankan produce and sustainability.</span>
+            </h2>
             <p>
               We specialize in connecting premium suppliers, including direct imports of fresh Sri Lankan foods, 
               to local markets through an eco-conscious, temperature-controlled distribution network.
             </p>
           </div>
-          <div className="feature-grid">
-            {featureItems.map(({ icon: Icon, title, description }, index) => (
-              <motion.article
-                key={title}
-                className="feature-card"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, margin: '-50px' }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className="feature-icon"><Icon size={22} /></div>
-                <h3>{title}</h3>
-                <p>{description}</p>
-              </motion.article>
-            ))}
+
+          <div className="feature-grid-wrapper">
+            <div className="feature-grid">
+              {featureItems.map(({ icon: Icon, subIcon: SubIcon, title, description, badgeBg, subIconColor }, index) => (
+                <motion.article
+                  key={title}
+                  className="feature-card-pill"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, margin: '-50px' }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <div className="feature-icon-wrapper" style={{ background: badgeBg }}>
+                    <Icon size={22} color="#ffffff" />
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                  {SubIcon && (
+                    <div className="feature-card-subicon" style={{ color: subIconColor }}>
+                      <SubIcon size={16} />
+                    </div>
+                  )}
+                </motion.article>
+              ))}
+            </div>
+
+            {/* Fresh produce crate backdrop right */}
+            <div className="features-crate-backdrop">
+              <img 
+                src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&q=80" 
+                alt="Sri Lankan Fresh Produce Crate" 
+                className="crate-img"
+              />
+            </div>
           </div>
         </section>
 
-        {/* ── Process ── */}
-        <section className="landing-section">
-          <div className="split-content">
+        {/* ── Process / Flow ── */}
+        <section className="landing-section flow-process-section" id="flow">
+          {/* Lorry driving background overlay on right */}
+          <div className="flow-bg-backdrop">
+            <img 
+              src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=1200&q=80" 
+              alt="FreshLync Delivery Lorry Route" 
+              className="flow-lorry-bg"
+            />
+            <div className="flow-lorry-overlay" />
+          </div>
+
+          <div className="split-content flow-split-content">
             <motion.div
-              className="split-copy"
+              className="split-copy flow-split-copy"
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: false, margin: '-50px' }}
               transition={{ duration: 0.6 }}
             >
-              <span className="section-kicker">Flow</span>
-              <h2>Simple order movement from supplier to delivery lorry.</h2>
+              <span className="section-kicker-pill flow-kicker">
+                <Truck size={14} className="kicker-icon" /> FLOW
+              </span>
+              <h2>
+                Simple order movement from{' '}
+                <span className="text-highlight-green">supplier to delivery lorry.</span>
+              </h2>
               <p>
                 Keep the experience focused: one brand story, one clear route, and a visual system
                 that makes the movement of goods easy to understand at a glance.
               </p>
             </motion.div>
-            <div className="process-list">
-              {processItems.map((item, index) => (
-                <motion.article
-                  key={item.title}
-                  className="process-item"
-                  initial={{ opacity: 0, x: 30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: false, margin: '-50px' }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <div className="process-step">0{index + 1}</div>
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.description}</p>
-                  </div>
-                </motion.article>
-              ))}
+
+            <div className="process-list-pills">
+              {processItems.map((item, index) => {
+                const ItemIcon = item.icon;
+                return (
+                  <motion.article
+                    key={item.title}
+                    className="process-pill-card"
+                    onClick={(e) => handleJumpTo('marketplace')(e)}
+                    initial={{ opacity: 0, x: 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: false, margin: '-50px' }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    style={{
+                      background: item.pillGradient,
+                      borderColor: item.pillBorder,
+                      boxShadow: item.pillShadow,
+                    }}
+                  >
+                    {/* Left Icon + Step Number Group */}
+                    <div 
+                      className="process-pill-badge-group"
+                      style={{ 
+                        background: item.badgeBg, 
+                        borderColor: item.badgeBorder 
+                      }}
+                    >
+                      <div className="process-pill-icon-box" style={{ background: item.iconBg }}>
+                        <ItemIcon size={18} color="#ffffff" />
+                      </div>
+                      <span className="process-pill-step-number" style={{ background: item.numberBg }}>
+                        {item.number}
+                      </span>
+                    </div>
+
+                    {/* Middle Details */}
+                    <div className="process-pill-content">
+                      <h3 className="process-pill-title">{item.title}</h3>
+                      <p className="process-pill-desc">{item.description}</p>
+                    </div>
+
+                    {/* Right Chevron Button */}
+                    <div 
+                      className="process-pill-arrow-btn"
+                      style={{
+                        borderColor: item.arrowBorder,
+                        color: item.arrowColor,
+                      }}
+                    >
+                      <ChevronRight size={18} />
+                    </div>
+                  </motion.article>
+                );
+              })}
             </div>
           </div>
         </section>
