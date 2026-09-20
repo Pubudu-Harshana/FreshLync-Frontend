@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera, X, Barcode as BarcodeIcon, Truck, CheckCircle2, AlertCircle, RefreshCw, Zap } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { orderService } from '../services/orderService';
 import { useNotification } from '../context/NotificationContext';
 
@@ -10,58 +11,10 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
   const [scanResult, setScanResult] = useState(null);
   const [useCamera, setUseCamera] = useState(false);
   const [cameraError, setCameraError] = useState(null);
-  const [lastScannedCode, setLastScannedCode] = useState('');
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const barcodeDetectorRef = useRef(null);
+  const html5QrCodeRef = useRef(null);
   const isProcessingRef = useRef(false);
-
-  // Close camera on modal unmount / close
-  useEffect(() => {
-    if (!isOpen) {
-      stopCamera();
-      setScanResult(null);
-      setBarcodeInput('');
-      setLastScannedCode('');
-    }
-  }, [isOpen]);
-
-  const startCamera = async () => {
-    setCameraError(null);
-    setUseCamera(true);
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera access not supported on this browser/device');
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      });
-
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(e => console.log('Video play error:', e));
-      }
-    } catch (err) {
-      console.error('Camera access error:', err);
-      setCameraError(err.message || 'Unable to access phone camera');
-      setUseCamera(false);
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setUseCamera(false);
-  };
 
   const handleScanSubmit = useCallback(async (codeToScan) => {
     const targetCode = codeToScan || barcodeInput;
@@ -80,7 +33,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
         status: res.status
       });
 
-      setLastScannedCode(targetCode.trim());
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
       showToast(res.message, 'success');
       setBarcodeInput('');
 
@@ -97,62 +50,96 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
       showToast(errMsg, 'error');
     } finally {
       setLoading(false);
-      // Brief cooldown to avoid double scanning
       setTimeout(() => {
         isProcessingRef.current = false;
       }, 1500);
     }
   }, [barcodeInput, onScanSuccess, showToast]);
 
-  // Live video frame barcode detection loop
-  useEffect(() => {
-    let animId;
-    let isCancelled = false;
-
-    const detectFrame = async () => {
-      if (useCamera && videoRef.current && videoRef.current.readyState === 4 && !isProcessingRef.current) {
-        try {
-          if ('BarcodeDetector' in window) {
-            if (!barcodeDetectorRef.current) {
-              const formats = await window.BarcodeDetector.getSupportedFormats().catch(() => ['code_128', 'qr_code', 'code_39', 'ean_13', 'upc_a']);
-              barcodeDetectorRef.current = new window.BarcodeDetector({ formats: formats.length ? formats : ['code_128', 'qr_code', 'code_39'] });
-            }
-
-            const barcodes = await barcodeDetectorRef.current.detect(videoRef.current);
-            if (barcodes && barcodes.length > 0 && !isCancelled && !isProcessingRef.current) {
-              const detected = barcodes[0].rawValue;
-              if (detected && detected.trim() && detected.trim() !== lastScannedCode) {
-                if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
-                handleScanSubmit(detected.trim());
-              }
-            }
-          }
-        } catch (e) {
-          // Silent catch for frame read glitches
+  const stopCamera = useCallback(async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        if (html5QrCodeRef.current.isScanning) {
+          await html5QrCodeRef.current.stop();
         }
+        html5QrCodeRef.current.clear();
+      } catch (e) {
+        console.warn('Camera stop cleanup:', e);
       }
-
-      if (useCamera && !isCancelled) {
-        animId = requestAnimationFrame(detectFrame);
-      }
-    };
-
-    if (useCamera) {
-      animId = requestAnimationFrame(detectFrame);
+      html5QrCodeRef.current = null;
     }
+    setUseCamera(false);
+    setIsInitializing(false);
+  }, []);
 
-    return () => {
-      isCancelled = true;
-      if (animId) cancelAnimationFrame(animId);
-    };
-  }, [useCamera, lastScannedCode, handleScanSubmit]);
+  const startCamera = async () => {
+    setCameraError(null);
+    setIsInitializing(true);
+    setUseCamera(true);
+
+    // Wait for DOM element `#reader` to render
+    setTimeout(async () => {
+      try {
+        const readerElement = document.getElementById('reader');
+        if (!readerElement) {
+          throw new Error('Scanner element not found in DOM');
+        }
+
+        const html5QrCode = new Html5Qrcode('reader', {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.UPC_A
+          ],
+          verbose: false
+        });
+
+        html5QrCodeRef.current = html5QrCode;
+
+        const config = {
+          fps: 15,
+          qrbox: { width: 280, height: 140 },
+          aspectRatio: 1.777778
+        };
+
+        await html5QrCode.start(
+          { facingMode: 'environment' },
+          config,
+          (decodedText) => {
+            if (decodedText && !isProcessingRef.current) {
+              handleScanSubmit(decodedText);
+            }
+          },
+          () => {
+            // Frame search in progress
+          }
+        );
+        setIsInitializing(false);
+      } catch (err) {
+        console.error('Html5Qrcode camera error:', err);
+        setCameraError(err.message || 'Unable to access phone camera. Please grant camera permissions.');
+        stopCamera();
+      }
+    }, 100);
+  };
+
+  // Cleanup camera on close or unmount
+  useEffect(() => {
+    if (!isOpen) {
+      stopCamera();
+      setScanResult(null);
+      setBarcodeInput('');
+    }
+  }, [isOpen, stopCamera]);
 
   if (!isOpen) return null;
 
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(6px)',
+      background: 'rgba(15, 23, 42, 0.82)', backdropFilter: 'blur(6px)',
       zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '0.5rem', boxSizing: 'border-box'
     }}>
@@ -188,7 +175,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
           <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '0.75rem', borderRadius: 10, fontSize: '0.8rem', color: '#1E40AF', display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
             <Truck size={18} style={{ color: '#1D4ED8', flexShrink: 0, marginTop: 2 }} />
             <div style={{ width: '100%' }}>
-              <strong>Barcode Order Workflow:</strong>
+              <strong>Universal Barcode Workflow:</strong>
               <div style={{ fontSize: '0.75rem', marginTop: '0.2rem', lineHeight: 1.35 }}>
                 • <strong>Scan 1 (Dispatch)</strong>: <em>Pending</em> ➔ <strong style={{ color: '#1E40AF' }}>IN TRANSIT 🚚</strong><br />
                 • <strong>Scan 2 (Delivery)</strong>: <em>In Transit</em> ➔ <strong style={{ color: '#15803D' }}>DELIVERED 📦</strong>
@@ -196,22 +183,19 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
             </div>
           </div>
 
-          {/* Camera Viewfinder */}
+          {/* Camera Viewfinder powered by html5-qrcode */}
           {useCamera ? (
-            <div style={{ position: 'relative', background: '#000', borderRadius: 12, overflow: 'hidden', height: 230, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
-              <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              
-              {/* Target overlay */}
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, border: '2px solid rgba(16, 185, 129, 0.6)', borderRadius: 12, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ width: '80%', height: 2, background: '#EF4444', boxShadow: '0 0 10px #EF4444' }} />
-                <div style={{ position: 'absolute', top: 10, left: 10, right: 10, color: 'white', fontSize: '0.7rem', fontWeight: 700, textAlign: 'center', background: 'rgba(0,0,0,0.5)', padding: '0.2rem 0.5rem', borderRadius: 4 }}>
-                  {loading ? 'Processing scan...' : 'Align barcode within frame — Auto-Detect Active'}
+            <div style={{ position: 'relative', background: '#000', borderRadius: 12, overflow: 'hidden', minHeight: 260, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+              {isInitializing && (
+                <div style={{ color: 'white', fontSize: '0.82rem', padding: '1rem', textAlign: 'center' }}>
+                  Starting phone camera scanner...
                 </div>
-              </div>
-
+              )}
+              <div id="reader" style={{ width: '100%', borderRadius: 12, overflow: 'hidden' }} />
+              
               <button
                 onClick={stopCamera}
-                style={{ position: 'absolute', bottom: 10, background: 'rgba(0,0,0,0.75)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', padding: '0.35rem 0.75rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                style={{ position: 'absolute', bottom: 12, zIndex: 10, background: 'rgba(0,0,0,0.8)', color: 'white', border: '1px solid rgba(255,255,255,0.4)', padding: '0.4rem 0.85rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
               >
                 Close Camera
               </button>
@@ -223,17 +207,17 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
               style={{ padding: '0.85rem', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 700, background: '#F8FAFC', border: '1.5px dashed var(--color-primary)', width: '100%', boxSizing: 'border-box' }}
             >
               <Camera size={18} style={{ color: 'var(--color-primary)' }} />
-              <span>📷 Open Phone Camera / Webcam Scanner</span>
+              <span>📷 Open Universal Phone Camera Scanner (iOS & Android)</span>
             </button>
           )}
 
           {cameraError && (
-            <div style={{ color: '#EF4444', fontSize: '0.78rem', textAlign: 'center', padding: '0.4rem', background: '#FEF2F2', borderRadius: 6 }}>
-              {cameraError}. You can enter barcode manually below.
+            <div style={{ color: '#EF4444', fontSize: '0.78rem', textAlign: 'center', padding: '0.5rem', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FCA5A5' }}>
+              {cameraError}
             </div>
           )}
 
-          {/* Form container optimized for Mobile screens */}
+          {/* Manual Input / Barcode Gun Form */}
           <form 
             onSubmit={(e) => { e.preventDefault(); handleScanSubmit(); }} 
             style={{ display: 'flex', gap: '0.5rem', width: '100%', boxSizing: 'border-box', flexWrap: 'wrap' }}
