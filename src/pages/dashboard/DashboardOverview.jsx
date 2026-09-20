@@ -35,13 +35,13 @@ export default function DashboardOverview() {
     const load = async () => {
       try {
         const [summary, ordersData] = await Promise.all([
-          analyticsService.getSummary(),
-          orderService.getOrders({ limit: 5 }),
+          analyticsService.getSummary().catch(() => null),
+          orderService.getOrders({ limit: 5 }).catch(() => ({ orders: [] })),
         ]);
-        setStats(summary);
-        setOrders(ordersData.orders || []);
+        if (summary) setStats(summary);
+        if (ordersData) setOrders(ordersData.orders || []);
       } catch (e) {
-        setError('Failed to load dashboard data.');
+        console.error('Failed to load dashboard data.', e);
       } finally {
         setLoading(false);
       }

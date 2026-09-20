@@ -111,39 +111,58 @@ export default function AdminDashboardOverview() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [
-        dashboardStats, 
-        predictionData, 
-        forecast, 
-        regions, 
-        suppliers, 
-        recs,
-        tktList,
-        logsList,
-        roadmapRes
-      ] = await Promise.all([
-        adminService.getDashboardStats(),
-        adminService.getMarketPredictions(),
-        adminService.getDemandForecast(forecastRange),
-        adminService.getRegionalInsights(),
-        adminService.getSupplierForecasts(),
-        adminService.getAIRecommendations(),
-        adminService.getTickets(),
-        adminService.getAuditLogs(),
-        adminService.getAIRoadmap(),
+      const results = await Promise.allSettled([
+        adminService.getDashboardStats().catch(() => null),
+        adminService.getMarketPredictions().catch(() => null),
+        adminService.getDemandForecast(forecastRange).catch(() => []),
+        adminService.getRegionalInsights().catch(() => []),
+        adminService.getSupplierForecasts().catch(() => []),
+        adminService.getAIRecommendations().catch(() => []),
+        adminService.getTickets().catch(() => []),
+        adminService.getAuditLogs().catch(() => []),
+        adminService.getAIRoadmap().catch(() => null),
       ]);
 
-      setStats(dashboardStats);
-      setPredictions(predictionData);
-      setDemandData(forecast);
-      setRegionalInsights(regions);
-      setSupplierForecasts(suppliers);
-      setRecommendations(recs);
-      setTickets(tktList);
-      setAuditLogs(logsList);
-      setAiRoadmap(roadmapRes);
-      setMargin(dashboardStats.margin || 15);
+      const [
+        dashboardStatsRes, 
+        predictionDataRes, 
+        forecastRes, 
+        regionsRes, 
+        suppliersRes, 
+        recsRes,
+        tktListRes,
+        logsListRes,
+        roadmapRes
+      ] = results;
 
+      if (dashboardStatsRes.status === 'fulfilled' && dashboardStatsRes.value) {
+        setStats(dashboardStatsRes.value);
+        setMargin(dashboardStatsRes.value.margin || 15);
+      }
+      if (predictionDataRes.status === 'fulfilled' && predictionDataRes.value) {
+        setPredictions(predictionDataRes.value);
+      }
+      if (forecastRes.status === 'fulfilled' && forecastRes.value) {
+        setDemandData(forecastRes.value || []);
+      }
+      if (regionsRes.status === 'fulfilled' && regionsRes.value) {
+        setRegionalInsights(regionsRes.value || []);
+      }
+      if (suppliersRes.status === 'fulfilled' && suppliersRes.value) {
+        setSupplierForecasts(suppliersRes.value || []);
+      }
+      if (recsRes.status === 'fulfilled' && recsRes.value) {
+        setRecommendations(recsRes.value || []);
+      }
+      if (tktListRes.status === 'fulfilled' && tktListRes.value) {
+        setTickets(tktListRes.value || []);
+      }
+      if (logsListRes.status === 'fulfilled' && logsListRes.value) {
+        setAuditLogs(logsListRes.value || []);
+      }
+      if (roadmapRes.status === 'fulfilled' && roadmapRes.value) {
+        setAiRoadmap(roadmapRes.value);
+      }
     } catch (err) {
       console.error('Failed to load admin dashboard data', err);
     } finally {
