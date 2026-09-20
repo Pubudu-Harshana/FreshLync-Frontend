@@ -46,9 +46,19 @@ export default class ErrorBoundary extends React.Component {
             <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.5rem' }}>
               Something went wrong
             </h2>
-            <p style={{ color: '#64748B', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-              The application encountered a transient error during rendering. Reloading usually resolves this.
+            <p style={{ color: '#64748B', fontSize: '0.875rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+              The application encountered a transient error during rendering.
             </p>
+            {this.state.error && (
+              <pre style={{
+                background: '#FEF2F2', color: '#991B1B', padding: '0.75rem', borderRadius: 8,
+                fontSize: '0.75rem', textAlign: 'left', overflowX: 'auto', maxWidth: '100%',
+                marginBottom: '1.5rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word'
+              }}>
+                {this.state.error.toString()}
+                {this.state.error.stack && `\n\nStack:\n${this.state.error.stack}`}
+              </pre>
+            )}
 
             <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
               <button
