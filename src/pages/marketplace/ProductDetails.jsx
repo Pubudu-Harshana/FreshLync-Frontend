@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Star, Package, Shield, Truck, ChevronLeft, ChevronRight, Plus, Minus, MessageSquare, ThumbsUp, User } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Package, Shield, Truck, ChevronLeft, ChevronRight, Plus, Minus, MessageSquare, ThumbsUp, User, Lock, ArrowRight } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { productService } from '../../services/productService';
 import { reviewService } from '../../services/reviewService';
@@ -128,6 +128,75 @@ function ReviewCard({ review }) {
   );
 }
 
+// ── Login Gate Modal ──────────────────────────────────────────────────────────
+function LoginGateModal({ product, onClose, onLogin }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'white', borderRadius: 20,
+          padding: '2.5rem', maxWidth: 420, width: '100%',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #047857, #065F46)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 1.25rem',
+        }}>
+          <Lock size={28} color="white" />
+        </div>
+
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0F172A' }}>
+          Sign in to purchase
+        </h2>
+        <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+          You've selected <strong style={{ color: '#047857' }}>{product?.name}</strong>.
+        </p>
+        <p style={{ color: '#64748B', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+          Create a free account or log in to start ordering fresh produce directly from verified suppliers.
+        </p>
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column' }}>
+          <button
+            onClick={onLogin}
+            style={{
+              width: '100%', padding: '0.875rem', borderRadius: 12,
+              background: 'linear-gradient(135deg, #047857, #065F46)',
+              color: 'white', fontWeight: 700, fontSize: '0.95rem',
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+            }}
+          >
+            Log in to buy <ArrowRight size={18} />
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              width: '100%', padding: '0.75rem', borderRadius: 12,
+              background: '#F8FAFC', color: '#64748B', fontWeight: 600,
+              border: '1px solid #E2E8F0', cursor: 'pointer', fontSize: '0.9rem',
+            }}
+          >
+            Continue browsing
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -140,6 +209,7 @@ export default function ProductDetails() {
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // ── Review state ────────────────────────────────────────────────────────────
   const [reviewStats, setReviewStats] = useState({ total: 0, average: 0, distribution: { 5:0,4:0,3:0,2:0,1:0 } });
@@ -328,6 +398,10 @@ export default function ProductDetails() {
   }
 
   const handleAddToCart = () => {
+    if (!isAuthenticated || !user) {
+      setShowLoginModal(true);
+      return;
+    }
     addToCart({
       id: product.id,
       name: product.name,
@@ -701,6 +775,14 @@ export default function ProductDetails() {
             </div>
           </div>
         </section>
+      )}
+
+      {showLoginModal && (
+        <LoginGateModal 
+          product={product} 
+          onClose={() => setShowLoginModal(false)} 
+          onLogin={() => navigate('/login')} 
+        />
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, X, ShoppingCart, Star } from 'lucide-react';
+import { Search, Filter, X, ShoppingCart, Star, Lock, ArrowRight } from 'lucide-react';
 import SEO from '../../components/SEO';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EmptyState from '../../components/EmptyState';
@@ -16,6 +16,74 @@ const PRICE_RANGES = [
   { label: 'Under £20', max: 20 },
   { label: 'Under £50', max: 50 },
 ];
+
+function LoginGateModal({ product, onClose, onLogin }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'white', borderRadius: 20,
+          padding: '2.5rem', maxWidth: 420, width: '100%',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{
+          width: 64, height: 64, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #047857, #065F46)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 1.25rem',
+        }}>
+          <Lock size={28} color="white" />
+        </div>
+
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0F172A' }}>
+          Sign in to purchase
+        </h2>
+        <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+          You've selected <strong style={{ color: '#047857' }}>{product?.name}</strong>.
+        </p>
+        <p style={{ color: '#64748B', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+          Create a free account or log in to start ordering fresh produce directly from verified suppliers.
+        </p>
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column' }}>
+          <button
+            onClick={onLogin}
+            style={{
+              width: '100%', padding: '0.875rem', borderRadius: 12,
+              background: 'linear-gradient(135deg, #047857, #065F46)',
+              color: 'white', fontWeight: 700, fontSize: '0.95rem',
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+            }}
+          >
+            Log in to buy <ArrowRight size={18} />
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              width: '100%', padding: '0.75rem', borderRadius: 12,
+              background: '#F8FAFC', color: '#64748B', fontWeight: 600,
+              border: '1px solid #E2E8F0', cursor: 'pointer', fontSize: '0.9rem',
+            }}
+          >
+            Continue browsing
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function MarketplaceHome() {
   const navigate = useNavigate();
@@ -33,6 +101,7 @@ export default function MarketplaceHome() {
   const [addedId, setAddedId]     = useState(null);
   const [page, setPage]           = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [loginModalProduct, setLoginModalProduct] = useState(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -55,6 +124,10 @@ export default function MarketplaceHome() {
 
   const handleAddToCart = (p, e) => {
     e.stopPropagation();
+    if (!user) {
+      setLoginModalProduct(p);
+      return;
+    }
     addToCart({ id: p._id, name: p.name, price: p.displayPrice, unit: p.unit, image: p.image, supplierName: user?.role === 'buyer' ? 'FreshLync' : p.supplierName });
     setAddedId(p._id);
     setTimeout(() => setAddedId(null), 1500);
@@ -168,6 +241,14 @@ export default function MarketplaceHome() {
             </div>
           )}
         </>
+      )}
+
+      {loginModalProduct && (
+        <LoginGateModal
+          product={loginModalProduct}
+          onClose={() => setLoginModalProduct(null)}
+          onLogin={() => navigate('/login')}
+        />
       )}
     </div>
   );
