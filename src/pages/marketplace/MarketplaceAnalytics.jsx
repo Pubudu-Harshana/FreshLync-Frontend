@@ -115,7 +115,7 @@ export default function MarketplaceAnalytics() {
             </div>
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.3rem' }}>
-            Rs. {totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            £{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div style={{ color: '#16A34A', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <ArrowUpRight size={14} /> Cumulative procurement
@@ -131,7 +131,7 @@ export default function MarketplaceAnalytics() {
             </div>
           </div>
           <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.3rem' }}>
-            Rs. {avgOrderValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            £{avgOrderValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div style={{ color: '#0284C7', fontSize: '0.8rem', fontWeight: 600 }}>
             Across {totalOrders} placed orders
@@ -251,7 +251,7 @@ export default function MarketplaceAnalytics() {
                         </td>
                         <td style={{ padding: '0.85rem 1rem', color: '#64748B' }}>{prod.category || 'General'}</td>
                         <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#0F172A' }}>
-                          Rs. {(prod.price || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#94A3B8' }}>/ {prod.unit || 'kg'}</span>
+                          £{(prod.price || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#94A3B8' }}>/ {prod.unit || 'kg'}</span>
                         </td>
                         <td style={{ padding: '0.85rem 1rem' }}>
                           <span style={{ 
@@ -300,7 +300,7 @@ export default function MarketplaceAnalytics() {
                   <div key={cat} style={{ marginBottom: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '0.3rem' }}>
                       <span>{cat}</span>
-                      <span>Rs. {amount.toLocaleString()} ({percentage}%)</span>
+                      <span>£{amount.toLocaleString()} ({percentage}%)</span>
                     </div>
                     <div style={{ width: '100%', height: '8px', background: '#F1F5F9', borderRadius: '999px', overflow: 'hidden' }}>
                       <div style={{ width: `${percentage}%`, height: '100%', background: 'linear-gradient(90deg, #16A34A, #22C55E)', borderRadius: '999px' }} />
