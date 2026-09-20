@@ -189,7 +189,7 @@ function LoginGateModal({ product, onClose, onLogin }) {
               border: '1px solid #E2E8F0', cursor: 'pointer', fontSize: '0.9rem',
             }}
           >
-            Continue browsing without login
+            Continue browsing
           </button>
         </div>
       </div>
@@ -277,13 +277,6 @@ export default function ProductDetails() {
 
     loadProduct();
   }, [id, isRealProduct, user]);
-
-  // Auto-trigger LoginGateModal for unauthenticated guest users on product details load
-  useEffect(() => {
-    if (product && (!isAuthenticated || !user)) {
-      setShowLoginModal(true);
-    }
-  }, [product, isAuthenticated, user]);
 
   // ── Load reviews + stats for real products ──────────────────────────────────
   useEffect(() => {
