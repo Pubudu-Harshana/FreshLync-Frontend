@@ -28,7 +28,7 @@ const QUICK_PROMPTS = [
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
 
 async function fetchAIResponse(message) {
-  const token = localStorage.getItem('fl_token');
+  const token = sessionStorage.getItem('fl_token') || localStorage.getItem('fl_token');
   const res = await fetch(`${API_BASE}/api/chat`, {
     method: 'POST',
     headers: {

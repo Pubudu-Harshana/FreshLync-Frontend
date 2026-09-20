@@ -22,7 +22,7 @@ export const getImageUrl = (imagePath) => {
 
 // Attach JWT on every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('fl_token');
+  const token = sessionStorage.getItem('fl_token') || localStorage.getItem('fl_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -34,6 +34,8 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('fl_token');
       localStorage.removeItem('fl_user');
+      sessionStorage.removeItem('fl_token');
+      sessionStorage.removeItem('fl_user');
       window.location.href = '/login';
     }
     return Promise.reject(err);

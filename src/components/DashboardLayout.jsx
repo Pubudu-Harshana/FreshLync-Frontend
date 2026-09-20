@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Search, Bell, LayoutDashboard, Package, ShoppingBag, BarChart3, ShieldCheck, HelpCircle, Settings, LogOut, Info, Plus, User, Wallet, Trash2, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsService } from '../services/analyticsService';
+import LoadingSpinner from './LoadingSpinner';
 
 const getAvatarUrl = (avatar) => {
   if (!avatar) return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100";
@@ -17,12 +18,20 @@ const getAvatarUrl = (avatar) => {
 export default function DashboardLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  if (loading) {
+    return <LoadingSpinner fullPage message="Authenticating session..." />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   // Close mobile menu on route change
   useEffect(() => {

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Search, Bell, LayoutDashboard, Truck, Package, Settings, LogOut, Info, Users, User, ShoppingBag, ShieldAlert, Trash2, Star, Menu, X } from 'lucide-react';
 import { adminService } from '../services/adminService';
 import { analyticsService } from '../services/analyticsService';
 import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
 
 const getAvatarUrl = (avatar) => {
   if (!avatar) return "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=100";
@@ -18,11 +19,19 @@ const getAvatarUrl = (avatar) => {
 export default function AdminLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  if (loading) {
+    return <LoadingSpinner fullPage message="Verifying Admin session..." />;
+  }
+
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/login" replace />;
+  }
 
   // Close mobile menu on route change
   useEffect(() => {

@@ -7,8 +7,8 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 export function AuthProvider({ children }) {
-  const [user, setUserState] = useState(() => {
-    const stored = localStorage.getItem('fl_user');
+  const getStoredUser = () => {
+    const stored = sessionStorage.getItem('fl_user') || localStorage.getItem('fl_user');
     try {
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -20,7 +20,13 @@ export function AuthProvider({ children }) {
     } catch {
       return null;
     }
-  });
+  };
+
+  const getStoredToken = () => {
+    return sessionStorage.getItem('fl_token') || localStorage.getItem('fl_token');
+  };
+
+  const [user, setUserState] = useState(getStoredUser);
 
   const setUser = (val) => {
     if (typeof val === 'function') {
@@ -47,20 +53,48 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const [token, setToken]         = useState(localStorage.getItem('fl_token'));
-  const [loading, setLoading]     = useState(true);
+  const [token, setToken]     = useState(getStoredToken);
+  const [loading, setLoading] = useState(true);
+
+  const saveAuthData = (data) => {
+    const isAdmin = data.user?.role === 'admin';
+    if (isAdmin) {
+      // Admin session is browser-session bound (cleared automatically when browser/tab is closed)
+      sessionStorage.setItem('fl_token', data.token);
+      sessionStorage.setItem('fl_user', JSON.stringify(data.user));
+      localStorage.removeItem('fl_token');
+      localStorage.removeItem('fl_user');
+    } else {
+      localStorage.setItem('fl_token', data.token);
+      localStorage.setItem('fl_user', JSON.stringify(data.user));
+      sessionStorage.removeItem('fl_token');
+      sessionStorage.removeItem('fl_user');
+    }
+    setToken(data.token);
+    setUser(data.user);
+  };
 
   // On mount, rehydrate user from token
   useEffect(() => {
     const init = async () => {
-      const stored = localStorage.getItem('fl_token');
-      if (stored) {
+      const storedToken = getStoredToken();
+      if (storedToken) {
         try {
           const me = await authService.getMe();
           setUser(me);
+          const isAdmin = me?.role === 'admin';
+          if (isAdmin) {
+            sessionStorage.setItem('fl_user', JSON.stringify(me));
+          } else {
+            localStorage.setItem('fl_user', JSON.stringify(me));
+          }
         } catch {
           localStorage.removeItem('fl_token');
           localStorage.removeItem('fl_user');
+          sessionStorage.removeItem('fl_token');
+          sessionStorage.removeItem('fl_user');
+          setToken(null);
+          setUser(null);
         }
       }
       setLoading(false);
@@ -70,34 +104,27 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const data = await authService.login(email, password);
-    localStorage.setItem('fl_token', data.token);
-    localStorage.setItem('fl_user', JSON.stringify(data.user));
-    setToken(data.token);
-    setUser(data.user);
+    saveAuthData(data);
     return data.user;
   };
 
   const loginWithGoogle = async (accessToken, role) => {
     const data = await authService.googleLogin(accessToken, role);
-    localStorage.setItem('fl_token', data.token);
-    localStorage.setItem('fl_user', JSON.stringify(data.user));
-    setToken(data.token);
-    setUser(data.user);
+    saveAuthData(data);
     return { ...data.user, isNewUser: data.isNewUser };
   };
 
   const register = async (formData) => {
     const data = await authService.register(formData);
-    localStorage.setItem('fl_token', data.token);
-    localStorage.setItem('fl_user', JSON.stringify(data.user));
-    setToken(data.token);
-    setUser(data.user);
+    saveAuthData(data);
     return data.user;
   };
 
   const logout = () => {
     localStorage.removeItem('fl_token');
     localStorage.removeItem('fl_user');
+    sessionStorage.removeItem('fl_token');
+    sessionStorage.removeItem('fl_user');
     setToken(null);
     setUser(null);
   };
@@ -109,11 +136,16 @@ export function AuthProvider({ children }) {
       if (cloned.id && !cloned._id) cloned._id = cloned.id;
       if (cloned._id && !cloned.id) cloned.id = cloned._id;
       setUser(cloned);
-      localStorage.setItem('fl_user', JSON.stringify(cloned));
-      console.log('[AuthContext] user state and localStorage updated to:', cloned);
+      if (cloned.role === 'admin') {
+        sessionStorage.setItem('fl_user', JSON.stringify(cloned));
+      } else {
+        localStorage.setItem('fl_user', JSON.stringify(cloned));
+      }
+      console.log('[AuthContext] user state and storage updated to:', cloned);
     } else {
       setUser(null);
       localStorage.removeItem('fl_user');
+      sessionStorage.removeItem('fl_user');
       console.log('[AuthContext] user state cleared');
     }
   };
