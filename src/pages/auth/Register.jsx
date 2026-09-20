@@ -107,7 +107,7 @@ export default function Register() {
           <div className="auth-input-group">
             <label className="auth-input-label-white">Account Type</label>
             <div className="role-segment-control-glass">
-              {['Customer', 'Supplier', 'Driver'].map(r => (
+              {['Customer', 'Supplier'].map(r => (
                 <button 
                   key={r}
                   type="button"
