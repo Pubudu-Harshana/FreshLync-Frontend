@@ -2,11 +2,16 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSetup } from '../context/SetupContext';
 import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
 
 export default function ProtectedRoute({ children }) {
   const { setupState } = useSetup();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
+
+  if (loading) {
+    return <LoadingSpinner fullPage message="Authenticating session..." />;
+  }
 
   const STEP_ROUTES = user?.role === 'supplier'
     ? ['/setup/profile', '/setup/verification', '/setup/preferences']

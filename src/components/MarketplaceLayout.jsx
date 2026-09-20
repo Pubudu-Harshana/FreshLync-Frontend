@@ -17,7 +17,7 @@ const getAvatarUrl = (avatar) => {
 
 export default function MarketplaceLayout() {
   const { cartItemCount } = useCart();
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -27,6 +27,10 @@ export default function MarketplaceLayout() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  if (loading) {
+    return <LoadingSpinner fullPage message="Authenticating session..." />;
+  }
 
   if (user && user.role === 'supplier') {
     return <Navigate to="/dashboard" replace />;

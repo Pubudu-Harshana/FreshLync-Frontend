@@ -88,13 +88,19 @@ export function AuthProvider({ children }) {
           } else {
             localStorage.setItem('fl_user', JSON.stringify(me));
           }
-        } catch {
-          localStorage.removeItem('fl_token');
-          localStorage.removeItem('fl_user');
-          sessionStorage.removeItem('fl_token');
-          sessionStorage.removeItem('fl_user');
-          setToken(null);
-          setUser(null);
+        } catch (err) {
+          const status = err.response?.status;
+          if (status === 401 || status === 403) {
+            localStorage.removeItem('fl_token');
+            localStorage.removeItem('fl_user');
+            sessionStorage.removeItem('fl_token');
+            sessionStorage.removeItem('fl_user');
+            setToken(null);
+            setUser(null);
+          } else {
+            const fallbackUser = getStoredUser();
+            if (fallbackUser) setUser(fallbackUser);
+          }
         }
       }
       setLoading(false);
