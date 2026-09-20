@@ -100,8 +100,13 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
 
         const config = {
           fps: 15,
-          qrbox: { width: 280, height: 140 },
-          aspectRatio: 1.777778
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const minDim = Math.min(viewfinderWidth, viewfinderHeight);
+            return {
+              width: Math.floor(minDim * 0.85),
+              height: Math.floor(minDim * 0.45)
+            };
+          }
         };
 
         await html5QrCode.start(
@@ -113,7 +118,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
             }
           },
           () => {
-            // Frame search in progress
+            // Searching frames...
           }
         );
         setIsInitializing(false);
@@ -141,13 +146,52 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: 'rgba(15, 23, 42, 0.82)', backdropFilter: 'blur(6px)',
       zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '0.5rem', boxSizing: 'border-box'
+      padding: '0.5rem', boxSizing: 'border-box', overflow: 'hidden'
     }}>
+      {/* Dynamic CSS Overrides for html5-qrcode element bounds */}
+      <style>{`
+        #reader {
+          width: 100% !important;
+          max-width: 100% !important;
+          border: none !important;
+          box-sizing: border-box !important;
+          margin: 0 auto !important;
+          overflow: hidden !important;
+          border-radius: 12px !important;
+        }
+        #reader video {
+          width: 100% !important;
+          max-width: 100% !important;
+          height: auto !important;
+          max-height: 240px !important;
+          object-fit: cover !important;
+          border-radius: 12px !important;
+        }
+        #reader canvas {
+          display: none !important;
+        }
+        #reader__scan_region {
+          width: 100% !important;
+          max-width: 100% !important;
+          border: none !important;
+          background: transparent !important;
+        }
+        #reader__scan_region img {
+          display: none !important;
+        }
+        #reader__dashboard {
+          display: none !important;
+        }
+        #reader__header_message {
+          display: none !important;
+        }
+      `}</style>
+
       <div style={{
-        background: 'white', borderRadius: 16, width: '100%', maxWidth: 520,
-        maxHeight: '92vh', overflowY: 'auto', overflowX: 'hidden', boxShadow: 'var(--shadow-xl)',
+        background: 'white', borderRadius: 16, width: '100%', maxWidth: 480,
+        maxHeight: '90vh', overflowY: 'auto', overflowX: 'hidden', boxShadow: 'var(--shadow-xl)',
         display: 'flex', flexDirection: 'column', border: '1px solid var(--color-border)',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box', margin: '0 auto'
       }}>
         
         {/* Header */}
@@ -169,14 +213,14 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
         </div>
 
         {/* Modal Body */}
-        <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem', width: '100%', boxSizing: 'border-box' }}>
           
           {/* Instructions */}
-          <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '0.75rem', borderRadius: 10, fontSize: '0.8rem', color: '#1E40AF', display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
+          <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '0.65rem 0.75rem', borderRadius: 10, fontSize: '0.78rem', color: '#1E40AF', display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
             <Truck size={18} style={{ color: '#1D4ED8', flexShrink: 0, marginTop: 2 }} />
             <div style={{ width: '100%' }}>
               <strong>Universal Barcode Workflow:</strong>
-              <div style={{ fontSize: '0.75rem', marginTop: '0.2rem', lineHeight: 1.35 }}>
+              <div style={{ fontSize: '0.74rem', marginTop: '0.15rem', lineHeight: 1.35 }}>
                 • <strong>Scan 1 (Dispatch)</strong>: <em>Pending</em> ➔ <strong style={{ color: '#1E40AF' }}>IN TRANSIT 🚚</strong><br />
                 • <strong>Scan 2 (Delivery)</strong>: <em>In Transit</em> ➔ <strong style={{ color: '#15803D' }}>DELIVERED 📦</strong>
               </div>
@@ -185,17 +229,17 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
 
           {/* Camera Viewfinder powered by html5-qrcode */}
           {useCamera ? (
-            <div style={{ position: 'relative', background: '#000', borderRadius: 12, overflow: 'hidden', minHeight: 260, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
+            <div style={{ position: 'relative', background: '#000', borderRadius: 12, overflow: 'hidden', width: '100%', maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box' }}>
               {isInitializing && (
                 <div style={{ color: 'white', fontSize: '0.82rem', padding: '1rem', textAlign: 'center' }}>
                   Starting phone camera scanner...
                 </div>
               )}
-              <div id="reader" style={{ width: '100%', borderRadius: 12, overflow: 'hidden' }} />
+              <div id="reader" style={{ width: '100%', maxWidth: '100%', borderRadius: 12, overflow: 'hidden' }} />
               
               <button
                 onClick={stopCamera}
-                style={{ position: 'absolute', bottom: 12, zIndex: 10, background: 'rgba(0,0,0,0.8)', color: 'white', border: '1px solid rgba(255,255,255,0.4)', padding: '0.4rem 0.85rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                style={{ position: 'absolute', bottom: 10, zIndex: 20, background: 'rgba(0,0,0,0.85)', color: 'white', border: '1px solid rgba(255,255,255,0.4)', padding: '0.35rem 0.75rem', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}
               >
                 Close Camera
               </button>
@@ -207,7 +251,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
               style={{ padding: '0.85rem', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 700, background: '#F8FAFC', border: '1.5px dashed var(--color-primary)', width: '100%', boxSizing: 'border-box' }}
             >
               <Camera size={18} style={{ color: 'var(--color-primary)' }} />
-              <span>📷 Open Universal Phone Camera Scanner (iOS & Android)</span>
+              <span>📷 Open Phone Camera Scanner</span>
             </button>
           )}
 
@@ -222,13 +266,13 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
             onSubmit={(e) => { e.preventDefault(); handleScanSubmit(); }} 
             style={{ display: 'flex', gap: '0.5rem', width: '100%', boxSizing: 'border-box', flexWrap: 'wrap' }}
           >
-            <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 0 }}>
+            <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 0 }}>
               <input
                 className="input-field"
                 placeholder="Scan or type barcode (e.g. BC-ORD-1049)..."
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
-                style={{ paddingRight: '2rem', width: '100%', boxSizing: 'border-box', fontSize: '0.85rem' }}
+                style={{ paddingRight: '2rem', width: '100%', boxSizing: 'border-box', fontSize: '0.82rem' }}
               />
               {barcodeInput && (
                 <button
@@ -244,7 +288,7 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
               type="submit"
               disabled={loading || !barcodeInput.trim()}
               className="btn-primary"
-              style={{ padding: '0.55rem 1.1rem', whiteSpace: 'nowrap', flex: '1 1 auto', justifyContent: 'center', fontSize: '0.85rem' }}
+              style={{ padding: '0.55rem 1rem', whiteSpace: 'nowrap', flex: '1 1 auto', justifyContent: 'center', fontSize: '0.82rem' }}
             >
               {loading ? 'Scanning...' : 'Process Scan'}
             </button>
@@ -253,21 +297,21 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
           {/* Scan Results Display */}
           {scanResult && (
             <div style={{
-              padding: '0.875rem', borderRadius: 10, width: '100%', boxSizing: 'border-box',
+              padding: '0.75rem 0.875rem', borderRadius: 10, width: '100%', boxSizing: 'border-box',
               background: scanResult.success ? '#F0FDF4' : '#FEF2F2',
               border: `1px solid ${scanResult.success ? '#A7F3D0' : '#FCA5A5'}`
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                {scanResult.success ? <CheckCircle2 size={18} style={{ color: '#16A34A' }} /> : <AlertCircle size={18} style={{ color: '#EF4444' }} />}
-                <strong style={{ fontSize: '0.88rem', color: scanResult.success ? '#15803D' : '#991B1B' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                {scanResult.success ? <CheckCircle2 size={16} style={{ color: '#16A34A' }} /> : <AlertCircle size={16} style={{ color: '#EF4444' }} />}
+                <strong style={{ fontSize: '0.85rem', color: scanResult.success ? '#15803D' : '#991B1B' }}>
                   {scanResult.success ? 'Scan Processed Successfully' : 'Scan Failed'}
                 </strong>
               </div>
-              <div style={{ fontSize: '0.82rem', color: scanResult.success ? '#166534' : '#991B1B', fontWeight: 600 }}>
+              <div style={{ fontSize: '0.8rem', color: scanResult.success ? '#166534' : '#991B1B', fontWeight: 600 }}>
                 {scanResult.message}
               </div>
               {scanResult.order && (
-                <div style={{ marginTop: '0.4rem', fontSize: '0.78rem', color: 'var(--color-text-muted)', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '0.4rem' }}>
+                <div style={{ marginTop: '0.35rem', fontSize: '0.75rem', color: 'var(--color-text-muted)', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '0.35rem' }}>
                   Order: <strong>#{scanResult.order._id?.slice(-6)?.toUpperCase()}</strong> | Buyer: {scanResult.order.delivery?.firstName || scanResult.order.buyer?.name || 'Customer'}
                 </div>
               )}
@@ -276,11 +320,11 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
 
           {/* Quick One-Tap Test Barcodes */}
           {availableOrders.length > 0 && (
-            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.875rem', width: '100%', boxSizing: 'border-box' }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', width: '100%', boxSizing: 'border-box' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                 <Zap size={14} style={{ color: '#F59E0B' }} /> Quick One-Click Barcode Test Buttons:
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', maxHeight: 140, overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', maxHeight: 130, overflowY: 'auto' }}>
                 {availableOrders.slice(0, 5).map((o, idx) => {
                   const bc = o.trackingBarcode || `BC-ORD-${o._id?.slice(-6)?.toUpperCase()}`;
                   return (
@@ -289,19 +333,19 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
                       onClick={() => handleScanSubmit(bc)}
                       style={{
                         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '0.45rem 0.75rem', borderRadius: 6, background: '#F8FAFC',
-                        border: '1px solid var(--color-border)', cursor: 'pointer', fontSize: '0.78rem',
+                        padding: '0.4rem 0.65rem', borderRadius: 6, background: '#F8FAFC',
+                        border: '1px solid var(--color-border)', cursor: 'pointer', fontSize: '0.75rem',
                         boxSizing: 'border-box'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.background = '#EEF2FF'}
                       onMouseLeave={(e) => e.currentTarget.style.background = '#F8FAFC'}
                     >
-                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.4rem' }}>
                         <strong style={{ fontFamily: 'var(--font-mono)' }}>{bc}</strong>
-                        <span style={{ color: 'var(--color-text-muted)', marginLeft: '0.4rem' }}>(#{o._id?.slice(-6)?.toUpperCase()})</span>
+                        <span style={{ color: 'var(--color-text-muted)', marginLeft: '0.35rem' }}>(#{o._id?.slice(-6)?.toUpperCase()})</span>
                       </div>
                       <span style={{
-                        fontSize: '0.65rem', fontWeight: 800, padding: '0.1rem 0.4rem', borderRadius: 4, flexShrink: 0,
+                        fontSize: '0.62rem', fontWeight: 800, padding: '0.1rem 0.35rem', borderRadius: 4, flexShrink: 0,
                         background: o.status === 'In Transit' ? '#FEF3C7' : (o.status === 'Delivered' ? '#DCFCE7' : '#EFF6FF'),
                         color: o.status === 'In Transit' ? '#B45309' : (o.status === 'Delivered' ? '#166534' : '#1D4ED8')
                       }}>
@@ -317,8 +361,8 @@ export default function BarcodeScannerModal({ isOpen, onClose, onScanSuccess, av
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '0.875rem 1.25rem', borderTop: '1px solid var(--color-border)', background: '#F8FAFC', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
-          <button className="btn-secondary" onClick={() => { stopCamera(); onClose(); }} style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}>
+        <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid var(--color-border)', background: '#F8FAFC', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+          <button className="btn-secondary" onClick={() => { stopCamera(); onClose(); }} style={{ padding: '0.4rem 1rem', fontSize: '0.82rem' }}>
             Close Scanner
           </button>
         </div>
