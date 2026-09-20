@@ -125,6 +125,7 @@ const trustPoints = ['Fresh produce', 'Meat & seafood', 'Route visibility', 'Tea
 
 // ── Product Card ──────────────────────────────────────────────────────────────
 function ProductCard({ product, onBuy }) {
+  const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
   const stockStatus = product.stock === 0 ? 'Out of Stock' : product.stock < 50 ? 'Low Stock' : 'In Stock';
   const stockColor  = product.stock === 0 ? '#DC2626' : product.stock < 50 ? '#D97706' : '#16A34A';
@@ -139,6 +140,7 @@ function ProductCard({ product, onBuy }) {
       transition={{ duration: 0.4 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => navigate(`/marketplace/product/${product._id || product.id}`)}
       style={{
         background: 'white',
         borderRadius: 16,
@@ -149,6 +151,7 @@ function ProductCard({ product, onBuy }) {
         display: 'flex',
         flexDirection: 'column',
         border: '1px solid #F1F5F9',
+        cursor: 'pointer',
       }}
     >
       {/* Image */}
@@ -224,7 +227,10 @@ function ProductCard({ product, onBuy }) {
             <span style={{ fontSize: '0.75rem', color: '#94A3B8', marginLeft: '0.3rem' }}>/ {product.unit}</span>
           </div>
           <button
-            onClick={() => onBuy(product)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBuy(product);
+            }}
             style={{
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               background: product.stock === 0 ? '#E5E7EB' : '#047857',
