@@ -108,8 +108,8 @@ export default function AdminDashboardOverview() {
 
   const activitiesList = stats?.activities || defaultActivities;
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       const results = await Promise.allSettled([
         adminService.getDashboardStats().catch(() => null),
@@ -166,12 +166,14 @@ export default function AdminDashboardOverview() {
     } catch (err) {
       console.error('Failed to load admin dashboard data', err);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadData();
+    const interval = setInterval(() => loadData(true), 10000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

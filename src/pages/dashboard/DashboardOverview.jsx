@@ -32,7 +32,8 @@ export default function DashboardOverview() {
 
 
   useEffect(() => {
-    const load = async () => {
+    const load = async (isSilent = false) => {
+      if (!isSilent) setLoading(true);
       try {
         const [summary, ordersData] = await Promise.all([
           analyticsService.getSummary().catch(() => null),
@@ -43,10 +44,12 @@ export default function DashboardOverview() {
       } catch (e) {
         console.error('Failed to load dashboard data.', e);
       } finally {
-        setLoading(false);
+        if (!isSilent) setLoading(false);
       }
     };
     load();
+    const interval = setInterval(() => load(true), 10000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <LoadingSpinner fullPage message="Loading dashboard..." />;
