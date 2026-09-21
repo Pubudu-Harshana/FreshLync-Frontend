@@ -234,6 +234,7 @@ export default function MarketplaceAnalytics() {
                     const supplyColor = isLow ? '#DC2626' : isAbundant ? '#16A34A' : '#0284C7';
                     const supplyBg = isLow ? '#FEF2F2' : isAbundant ? '#F0FDF4' : '#F0F9FF';
                     const isPriceUp = i % 2 === 0;
+                    const itemPrice = prod.displayPrice ?? prod.sellingPrice ?? prod.marketplacePrice ?? prod.price ?? 0;
 
                     return (
                       <tr key={prod._id || i} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.2s' }}>
@@ -251,7 +252,7 @@ export default function MarketplaceAnalytics() {
                         </td>
                         <td style={{ padding: '0.85rem 1rem', color: '#64748B' }}>{prod.category || 'General'}</td>
                         <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#0F172A' }}>
-                          £{(prod.price || 0).toLocaleString()} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#94A3B8' }}>/ {prod.unit || 'kg'}</span>
+                          £{Number(itemPrice).toFixed(2)} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#94A3B8' }}>/ {prod.unit || 'kg'}</span>
                         </td>
                         <td style={{ padding: '0.85rem 1rem' }}>
                           <span style={{ 
