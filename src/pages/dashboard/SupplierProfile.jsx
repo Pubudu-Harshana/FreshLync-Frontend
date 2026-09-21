@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
 import { useNotification } from '../../context/NotificationContext';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { validateRegionalPhone, sanitizePhoneInput } from '../../utils/phoneValidation';
 
 const getAvatarUrl = (avatar) => {
   if (!avatar) return null;
@@ -99,10 +100,9 @@ export default function SupplierProfile() {
       if (tab === 'business') {
         if (form.phone && form.phone.trim()) {
           const phoneVal = form.phone.trim();
-          const phoneRegex = /^\+?[0-9\s\-()]+$/;
-          const digitCount = phoneVal.replace(/\D/g, '').length;
-          if (!phoneRegex.test(phoneVal) || digitCount < 7 || digitCount > 15) {
-            showToast('Please enter a valid phone number (between 7 and 15 digits).', 'error');
+          const phoneCheck = validateRegionalPhone(phoneVal);
+          if (!phoneCheck.isValid) {
+            showToast(phoneCheck.message, 'error');
             setLoading(false);
             return;
           }
@@ -238,7 +238,28 @@ export default function SupplierProfile() {
                   <input className="input-field" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
                 </PF>
                 <PF label="Phone">
-                  <input className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} />
+                  {(() => {
+                    const phoneCheck = validateRegionalPhone(form.phone);
+                    return (
+                      <>
+                        <input 
+                          className="input-field" 
+                          type="tel" 
+                          placeholder={phoneCheck.config?.example ? `e.g. ${phoneCheck.config.example}` : '+44 7911 123456'} 
+                          value={form.phone} 
+                          onChange={e => set('phone', sanitizePhoneInput(e.target.value))} 
+                          style={{
+                            borderColor: form.phone && !phoneCheck.isValid ? '#EF4444' : undefined
+                          }}
+                        />
+                        {form.phone && !phoneCheck.isValid && (
+                          <div style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.3rem', fontWeight: 600 }}>
+                            ⚠️ {phoneCheck.message}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </PF>
                 {user?.role !== 'admin' && (
                   <>

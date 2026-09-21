@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { authService } from '../../services/authService';
 import SEO from '../../components/SEO';
+import { validateRegionalPhone, sanitizePhoneInput } from '../../utils/phoneValidation';
 
 const getAvatarUrl = (avatar) => {
   if (!avatar) return null;
@@ -113,10 +114,9 @@ export default function ProfileSetup() {
 
     // Combine country code and local number
     const fullPhone = `${selectedCountryCode}${trimmedLocal}`;
-    const phoneRegex = /^\+?[0-9\s\-()]+$/;
-    const digitCount = fullPhone.replace(/\D/g, '').length;
-    if (!phoneRegex.test(fullPhone) || digitCount < 7 || digitCount > 15) {
-      showToast('Please enter a valid phone number (between 7 and 15 digits).', 'error');
+    const validation = validateRegionalPhone(trimmedLocal, selectedCountryCode);
+    if (!validation.isValid) {
+      showToast(validation.message, 'error');
       return;
     }
 
@@ -251,16 +251,30 @@ export default function ProfileSetup() {
                   </option>
                 ))}
               </select>
-              <input 
-                type="tel" 
-                className="input-field" 
-                style={{ borderRadius: '0 var(--radius-md) var(--radius-md) 0', flex: 1 }} 
-                placeholder="7946 0958" 
-                value={localNumber}
-                onChange={(e) => setLocalNumber(e.target.value)}
-                required 
-              />
+              {(() => {
+                const phoneCheck = validateRegionalPhone(localNumber, selectedCountryCode);
+                return (
+                  <input 
+                    type="tel" 
+                    className="input-field" 
+                    style={{ 
+                      borderRadius: '0 var(--radius-md) var(--radius-md) 0', 
+                      flex: 1,
+                      borderColor: localNumber && !phoneCheck.isValid ? '#EF4444' : undefined
+                    }} 
+                    placeholder={phoneCheck.config?.example || '7946 0958'} 
+                    value={localNumber}
+                    onChange={(e) => setLocalNumber(sanitizePhoneInput(e.target.value))}
+                    required 
+                  />
+                );
+              })()}
             </div>
+            {localNumber && !validateRegionalPhone(localNumber, selectedCountryCode).isValid && (
+              <div style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.35rem', fontWeight: 600 }}>
+                ⚠️ {validateRegionalPhone(localNumber, selectedCountryCode).message}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.5rem', borderTop: '1px solid var(--color-border)' }}>

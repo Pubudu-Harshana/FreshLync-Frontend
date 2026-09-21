@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { UploadCloud, Info, CheckCircle2, Shield, Lock, FileText, Check, Trash2, Loader } from 'lucide-react';
 import { useSetup } from '../../context/SetupContext';
 import { useAuth } from '../../context/AuthContext';
-import { useNotification } from '../../context/NotificationContext';
 import { authService } from '../../services/authService';
 import SEO from '../../components/SEO';
+import { validateRegionalPhone, sanitizePhoneInput } from '../../utils/phoneValidation';
 
 const ENTITY_TYPES = ['Corporation', 'LLC', 'Partnership', 'Sole Proprietorship', 'Cooperatives'];
 
@@ -97,19 +97,17 @@ export default function BusinessVerification() {
     }
 
     // Validate phone number formats
-    const phoneRegex = /^\+?[0-9\s\-()]+$/;
-
     const busPhoneVal = formData.businessPhone.trim();
-    const busDigitCount = busPhoneVal.replace(/\D/g, '').length;
-    if (!phoneRegex.test(busPhoneVal) || busDigitCount < 7 || busDigitCount > 15) {
-      showToast('Please enter a valid business phone number (between 7 and 15 digits).', 'error');
+    const busCheck = validateRegionalPhone(busPhoneVal);
+    if (!busCheck.isValid) {
+      showToast(`Business Phone: ${busCheck.message}`, 'error');
       return;
     }
 
     const conPhoneVal = formData.contactPhone.trim();
-    const conDigitCount = conPhoneVal.replace(/\D/g, '').length;
-    if (!phoneRegex.test(conPhoneVal) || conDigitCount < 7 || conDigitCount > 15) {
-      showToast('Please enter a valid representative phone number (between 7 and 15 digits).', 'error');
+    const conCheck = validateRegionalPhone(conPhoneVal);
+    if (!conCheck.isValid) {
+      showToast(`Representative Phone: ${conCheck.message}`, 'error');
       return;
     }
 
@@ -216,14 +214,29 @@ export default function BusinessVerification() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Business Phone *</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      placeholder="+44 20 7946 0958" 
-                      value={formData.businessPhone}
-                      onChange={(e) => setFormData({...formData, businessPhone: e.target.value})}
-                      required
-                    />
+                    {(() => {
+                      const busCheck = validateRegionalPhone(formData.businessPhone);
+                      return (
+                        <>
+                          <input 
+                            type="tel" 
+                            className="input-field" 
+                            placeholder={busCheck.config?.example ? `e.g. ${busCheck.config.example}` : '+44 20 7946 0958'} 
+                            value={formData.businessPhone}
+                            onChange={(e) => setFormData({...formData, businessPhone: sanitizePhoneInput(e.target.value)})}
+                            style={{
+                              borderColor: formData.businessPhone && !busCheck.isValid ? '#EF4444' : undefined
+                            }}
+                            required
+                          />
+                          {formData.businessPhone && !busCheck.isValid && (
+                            <div style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.3rem', fontWeight: 600 }}>
+                              ⚠️ {busCheck.message}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -295,13 +308,29 @@ export default function BusinessVerification() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>Phone Number *</label>
-                    <input 
-                      type="text" 
-                      className="input-field" 
-                      value={formData.contactPhone}
-                      onChange={(e) => setFormData({...formData, contactPhone: e.target.value})}
-                      required
-                    />
+                    {(() => {
+                      const conCheck = validateRegionalPhone(formData.contactPhone);
+                      return (
+                        <>
+                          <input 
+                            type="tel" 
+                            className="input-field" 
+                            placeholder={conCheck.config?.example ? `e.g. ${conCheck.config.example}` : '+44 7911 123456'} 
+                            value={formData.contactPhone}
+                            onChange={(e) => setFormData({...formData, contactPhone: sanitizePhoneInput(e.target.value)})}
+                            style={{
+                              borderColor: formData.contactPhone && !conCheck.isValid ? '#EF4444' : undefined
+                            }}
+                            required
+                          />
+                          {formData.contactPhone && !conCheck.isValid && (
+                            <div style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.3rem', fontWeight: 600 }}>
+                              ⚠️ {conCheck.message}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

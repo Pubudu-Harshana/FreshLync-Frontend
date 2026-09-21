@@ -6,6 +6,7 @@ import { useCart } from '../../context/CartContext';
 import { orderService } from '../../services/orderService';
 import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
+import { validateRegionalPhone, sanitizePhoneInput } from '../../utils/phoneValidation';
 
 const PAYMENT_METHODS = [
   { id: 'card', label: 'Credit / Debit Card', icon: CreditCard },
@@ -42,7 +43,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
   const [delivery, setDelivery] = useState({
-    firstName: '', lastName: '', company: '', email: '',
+    firstName: '', lastName: '', company: '', email: '', phone: user?.phone || '',
     address: '', city: '', postcode: '', country: 'United Kingdom',
   });
   const [paymentSlip, setPaymentSlip] = useState('');
@@ -185,7 +186,8 @@ export default function Checkout() {
     }
   };
 
-  const deliveryComplete = delivery.firstName && delivery.lastName && delivery.email && delivery.address && delivery.city && delivery.postcode;
+  const isPhoneValid = validateRegionalPhone(delivery.phone).isValid;
+  const deliveryComplete = delivery.firstName && delivery.lastName && delivery.email && delivery.address && delivery.city && delivery.postcode && isPhoneValid;
 
   return (
     <div className="responsive-page" style={{ maxWidth: 1000, margin: '0 auto', padding: '2rem' }}>
@@ -216,7 +218,33 @@ export default function Checkout() {
                   <div><label style={labelStyle}>First Name *</label><input style={inputStyle} value={delivery.firstName} onChange={e => setD('firstName', e.target.value)} required /></div>
                   <div><label style={labelStyle}>Last Name *</label><input style={inputStyle} value={delivery.lastName} onChange={e => setD('lastName', e.target.value)} required /></div>
                   <div style={{ gridColumn: '1/-1' }}><label style={labelStyle}>Company</label><input style={inputStyle} value={delivery.company} onChange={e => setD('company', e.target.value)} placeholder="(optional)" /></div>
-                  <div style={{ gridColumn: '1/-1' }}><label style={labelStyle}>Email *</label><input style={inputStyle} type="email" value={delivery.email} onChange={e => setD('email', e.target.value)} required /></div>
+                  <div><label style={labelStyle}>Email *</label><input style={inputStyle} type="email" value={delivery.email} onChange={e => setD('email', e.target.value)} required /></div>
+                  <div>
+                    <label style={labelStyle}>Phone Number *</label>
+                    {(() => {
+                      const phoneCheck = validateRegionalPhone(delivery.phone);
+                      return (
+                        <>
+                          <input 
+                            style={{
+                              ...inputStyle,
+                              borderColor: delivery.phone && !phoneCheck.isValid ? '#EF4444' : 'var(--color-border)'
+                            }} 
+                            type="tel" 
+                            placeholder={phoneCheck.config?.example ? `e.g. ${phoneCheck.config.example}` : '+44 7911 123456'} 
+                            value={delivery.phone} 
+                            onChange={e => setD('phone', sanitizePhoneInput(e.target.value))} 
+                            required 
+                          />
+                          {delivery.phone && !phoneCheck.isValid && (
+                            <div style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.3rem', fontWeight: 600 }}>
+                              ⚠️ {phoneCheck.message}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                   <div style={{ gridColumn: '1/-1' }}><label style={labelStyle}>Address *</label><input style={inputStyle} value={delivery.address} onChange={e => setD('address', e.target.value)} required /></div>
                   <div><label style={labelStyle}>City *</label><input style={inputStyle} value={delivery.city} onChange={e => setD('city', e.target.value)} required /></div>
                   <div><label style={labelStyle}>Postcode *</label><input style={inputStyle} value={delivery.postcode} onChange={e => setD('postcode', e.target.value)} required /></div>
