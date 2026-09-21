@@ -56,6 +56,9 @@ export const adminService = {
         platformProfit: stats.platformProfit,
         dailyRevenue: stats.dailyRevenue,
         activities: stats.activities,
+        supplierRevenue: stats.supplierRevenue !== undefined ? stats.supplierRevenue : (stats.totalGMV ? parseFloat((stats.totalGMV - (stats.platformProfit || 0)).toFixed(2)) : 0),
+        marketplaceRevenue: stats.marketplaceRevenue !== undefined ? stats.marketplaceRevenue : (stats.totalGMV || 0),
+        marginRevenue: stats.marginRevenue !== undefined ? stats.marginRevenue : (stats.platformProfit || 0),
       };
     } catch {
       // Return fully functional mock fallback if backend is down

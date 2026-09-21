@@ -587,7 +587,7 @@ export default function AdminDashboardOverview() {
                   <div style={{ background: '#F8FAFC', padding: '0.875rem 1.25rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Supplier Payouts (Wholesale Share)</div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#047857', marginTop: '0.25rem' }}>
-                      £{Number(stats?.supplierRevenue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2 })}
+                      £{Number(stats?.supplierRevenue || Math.max(0, (Number(stats?.marketplaceRevenue || stats?.totalGMV || 0) - Number(stats?.marginRevenue || stats?.platformProfit || 0)))).toLocaleString('en-GB', { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                   <div style={{ background: '#F8FAFC', padding: '0.875rem 1.25rem', borderRadius: 8, border: '1px solid var(--color-border)' }}>
