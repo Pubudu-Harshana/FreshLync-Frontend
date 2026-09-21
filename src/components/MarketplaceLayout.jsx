@@ -4,6 +4,7 @@ import { Bell, ShoppingCart, LogOut, Info, Store, Users, User, Wallet, Package, 
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import ChatbotWidget from './ChatbotWidget';
+import LoadingSpinner from './LoadingSpinner';
 
 const getAvatarUrl = (avatar) => {
   if (!avatar) return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100";

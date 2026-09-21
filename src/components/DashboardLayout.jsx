@@ -56,6 +56,10 @@ export default function DashboardLayout() {
     }
   }, [user, loading, fetchNotifs]);
 
+  useEffect(() => {
+    console.log('[DashboardLayout] Render or user changed. Avatar source:', getAvatarUrl(user?.avatar));
+  }, [user]);
+
   if (loading) {
     return <LoadingSpinner fullPage message="Authenticating session..." />;
   }
@@ -134,10 +138,6 @@ export default function DashboardLayout() {
       console.error(err);
     }
   };
-
-  React.useEffect(() => {
-    console.log('[DashboardLayout] Render or user changed. Avatar source:', getAvatarUrl(user?.avatar));
-  }, [user]);
 
   const navItemStyle = ({ isActive }) => ({
     display: 'flex',
